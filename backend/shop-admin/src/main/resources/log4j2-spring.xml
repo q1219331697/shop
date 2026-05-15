@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Log4j2日志配置文件（Spring Boot专用版）
+
+  文件命名说明：
+    本文件命名为 log4j2-spring.xml（带 -spring 后缀），而非 log4j2.xml，原因如下：
+    1. Spring Boot 会识别 -spring 后缀，延迟加载此配置文件，等待 Spring Environment 就绪后再初始化
+    2. 因此支持 ${spring:属性名} 语法，可直接引用 Spring 配置属性（如 spring.application.name）
+    3. 支持 Spring Profile 切换（如 <Routes pattern="${spring:profiles.active}">）
+    4. 如果命名为 log4j2.xml，Spring Boot 会在 Spring 初始化之前加载，${spring:...} 将无法解析
+
+  配置说明：
+    1. status: 日志框架自身的日志级别，可选值：TRACE, DEBUG, INFO, WARN, ERROR, FATAL, OFF
+    2. monitorInterval: 自动检测配置文件变化的时间间隔（秒），设置为30表示每30秒检测一次
+
+  参数覆盖方式：
+    1. 直接修改下面的属性值
+    2. JVM参数覆盖: java -DKAFKA_BOOTSTRAP_SERVERS=xxx -jar xxx.jar
+    3. 环境变量覆盖: export KAFKA_BOOTSTRAP_SERVERS=xxx
+-->
+<Configuration status="WARN" monitorInterval="30">
+    <Properties>
+        <Property name="KAFKA_BOOTSTRAP_SERVERS">localhost:9094</Property>
+        <Property name="KAFKA_TOPIC">shop-logs</Property>
+        <Property name="KAFKA_SYNC_SEND">false</Property>
+        <Property name="ROOT_LOG_LEVEL">INFO</Property>
+        <Property name="MYBATIS_PLUS_LOG_LEVEL">DEBUG</Property>
+        <Property name="APP_LOG_LEVEL">DEBUG</Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </Console>
+
+        <Kafka name="Kafka" topic="${KAFKA_TOPIC}" syncSend="${KAFKA_SYNC_SEND}">
+            <PatternLayout pattern="[%d{ISO8601}] [${spring:spring.application.name}] [%t] [%level] [%C.%M(%L)] - [%msg%n]" charset="UTF-8"/>
+            <Property name="bootstrap.servers">${KAFKA_BOOTSTRAP_SERVERS}</Property>
+        </Kafka>
+    </Appenders>
+
+    <Loggers>
+        <Root level="${ROOT_LOG_LEVEL}">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="Kafka"/>
+        </Root>
+        <Logger name="com.baomidou.mybatisplus" level="${MYBATIS_PLUS_LOG_LEVEL}"/>
+        <Logger name="com.shop" level="${APP_LOG_LEVEL}"/>
+    </Loggers>
+</Configuration>

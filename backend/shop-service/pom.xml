@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ 业务逻辑层模块
+  ~ 提供 Service 接口与实现，封装核心业务逻辑
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!-- Maven 模型版本 -->
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- 继承商城根项目 -->
+    <parent>
+        <groupId>com.shop</groupId>
+        <artifactId>shop</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>shop-service</artifactId>
+    <name>shop-service</name>
+    <description>业务层模块 - Service接口与实现</description>
+
+    <dependencies>
+        <!-- ==================== 项目内部模块 ==================== -->
+        <!-- 依赖数据访问层模块 -->
+        <dependency>
+            <groupId>com.shop</groupId>
+            <artifactId>shop-mapper</artifactId>
+        </dependency>
+
+        <!-- ==================== Spring Boot 核心 ==================== -->
+        <!-- Spring Boot Starter（排除默认 Logback 日志，使用 Log4j2） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- Log4j2 日志框架 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-log4j2</artifactId>
+        </dependency>
+
+        <!-- ==================== 开发工具 ==================== -->
+        <!-- Lombok 注解处理器 -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+</project>

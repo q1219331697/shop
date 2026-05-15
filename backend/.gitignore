@@ -1,0 +1,95 @@
+# ==================== Maven ====================
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# ==================== IDE ====================
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# VS Code
+.vscode/
+
+# Eclipse
+.settings/
+.classpath
+.project
+.factorypath
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+
+# ==================== Java ====================
+# 编译输出
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+replay_pid*
+
+# ==================== 日志 ====================
+logs/
+*.log
+log/
+
+# ==================== 操作系统 ====================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ==================== Spring Boot ====================
+# 配置文件中的敏感信息（生产环境配置）
+# application-prod.yml
+# application-prod.properties
+
+# ==================== Docker ====================
+# Docker Compose 运行时数据目录
+docker/volumes/
+
+# ==================== 其他 ====================
+# 包管理锁文件
+node_modules/
+package-lock.json
+
+# 临时文件
+*.tmp
+*.bak
+*.swp
+*.cache
+*.pid
+*.seed
+

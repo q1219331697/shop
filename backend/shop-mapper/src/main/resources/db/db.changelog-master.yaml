@@ -1,0 +1,5 @@
+databaseChangeLog:
+  # 公共变更集（所有模块都会执行）
+  - includeAll:
+      path: changelog/
+      relativeToChangelogFile: true

@@ -1,0 +1,9 @@
+databaseChangeLog:
+  # 引入公共变更集（shop-mapper模块）
+  - include:
+      file: db/db.changelog-master.yaml
+
+  # API模块专属变更集
+  - includeAll:
+      path: changelog/
+      relativeToChangelogFile: true
