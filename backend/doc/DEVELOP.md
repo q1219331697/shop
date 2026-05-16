@@ -72,9 +72,167 @@ shop/
 
 所有类、方法和公共字段必须添加中文注释。
 
+#### 2.1 类注释
+
+使用标准 Javadoc 格式，包含描述段落（含 `<p>` 标签）、`@author` 和 `@since` 标签：
+
+```java
+/**
+ * 后台管理用户实体类
+ * <p>
+ * 对应数据库表 t_admin_user，用于存储后台管理系统的用户信息
+ * </p>
+ *
+ * @author shop
+ * @since 1.0.0
+ */
+```
+
+规则：
+- 描述段落第一句简短概括，`<p>` 标签内补充详细说明
+- `<p>` 标签独占一行，内容换行书写，`</p>` 闭合标签独占一行
+- 必须包含 `@author` 和 `@since` 标签
+
+#### 2.2 字段注释
+
+使用多行 Javadoc 格式，每个字段注释独占三行：
+
+```java
+/**
+ * 管理用户ID，主键自增
+ */
+@Schema(description = "管理用户ID")
+@TableId(type = IdType.AUTO)
+private Long id;
+```
+
+规则：
+- 禁止使用单行注释 `/** XXX */`，必须使用多行格式
+- 注释内容应包含字段含义及关键约束（如"主键自增"、"唯一"、"关联 t_user.id"等）
+- Javadoc 与注解之间不加空行
+- 字段之间保留一个空行
+
+#### 2.3 方法注释
+
+使用标准 Javadoc 格式，包含描述和必要的 `@param`、`@return`、`@throws` 标签：
+
+```java
+/**
+ * 根据用户名查询用户
+ *
+ * @param username 用户名
+ * @return 用户实体
+ * @throws BusinessException 用户不存在时抛出
+ */
+```
+
 ### 3. 代码格式
 
-使用统一的代码格式化配置，建议使用 IDEA 的格式化功能。
+#### 3.1 Import 排列
+
+import 按以下顺序排列，仅 `java.*` 前加一个空行分隔：
+
+```java
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.baomidou.mybatisplus.annotation.TableName;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+
+import java.io.Serializable;
+import java.time.LocalDateTime;
+```
+
+规则：
+- 第三方库（com.baomidou、io.swagger、lombok 等）紧排，不加分组空行
+- `java.*` 标准库之前加一个空行
+- 禁止使用通配符 import（`import xxx.*`）
+
+#### 3.2 缩进与空行
+
+- 缩进：4 空格，禁止使用 Tab
+- 花括号风格：K&R（左花括号不换行，跟在行末）
+- 字段之间：保留一个空行
+- 方法之间：保留一个空行
+- 类成员顺序：静态变量 → 实例变量 → 构造方法 → 公有方法 → 私有方法
+
+#### 3.3 实体类模板
+
+```java
+package com.shop.xxx.entity;
+
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.baomidou.mybatisplus.annotation.TableName;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+
+import java.io.Serializable;
+import java.time.LocalDateTime;
+
+/**
+ * XXX实体类
+ * <p>
+ * 对应数据库表 t_xxx，用于存储XXX信息
+ * </p>
+ *
+ * @author shop
+ * @since 1.0.0
+ */
+@Data
+@Schema(description = "XXX实体")
+@TableName("t_xxx")
+public class XxxEntity implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * 主键ID，主键自增
+     */
+    @Schema(description = "主键ID")
+    @TableId(type = IdType.AUTO)
+    private Long id;
+
+    // ... 业务字段 ...
+
+    /**
+     * 删除标记：0-未删除，1-已删除（逻辑删除）
+     */
+    @Schema(description = "删除标记：0-未删除，1-已删除")
+    @TableLogic
+    private Integer deleted;
+
+    /**
+     * 创建时间，自动填充
+     */
+    @Schema(description = "创建时间")
+    @TableField(fill = FieldFill.INSERT)
+    private LocalDateTime createTime;
+
+    /**
+     * 更新时间，自动填充
+     */
+    @Schema(description = "更新时间")
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private LocalDateTime updateTime;
+}
+```
+
+实体类规则：
+- 必须实现 `Serializable` 接口
+- 必须声明 `serialVersionUID`
+- 使用 Lombok `@Data` 注解
+- 使用 Swagger `@Schema` 注解为每个字段添加描述
+- Javadoc 与 `@Schema` 描述内容可以重复（Javadoc 服务于 IDE 提示，@Schema 服务于 API 文档）
+- 审计字段（deleted、createTime、updateTime）放在业务字段之后
+- 逻辑删除字段统一使用 `Integer deleted`，配合 `@TableLogic`
+- 时间字段统一使用 `LocalDateTime`，配合 `@TableField(fill = ...)` 自动填充
 
 ## 开发流程
 

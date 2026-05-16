@@ -1,4 +1,4 @@
-package com.shop.entity;
+package com.shop.admin.entity;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
@@ -10,79 +10,60 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * 商品实体类
+ * 后台角色实体类
  * <p>
- * 对应数据库表 t_product，用于存储商品信息
+ * 对应数据库表 t_admin_role，用于RBAC模型中的角色管理
  * </p>
  *
  * @author shop
- * @since 1.0.0
+ * @since 1.1.0
  */
 @Data
-@Schema(description = "商品实体")
-@TableName("t_product")
-public class ProductEntity implements Serializable {
+@Schema(description = "后台角色实体")
+@TableName("t_admin_role")
+public class AdminRoleEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     /**
-     * 商品ID，主键自增
+     * 角色ID，主键自增
      */
-    @Schema(description = "商品ID")
+    @Schema(description = "角色ID")
     @TableId(type = IdType.AUTO)
     private Long id;
 
     /**
-     * 商品名称
+     * 角色名称，唯一
      */
-    @Schema(description = "商品名称")
-    private String name;
+    @Schema(description = "角色名称")
+    private String roleName;
 
     /**
-     * 商品描述
+     * 角色编码，唯一，如 ROLE_ADMIN
      */
-    @Schema(description = "商品描述")
+    @Schema(description = "角色编码")
+    private String roleCode;
+
+    /**
+     * 角色描述
+     */
+    @Schema(description = "角色描述")
     private String description;
 
     /**
-     * 商品价格
+     * 排序序号，越小越靠前
      */
-    @Schema(description = "商品价格")
-    private BigDecimal price;
+    @Schema(description = "排序")
+    private Integer sortOrder;
 
     /**
-     * 库存数量
+     * 状态：0-禁用，1-正常
      */
-    @Schema(description = "库存数量")
-    private Integer stock;
-
-    /**
-     * 商品图片URL
-     */
-    @Schema(description = "商品图片")
-    private String image;
-
-    /**
-     * 分类ID，关联 t_category.id
-     */
-    @Schema(description = "分类ID")
-    private Integer categoryId;
-
-    /**
-     * 状态：0-下架，1-上架，2-库存不足
-     */
-    @Schema(description = "状态：0-下架，1-上架，2-库存不足")
+    @Schema(description = "状态：0-禁用，1-正常")
     private Integer status;
-
-    /**
-     * 销量
-     */
-    @Schema(description = "销量")
-    private Integer sales;
 
     /**
      * 删除标记：0-未删除，1-已删除（逻辑删除）

@@ -15,6 +15,11 @@ import java.time.LocalDateTime;
 
 /**
  * 订单实体类
+ * <p>
+ * 对应数据库表 t_order，用于存储订单信息
+ * </p>
+ *
+ * @author shop
  * @since 1.0.0
  */
 @Data
@@ -25,20 +30,20 @@ public class OrderEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 订单ID
+     * 订单ID，主键自增
      */
     @Schema(description = "订单ID")
     @TableId(type = IdType.AUTO)
     private Long id;
 
     /**
-     * 订单号
+     * 订单号，唯一
      */
     @Schema(description = "订单号")
     private String orderNo;
 
     /**
-     * 用户ID
+     * 用户ID，关联 t_user.id
      */
     @Schema(description = "用户ID")
     private Long userId;
@@ -80,21 +85,21 @@ public class OrderEntity implements Serializable {
     private String remark;
 
     /**
-     * 删除标记：0-未删除，1-已删除
+     * 删除标记：0-未删除，1-已删除（逻辑删除）
      */
     @Schema(description = "删除标记：0-未删除，1-已删除")
     @TableLogic
     private Integer deleted;
 
     /**
-     * 创建时间
+     * 创建时间，自动填充
      */
     @Schema(description = "创建时间")
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 
     /**
-     * 更新时间
+     * 更新时间，自动填充
      */
     @Schema(description = "更新时间")
     @TableField(fill = FieldFill.INSERT_UPDATE)
