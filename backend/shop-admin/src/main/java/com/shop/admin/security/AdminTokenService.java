@@ -1,10 +1,12 @@
 package com.shop.admin.security;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -18,14 +20,31 @@ import java.util.concurrent.TimeUnit;
 public class AdminTokenService {
 
     private static final String TOKEN_KEY_PREFIX = "admin:token:";
+    private static final String VALUE_SEPARATOR = ":";
+    private static final int MASK_MIN_TOKEN_LENGTH = 8;
+    private static final int MASK_VISIBLE_CHARS = 4;
 
-    @Value("${admin.token.expire-hours:24}")
-    private int expireHours;
+    @Value("${admin.token.expire:2h}")
+    private Duration tokenExpire;
 
     private final StringRedisTemplate redisTemplate;
 
     public AdminTokenService(StringRedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;
+    }
+
+    /**
+     * Token解析后的管理员信息
+     */
+    @Getter
+    public static class AdminTokenInfo {
+        private final Long adminUserId;
+        private final String username;
+
+        public AdminTokenInfo(Long adminUserId, String username) {
+            this.adminUserId = adminUserId;
+            this.username = username;
+        }
     }
 
     /**
@@ -37,10 +56,42 @@ public class AdminTokenService {
     public String createToken(Long adminUserId, String username) {
         String token = UUID.randomUUID().toString().replace("-", "");
         String key = TOKEN_KEY_PREFIX + token;
-        String value = adminUserId + ":" + username;
-        redisTemplate.opsForValue().set(key, value, expireHours, TimeUnit.HOURS);
+        // 格式：adminUserId:username
+        String value = adminUserId + VALUE_SEPARATOR + username;
+        redisTemplate.opsForValue().set(key, value, tokenExpire.toSeconds(), TimeUnit.SECONDS);
         log.info("创建管理员Token, adminUserId: {}, username: {}", adminUserId, username);
         return token;
+    }
+
+    /**
+     * 验证Token并获取管理员信息
+     * <p>一次性从Redis获取值并解析，避免多次Redis访问间的竞态问题</p>
+     * @param token token字符串
+     * @return 管理员信息，Token无效返回null
+     */
+    public AdminTokenInfo validateAndGetInfo(String token) {
+        String value = getTokenValue(token);
+        if (value == null) {
+            return null;
+        }
+        try {
+            // 格式：adminUserId:username
+            String[] parts = value.split(VALUE_SEPARATOR, 2);
+            if (parts.length != 2) {
+                log.warn("Token值格式异常: {}", maskToken(token));
+                return null;
+            }
+            Long adminUserId = Long.valueOf(parts[0]);
+            String username = parts[1];
+            if (username.isEmpty()) {
+                log.warn("Token中用户名为空: {}", maskToken(token));
+                return null;
+            }
+            return new AdminTokenInfo(adminUserId, username);
+        } catch (NumberFormatException e) {
+            log.warn("Token中管理员ID格式异常: {}", maskToken(token));
+            return null;
+        }
     }
 
     /**
@@ -49,37 +100,7 @@ public class AdminTokenService {
      * @return 是否有效
      */
     public boolean validateToken(String token) {
-        if (token == null || token.isEmpty()) {
-            return false;
-        }
-        String key = TOKEN_KEY_PREFIX + token;
-        return Boolean.TRUE.equals(redisTemplate.hasKey(key));
-    }
-
-    /**
-     * 从Token中获取管理员ID
-     * @param token token字符串
-     * @return 管理员ID，无效返回null
-     */
-    public Long getAdminUserId(String token) {
-        String value = getTokenValue(token);
-        if (value == null) {
-            return null;
-        }
-        return Long.valueOf(value.split(":")[0]);
-    }
-
-    /**
-     * 从Token中获取用户名
-     * @param token token字符串
-     * @return 用户名，无效返回null
-     */
-    public String getUsername(String token) {
-        String value = getTokenValue(token);
-        if (value == null) {
-            return null;
-        }
-        return value.split(":")[1];
+        return getTokenValue(token) != null;
     }
 
     /**
@@ -88,7 +109,9 @@ public class AdminTokenService {
      */
     public void refreshToken(String token) {
         String key = TOKEN_KEY_PREFIX + token;
-        redisTemplate.expire(key, expireHours, TimeUnit.HOURS);
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
+            redisTemplate.expire(key, tokenExpire.toSeconds(), TimeUnit.SECONDS);
+        }
     }
 
     /**
@@ -98,7 +121,7 @@ public class AdminTokenService {
     public void removeToken(String token) {
         String key = TOKEN_KEY_PREFIX + token;
         redisTemplate.delete(key);
-        log.info("删除管理员Token");
+        log.info("删除管理员Token: {}", maskToken(token));
     }
 
     /**
@@ -112,5 +135,18 @@ public class AdminTokenService {
         }
         String key = TOKEN_KEY_PREFIX + token;
         return redisTemplate.opsForValue().get(key);
+    }
+
+    /**
+     * 对Token进行脱敏处理，显示前4位和后4位，中间用****替代
+     * @param token 原始token
+     * @return 脱敏后的token
+     */
+    private String maskToken(String token) {
+        if (token == null || token.length() <= MASK_MIN_TOKEN_LENGTH) {
+            return "****";
+        }
+        return token.substring(0, MASK_VISIBLE_CHARS) + "****"
+                + token.substring(token.length() - MASK_VISIBLE_CHARS);
     }
 }

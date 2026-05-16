@@ -1,0 +1,209 @@
+
+package com.shop.admin.service.impl;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.shop.admin.entity.AdminRoleEntity;
+import com.shop.admin.entity.AdminRolePermissionEntity;
+import com.shop.admin.entity.AdminUserRoleEntity;
+import com.shop.admin.mapper.AdminRoleMapper;
+import com.shop.admin.mapper.AdminRolePermissionMapper;
+import com.shop.admin.mapper.AdminUserRoleMapper;
+import com.shop.admin.service.AdminRoleService;
+import com.shop.common.Result;
+import com.shop.common.ResultCode;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * 后台角色服务实现类
+ * @since 1.1.0
+ */
+@Slf4j
+@Service
+public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRoleEntity> implements AdminRoleService {
+
+    private final AdminRolePermissionMapper rolePermissionMapper;
+    private final AdminUserRoleMapper userRoleMapper;
+
+    public AdminRoleServiceImpl(AdminRolePermissionMapper rolePermissionMapper,
+                                AdminUserRoleMapper userRoleMapper) {
+        this.rolePermissionMapper = rolePermissionMapper;
+        this.userRoleMapper = userRoleMapper;
+    }
+
+    @Override
+    public Result<Void> createRole(AdminRoleEntity role) {
+        log.info("创建角色请求, roleName: {}, roleCode: {}", role.getRoleName(), role.getRoleCode());
+
+        // 校验角色名称唯一
+        LambdaQueryWrapper<AdminRoleEntity> nameWrapper = new LambdaQueryWrapper<>();
+        nameWrapper.eq(AdminRoleEntity::getRoleName, role.getRoleName());
+        if (this.count(nameWrapper) > 0) {
+            log.warn("创建角色失败, 角色名称已存在, roleName: {}", role.getRoleName());
+            return Result.error(ResultCode.PARAM_ERROR, "角色名称已存在");
+        }
+
+        // 校验角色编码唯一
+        LambdaQueryWrapper<AdminRoleEntity> codeWrapper = new LambdaQueryWrapper<>();
+        codeWrapper.eq(AdminRoleEntity::getRoleCode, role.getRoleCode());
+        if (this.count(codeWrapper) > 0) {
+            log.warn("创建角色失败, 角色编码已存在, roleCode: {}", role.getRoleCode());
+            return Result.error(ResultCode.PARAM_ERROR, "角色编码已存在");
+        }
+
+        if (role.getStatus() == null) {
+            role.setStatus(1);
+        }
+        if (role.getSortOrder() == null) {
+            role.setSortOrder(0);
+        }
+
+        boolean success = this.save(role);
+        if (success) {
+            log.info("创建角色成功, roleId: {}, roleName: {}", role.getId(), role.getRoleName());
+        } else {
+            log.error("创建角色失败, roleName: {}", role.getRoleName());
+        }
+        return success ? Result.success() : Result.error(ResultCode.OPERATION_FAILED, "创建角色失败");
+    }
+
+    @Override
+    public Result<Void> updateRole(AdminRoleEntity role) {
+        log.info("更新角色信息, roleId: {}", role.getId());
+        AdminRoleEntity existRole = this.getById(role.getId());
+        if (existRole == null) {
+            log.warn("更新角色失败, 角色不存在, roleId: {}", role.getId());
+            return Result.error(ResultCode.PARAM_ERROR, "角色不存在");
+        }
+
+        // 校验角色名称唯一
+        if (role.getRoleName() != null && !role.getRoleName().equals(existRole.getRoleName())) {
+            LambdaQueryWrapper<AdminRoleEntity> nameWrapper = new LambdaQueryWrapper<>();
+            nameWrapper.eq(AdminRoleEntity::getRoleName, role.getRoleName());
+            if (this.count(nameWrapper) > 0) {
+                log.warn("更新角色失败, 角色名称已存在, roleName: {}", role.getRoleName());
+                return Result.error(ResultCode.PARAM_ERROR, "角色名称已存在");
+            }
+        }
+
+        // 不允许修改角色编码
+        role.setRoleCode(null);
+
+        boolean success = this.updateById(role);
+        if (success) {
+            log.info("更新角色成功, roleId: {}", role.getId());
+        } else {
+            log.error("更新角色失败, roleId: {}", role.getId());
+        }
+        return success ? Result.success() : Result.error(ResultCode.OPERATION_FAILED, "更新角色失败");
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Void> deleteRole(Long id) {
+        log.info("删除角色请求, roleId: {}", id);
+        AdminRoleEntity existRole = this.getById(id);
+        if (existRole == null) {
+            log.warn("删除角色失败, 角色不存在, roleId: {}", id);
+            return Result.error(ResultCode.PARAM_ERROR, "角色不存在");
+        }
+
+        // 检查是否有用户关联此角色
+        LambdaQueryWrapper<AdminUserRoleEntity> userRoleWrapper = new LambdaQueryWrapper<>();
+        userRoleWrapper.eq(AdminUserRoleEntity::getRoleId, id);
+        if (userRoleMapper.selectCount(userRoleWrapper) > 0) {
+            log.warn("删除角色失败, 角色下存在用户, roleId: {}", id);
+            return Result.error(ResultCode.OPERATION_FAILED, "该角色下存在用户，无法删除");
+        }
+
+        // 删除角色权限关联
+        LambdaQueryWrapper<AdminRolePermissionEntity> rpWrapper = new LambdaQueryWrapper<>();
+        rpWrapper.eq(AdminRolePermissionEntity::getRoleId, id);
+        rolePermissionMapper.delete(rpWrapper);
+
+        // 删除角色
+        boolean success = this.removeById(id);
+        if (success) {
+            log.info("删除角色成功, roleId: {}", id);
+        } else {
+            log.error("删除角色失败, roleId: {}", id);
+        }
+        return success ? Result.success() : Result.error(ResultCode.OPERATION_FAILED, "删除角色失败");
+    }
+
+    @Override
+    public Result<AdminRoleEntity> getRoleInfo(Long id) {
+        log.info("获取角色信息, roleId: {}", id);
+        AdminRoleEntity role = this.getById(id);
+        if (role == null) {
+            log.warn("获取角色信息失败, 角色不存在, roleId: {}", id);
+            return Result.error(ResultCode.PARAM_ERROR, "角色不存在");
+        }
+        return Result.success(role);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Void> assignPermissions(Long roleId, List<Long> permissionIds) {
+        log.info("为角色分配权限, roleId: {}, permissionIds: {}", roleId, permissionIds);
+        AdminRoleEntity existRole = this.getById(roleId);
+        if (existRole == null) {
+            log.warn("分配权限失败, 角色不存在, roleId: {}", roleId);
+            return Result.error(ResultCode.PARAM_ERROR, "角色不存在");
+        }
+
+        // 删除原有权限关联
+        LambdaQueryWrapper<AdminRolePermissionEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(AdminRolePermissionEntity::getRoleId, roleId);
+        rolePermissionMapper.delete(wrapper);
+
+        // 批量插入新的权限关联
+        if (permissionIds != null && !permissionIds.isEmpty()) {
+            List<AdminRolePermissionEntity> rpList = permissionIds.stream().map(permissionId -> {
+                AdminRolePermissionEntity rp = new AdminRolePermissionEntity();
+                rp.setRoleId(roleId);
+                rp.setPermissionId(permissionId);
+                return rp;
+            }).collect(Collectors.toList());
+            for (AdminRolePermissionEntity rp : rpList) {
+                rolePermissionMapper.insert(rp);
+            }
+        }
+
+        log.info("为角色分配权限成功, roleId: {}", roleId);
+        return Result.success();
+    }
+
+    @Override
+    public Result<List<Long>> getRolePermissionIds(Long roleId) {
+        log.info("获取角色权限ID列表, roleId: {}", roleId);
+        LambdaQueryWrapper<AdminRolePermissionEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(AdminRolePermissionEntity::getRoleId, roleId);
+        List<Long> permissionIds = rolePermissionMapper.selectList(wrapper)
+                .stream()
+                .map(AdminRolePermissionEntity::getPermissionId)
+                .collect(Collectors.toList());
+        return Result.success(permissionIds);
+    }
+
+    @Override
+    public List<AdminRoleEntity> getRolesByUserId(Long userId) {
+        LambdaQueryWrapper<AdminUserRoleEntity> urWrapper = new LambdaQueryWrapper<>();
+        urWrapper.eq(AdminUserRoleEntity::getUserId, userId);
+        List<Long> roleIds = userRoleMapper.selectList(urWrapper)
+                .stream()
+                .map(AdminUserRoleEntity::getRoleId)
+                .collect(Collectors.toList());
+
+        if (roleIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return this.listByIds(roleIds);
+    }
+}

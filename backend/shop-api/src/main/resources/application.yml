@@ -52,8 +52,3 @@ jwt:
   secret: shop-secret-key-for-jwt-token-generation
   expiration: 604800000
 
-# Knife4j配置
-knife4j:
-  enable: true
-  setting:
-    language: zh_cn

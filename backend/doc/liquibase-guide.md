@@ -141,3 +141,15 @@ INSERT INTO ...;
 | t_order | api | 订单表 |
 | t_order_item | api | 订单详情表 |
 | t_admin_user | admin | 后台管理用户表 |
+
+## ⚠ 重要约定
+
+**禁止在 `shop-admin` 模块中创建 `db.changelog-master.yaml` 文件！**
+
+原因：`shop-admin` 依赖 `shop-mapper`，而 `shop-mapper` 已包含 `db.changelog-master.yaml`。如果在 `shop-admin` 中也创建同名文件，会导致 classpath 中出现两个 `db.changelog-master.yaml`，Liquibase 启动时报错：
+
+```
+Found 2 files with the path 'classpath:db/db.changelog-master.yaml'
+```
+
+`shop-admin` 的 Liquibase 变更集通过 `shop-mapper` 的 `db.changelog-master.yaml` 中的 `includeAll` 机制自动加载，无需单独创建 master 文件。

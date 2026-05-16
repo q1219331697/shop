@@ -11,8 +11,11 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum UserStatusEnum {
 
+    /** 禁用 */
     DISABLED(0, "禁用"),
+    /** 正常 */
     NORMAL(1, "正常"),
+    /** 锁定 */
     LOCKED(2, "锁定");
 
     private final Integer code;

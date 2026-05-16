@@ -3,6 +3,7 @@ package com.shop.admin.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.shop.admin.entity.AdminUserEntity;
 import com.shop.common.Result;
+import java.util.List;
 
 /**
  * 后台管理用户服务接口
@@ -45,4 +46,19 @@ public interface AdminUserService extends IService<AdminUserEntity> {
      * @return 管理员信息
      */
     Result<AdminUserEntity> getAdminUserInfo(Long id);
+
+    /**
+     * 为用户分配角色
+     * @param userId 用户ID
+     * @param roleIds 角色ID列表
+     * @return 分配结果
+     */
+    Result<Void> assignRoles(Long userId, List<Long> roleIds);
+
+    /**
+     * 获取用户的角色ID列表
+     * @param userId 用户ID
+     * @return 角色ID列表
+     */
+    Result<List<Long>> getUserRoleIds(Long userId);
 }

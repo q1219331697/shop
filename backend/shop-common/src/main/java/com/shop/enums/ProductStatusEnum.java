@@ -11,8 +11,11 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ProductStatusEnum {
 
+    /** 下架 */
     OFF_SHELF(0, "下架"),
+    /** 上架 */
     ON_SHELF(1, "上架"),
+    /** 库存不足 */
     OUT_OF_STOCK(2, "库存不足");
 
     private final Integer code;

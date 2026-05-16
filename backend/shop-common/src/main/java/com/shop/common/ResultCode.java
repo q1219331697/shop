@@ -53,6 +53,10 @@ public final class ResultCode {
     /** 订单详情不存在 */
     public static final int ORDER_ITEM_NOT_EXIST = 5003;
 
+    // ========== 权限相关 ==========
+    /** 无权限访问 */
+    public static final int FORBIDDEN = 4003;
+
     // ========== 通用错误 ==========
     /** 操作失败 */
     public static final int OPERATION_FAILED = 9001;

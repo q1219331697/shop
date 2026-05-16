@@ -1,7 +1,9 @@
 package com.shop.admin.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.shop.admin.entity.AdminPermissionEntity;
 import com.shop.admin.entity.AdminUserEntity;
+import com.shop.admin.service.AdminPermissionService;
 import com.shop.admin.service.AdminUserService;
 import com.shop.common.Result;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,10 +16,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * 后台管理用户控制器
@@ -28,31 +31,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/admin-user")
 public class AdminUserController {
 
-    private static final String TOKEN_HEADER = "Authorization";
-    private static final String TOKEN_PREFIX = "Bearer ";
-
     @Autowired
     private AdminUserService adminUserService;
 
-    /**
-     * 管理员登录
-     */
-    @Operation(summary = "管理员登录")
-    @PostMapping("/login")
-    public Result<String> login(@RequestBody AdminUserEntity adminUser, HttpServletRequest request) {
-        String ip = request.getRemoteAddr();
-        return adminUserService.login(adminUser, ip);
-    }
-
-    /**
-     * 管理员登出
-     */
-    @Operation(summary = "管理员登出")
-    @PostMapping("/logout")
-    public Result<Void> logout(@RequestHeader(TOKEN_HEADER) String authorization) {
-        String token = extractToken(authorization);
-        return adminUserService.logout(token);
-    }
+    @Autowired
+    private AdminPermissionService adminPermissionService;
 
     /**
      * 分页查询管理员列表
@@ -103,14 +86,44 @@ public class AdminUserController {
     }
 
     /**
-     * 从Authorization头中提取Token
-     * @param authorization Authorization请求头
-     * @return token字符串
+     * 为用户分配角色
      */
-    private String extractToken(String authorization) {
-        if (authorization != null && authorization.startsWith(TOKEN_PREFIX)) {
-            return authorization.substring(TOKEN_PREFIX.length());
-        }
-        return null;
+    @Operation(summary = "为用户分配角色")
+    @PostMapping("/{id}/roles")
+    public Result<Void> assignRoles(@PathVariable("id") Long userId,
+                                    @RequestBody List<Long> roleIds) {
+        return adminUserService.assignRoles(userId, roleIds);
     }
+
+    /**
+     * 获取用户的角色ID列表
+     */
+    @Operation(summary = "获取用户的角色ID列表")
+    @GetMapping("/{id}/roles")
+    public Result<List<Long>> getUserRoleIds(@PathVariable("id") Long userId) {
+        return adminUserService.getUserRoleIds(userId);
+    }
+
+    /**
+     * 获取当前登录用户的菜单树
+     */
+    @Operation(summary = "获取当前登录用户的菜单树")
+    @GetMapping("/menus")
+    public Result<List<AdminPermissionEntity>> getCurrentUserMenus(HttpServletRequest request) {
+        Long adminUserId = (Long) request.getAttribute("adminUserId");
+        List<AdminPermissionEntity> menus = adminPermissionService.getMenuTreeByUserId(adminUserId);
+        return Result.success(menus);
+    }
+
+    /**
+     * 获取当前登录用户的权限编码列表
+     */
+    @Operation(summary = "获取当前登录用户的权限编码列表")
+    @GetMapping("/permissions")
+    public Result<List<String>> getCurrentUserPermissions(HttpServletRequest request) {
+        Long adminUserId = (Long) request.getAttribute("adminUserId");
+        List<String> permissionCodes = adminPermissionService.getPermissionCodesByUserId(adminUserId);
+        return Result.success(permissionCodes);
+    }
+
 }
