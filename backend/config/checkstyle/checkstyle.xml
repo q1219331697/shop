@@ -140,10 +140,13 @@
         <module name="SuperFinalize"/>
 
         <!-- 检查Javadoc注释 -->
+        <!-- 方法必须有说明、参数说明、返回值说明，且必须是多行Javadoc -->
         <module name="JavadocMethod">
-            <property name="allowMissingParamTags" value="true"/>
-            <property name="allowMissingReturnTag" value="true"/>
+            <property name="allowMissingParamTags" value="false"/>
+            <property name="allowMissingReturnTag" value="false"/>
         </module>
+        <!-- 禁止单行Javadoc（/** xxx */），强制多行格式 -->
+        <module name="SingleLineJavadoc"/>
         <module name="JavadocType">
             <property name="scope" value="public"/>
         </module>
