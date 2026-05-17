@@ -8,20 +8,27 @@ import com.shop.common.Result;
 import com.shop.common.ResultCode;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
+import java.util.Base64;
 
 /**
  * 管理员认证过滤器
- * 校验请求中的Token，验证登录状态
+ * <p>
+ * 支持多种认证方式（优先级从高到低）：
+ * 1. Token请求头 - 已登录用户携带Token访问
+ * 2. HTTP Basic认证 - Swagger UI授权弹窗输入用户名密码，验证后自动生成Token写入Redis
+ * </p>
+ *
  * @since 1.0.0
  */
 @Slf4j
@@ -29,7 +36,7 @@ import java.util.List;
 public class AdminAuthFilter extends OncePerRequestFilter {
 
     private static final String TOKEN_HEADER = "Token";
-    private static final int AUTH_HEADER_LOG_MAX_LENGTH = 10;
+    private static final String BASIC_PREFIX = "Basic ";
 
     private final AdminTokenService adminTokenService;
     private final AdminPermissionService adminPermissionService;
@@ -61,40 +68,49 @@ public class AdminAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        // 获取Token
+        // 1. 优先从Token请求头获取
         String token = extractToken(request);
-        log.debug("请求路径: {}, 提取到Token: {}", requestURI, token != null ? "是" : "否");
-
         if (token != null) {
-            // 验证Token并获取管理员信息
-            AdminTokenService.AdminTokenInfo tokenInfo = adminTokenService.validateAndGetInfo(token);
-            if (tokenInfo != null && handleToken(token, tokenInfo, request)) {
+            log.debug("请求路径: {}, 提取到Token请求头", requestURI);
+            if (authenticateByToken(token, request)) {
                 filterChain.doFilter(request, response);
                 return;
             }
-            // Token无效或用户被禁用，返回401
             log.info("管理员Token认证失败, URI: {}", requestURI);
             writeUnauthorizedResponse(response);
             return;
         }
 
-        // 无Token，返回401
-        log.info("未携带Token, URI: {}", requestURI);
+        // 2. 尝试从Authorization: Basic头解析（Swagger UI授权弹窗）
+        String basicCredentials = extractBasicCredentials(request);
+        if (basicCredentials != null) {
+            log.debug("请求路径: {}, 检测到Basic认证", requestURI);
+            if (authenticateByBasic(basicCredentials, request, response)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+            log.info("Basic认证失败, URI: {}", requestURI);
+            writeUnauthorizedResponse(response);
+            return;
+        }
+
+        // 无任何认证信息，返回401
+        log.info("未携带认证信息, URI: {}", requestURI);
         writeUnauthorizedResponse(response);
     }
 
     /**
-     * 处理Token认证
-     * @param token token字符串
-     * @param tokenInfo token解析后的管理员信息
+     * Token认证：验证Token有效性，刷新过期时间，设置请求属性
+     *
+     * @param token Token字符串
      * @param request HTTP请求
-     * @return true-认证通过 false-认证失败（用户被禁用等）
+     * @return true-认证通过 false-认证失败
      */
-    private boolean handleToken(String token,
-                                   AdminTokenService.AdminTokenInfo tokenInfo,
-                                   HttpServletRequest request) {
-        // 刷新Token过期时间
-        adminTokenService.refreshToken(token);
+    private boolean authenticateByToken(String token, HttpServletRequest request) {
+        AdminTokenService.AdminTokenInfo tokenInfo = adminTokenService.validateAndGetInfo(token);
+        if (tokenInfo == null) {
+            return false;
+        }
 
         // 检查用户状态
         AdminUserEntity adminUser = adminUserService.getById(tokenInfo.getAdminUserId());
@@ -104,32 +120,115 @@ public class AdminAuthFilter extends OncePerRequestFilter {
             return false;
         }
 
-        // 将管理员信息放入请求属性
-        request.setAttribute("adminUserId", tokenInfo.getAdminUserId());
-        request.setAttribute("adminUsername", tokenInfo.getUsername());
+        // 刷新Token过期时间
+        adminTokenService.refreshToken(token);
 
-        // 加载用户权限列表放入请求属性
-        List<String> permissionCodes = adminPermissionService.getPermissionCodesByUserId(tokenInfo.getAdminUserId());
-        request.setAttribute("adminPermissions", permissionCodes);
+        // 将管理员信息和权限放入请求属性
+        setAdminRequestAttributes(request, tokenInfo.getAdminUserId(), tokenInfo.getUsername());
         return true;
     }
 
     /**
-     * 从请求头中提取Token
+     * Basic认证：解析用户名密码，验证后生成Token写入Redis，通过响应头返回Token
+     *
+     * @param credentials Base64解码后的用户名:密码
      * @param request HTTP请求
-     * @return token字符串
+     * @param response HTTP响应
+     * @return true-认证通过 false-认证失败
      */
-    private String extractToken(HttpServletRequest request) {
-        String token = request.getHeader(TOKEN_HEADER);
-        if (token == null || token.isEmpty()) {
-            return null;
+    private boolean authenticateByBasic(String credentials, HttpServletRequest request,
+                                        HttpServletResponse response) {
+        String[] parts = credentials.split(":", 2);
+        if (parts.length != 2) {
+            log.warn("Basic认证凭据格式错误");
+            return false;
         }
-        return token;
+
+        String username = parts[0];
+        String password = parts[1];
+
+        if (!StringUtils.hasText(username) || !StringUtils.hasText(password)) {
+            log.warn("Basic认证用户名或密码为空");
+            return false;
+        }
+
+        // 查询并验证管理员
+        AdminUserEntity adminUser = adminUserService.getByUsername(username);
+        if (adminUser == null) {
+            log.warn("Basic认证失败, 用户不存在, username: {}", username);
+            return false;
+        }
+        if (!password.equals(adminUser.getPassword())) {
+            log.warn("Basic认证失败, 密码错误, username: {}", username);
+            return false;
+        }
+        if (adminUser.getStatus() == 0) {
+            log.warn("Basic认证失败, 用户已被禁用, username: {}", username);
+            return false;
+        }
+
+        // 生成Token并写入Redis
+        String token = adminTokenService.createToken(adminUser.getId(), adminUser.getUsername());
+        log.info("Basic认证成功, adminUserId: {}, username: {}", adminUser.getId(), adminUser.getUsername());
+
+        // 将管理员信息和权限放入请求属性
+        setAdminRequestAttributes(request, adminUser.getId(), adminUser.getUsername());
+
+        // 在响应头中返回Token，方便前端/Swagger后续请求使用
+        response.setHeader(TOKEN_HEADER, token);
+        return true;
     }
 
     /**
-     * 写入未授权响应
+     * 将管理员信息和权限列表放入请求属性
+     *
+     * @param request HTTP请求
+     * @param adminUserId 管理员ID
+     * @param username 管理员用户名
+     */
+    private void setAdminRequestAttributes(HttpServletRequest request, Long adminUserId, String username) {
+        request.setAttribute("adminUserId", adminUserId);
+        request.setAttribute("adminUsername", username);
+        request.setAttribute("adminPermissions", adminPermissionService.getPermissionCodesByUserId(adminUserId));
+    }
+
+    /**
+     * 从请求头中提取Token
+     *
+     * @param request HTTP请求
+     * @return Token字符串，无则返回null
+     */
+    private String extractToken(HttpServletRequest request) {
+        String token = request.getHeader(TOKEN_HEADER);
+        return (token != null && !token.isEmpty()) ? token : null;
+    }
+
+    /**
+     * 从Authorization头中提取Basic认证凭据
+     *
+     * @param request HTTP请求
+     * @return Base64解码后的用户名:密码，无则返回null
+     */
+    private String extractBasicCredentials(HttpServletRequest request) {
+        String authorization = request.getHeader("Authorization");
+        if (authorization == null || !authorization.startsWith(BASIC_PREFIX)) {
+            return null;
+        }
+        String base64Credentials = authorization.substring(BASIC_PREFIX.length());
+        try {
+            byte[] decoded = Base64.getDecoder().decode(base64Credentials);
+            return new String(decoded, StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException e) {
+            log.warn("Basic认证Base64解码失败");
+            return null;
+        }
+    }
+
+    /**
+     * 写入401未授权响应
+     *
      * @param response HTTP响应
+     * @throws IOException IO异常
      */
     private void writeUnauthorizedResponse(HttpServletResponse response) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

@@ -75,3 +75,13 @@ admin:
 
 knife4j:
   enable: true
+  # 开启Basic认证（访问Swagger文档时需要输入用户名密码）
+  basic:
+    enable: true
+    username: admin
+    password: admin123
+  setting:
+    # 开启Swagger UI的Authorize功能
+    enable-open-authorize: true
+    language: zh_cn
+
