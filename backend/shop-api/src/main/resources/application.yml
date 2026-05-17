@@ -12,11 +12,13 @@ spring:
     username: root
     # password:
 
-  # Liquibase配置（api模块独立执行）
+  # Liquibase配置（api模块独立执行，与admin模块共用一套Liquibase表）
   liquibase:
     enabled: true
     change-log: classpath:db/db.changelog-master.yaml
     contexts: api
+    # 启动时清除Liquibase校验和（生产环境建议移除）
+    clear-checksums: true
 
   # Jackson配置
   jackson:

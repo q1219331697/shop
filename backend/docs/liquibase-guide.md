@@ -6,46 +6,38 @@
 shop-mapper（公共模块）
 ├── src/main/resources/db/
 │   ├── changelog/
-│   │   ├── v1.0.0-000-init.sql          # 数据库字符集与排序规则
-│   │   ├── v1.0.0-001-ddl.sql          # 公共表结构（用户、分类、商品）
-│   │   └── v1.0.0-002-dml.sql          # 公共初始化数据
+│   │   ├── v1.0.0-0000-init.sql         # 数据库字符集与排序规则
+│   │   ├── v1.0.0-0001-ddl.sql         # 公共表结构（用户、分类、商品、购物车、订单、订单详情）
+│   │   └── v1.0.0-0002-dml.sql         # 公共初始化数据
 │   └── db.changelog-master.yaml        # includeAll changelog/
 
 shop-api（API模块）
 ├── src/main/resources/db/
 │   ├── changelog/
-│   │   ├── v1.0.0-001-ddl.sql          # API专属表结构（购物车、订单、订单详情）
-│   │   └── v1.0.0-002-dml.sql          # API专属数据（预留）
-│   └── db.changelog-master.yaml        # include公共 + includeAll本地changelog/
+│   │   ├── api-v1.0.0-0001-ddl.sql     # API专属表结构（预留）
+│   │   └── api-v1.0.0-0002-dml.sql     # API专属数据（预留）
+│   └── （无db.changelog-master.yaml）
 
 shop-admin（Admin模块）
 ├── src/main/resources/db/
 │   ├── changelog/
-│   │   ├── admin-v1.0.0-0001-ddl.sql   # Admin专属表结构（后台管理用户）
-│   │   └── admin-v1.0.0-0002-dml.sql   # Admin专属数据（管理员账号）
-│   └── db.changelog-master.yaml        # include公共 + includeAll本地changelog/
+│   │   ├── admin-v1.0.0-0001-ddl.sql   # Admin专属表结构（管理用户、角色、权限、关联表）
+│   │   └── admin-v1.0.0-0002-dml.sql   # Admin专属数据（管理员、角色、权限、关联数据）
+│   └── （无db.changelog-master.yaml）
 ```
 
 ### 跨模块引用原理
 
-各模块的 `db.changelog-master.yaml` 通过 classpath 引用其他模块的 SQL 文件：
+`shop-mapper` 是唯一拥有 `db.changelog-master.yaml` 的模块，其 `includeAll` 机制会自动加载 classpath 中所有 `changelog/` 下的 SQL 文件（包括自身和其他依赖模块的）。
 
 ```yaml
-# shop-api / shop-admin 的 master yaml
+# shop-mapper 的 master yaml（唯一）
 databaseChangeLog:
-  # 引入公共变更集（shop-mapper模块，通过classpath跨模块引用）
-  - include:
-      file: db/db.changelog-master.yaml
-
-  # 本模块专属变更集
   - includeAll:
       path: changelog/
-      relativeToChangelogFile: true
 ```
 
-`include file: db/db.changelog-master.yaml` 会自动在 classpath 中查找，
-由于 shop-mapper 作为依赖被打包进 JAR，其 `db/` 目录下的文件对其他模块可见，
-从而实现跨模块引用公共变更集。
+由于 `shop-api`、`shop-admin` 依赖 `shop-mapper`，它们的 `changelog/` 目录下的 SQL 文件也会被打包进 JAR，对 `shop-mapper` 的 `includeAll` 可见，从而实现跨模块自动加载。
 
 ## 执行逻辑
 
@@ -58,19 +50,26 @@ databaseChangeLog:
 
 **文件名**：`{模块前缀-}版本号-序号-类型.sql`
 
-> 公共模块文件无需模块前缀；各业务模块文件需加模块前缀，避免跨模块 classpath 合并时文件名冲突。
+> - 公共模块文件无需模块前缀；各业务模块文件需加模块前缀，避免跨模块 classpath 合并时文件名冲突。
+> - **版本号与项目版本号保持一致**（如项目版本为 `1.0.0`，则文件名中版本号为 `v1.0.0`）。项目版本号不变时，只递增序号，不修改版本号。
 
 类型说明：
 - `init` — 数据库字符集与排序规则
 - `ddl` — 表结构变更（CREATE/ALTER/DROP）
 - `dml` — 数据变更（INSERT/UPDATE/DELETE）
 
+序号规则：
+- 统一使用4位序号（`0000`、`0001`、`0002`...）
+
 示例：
-- `v1.0.0-000-init.sql`（公共）
-- `v1.0.0-001-ddl.sql`（公共）
+- `v1.0.0-0000-init.sql`（公共）
+- `v1.0.0-0001-ddl.sql`（公共）
+- `v1.0.0-0002-dml.sql`（公共）
 - `admin-v1.0.0-0001-ddl.sql`（Admin模块）
 - `admin-v1.0.0-0002-dml.sql`（Admin模块）
 - `api-v1.0.0-0001-ddl.sql`（API模块）
+- `api-v1.0.0-0002-dml.sql`（API模块）
+
 
 ## 新增变更流程
 
@@ -81,7 +80,7 @@ databaseChangeLog:
 
 ### API 专属变更
 1. 在 `shop-api/src/main/resources/db/changelog/` 下新增 SQL 文件
-2. 文件名按序号递增，如 `v1.0.0-003-ddl.sql`
+2. 文件名加 `api-` 前缀并按序号递增，如 `api-v1.0.0-0003-ddl.sql`
 3. changeset 标记 `context:api`
 
 ### Admin 专属变更
@@ -137,19 +136,25 @@ INSERT INTO ...;
 | t_user | common | 用户表 |
 | t_category | common | 商品分类表 |
 | t_product | common | 商品表 |
-| t_cart | api | 购物车表 |
-| t_order | api | 订单表 |
-| t_order_item | api | 订单详情表 |
+| t_cart | common | 购物车表 |
+| t_order | common | 订单表 |
+| t_order_item | common | 订单详情表 |
 | t_admin_user | admin | 后台管理用户表 |
+| t_admin_role | admin | 后台角色表 |
+| t_admin_permission | admin | 后台权限表 |
+| t_admin_user_role | admin | 后台用户角色关联表 |
+| t_admin_role_permission | admin | 后台角色权限关联表 |
 
 ## ⚠ 重要约定
 
-**禁止在 `shop-admin` 模块中创建 `db.changelog-master.yaml` 文件！**
+**禁止在 `shop-api`、`shop-admin` 等业务模块中创建 `db.changelog-master.yaml` 文件！**
 
-原因：`shop-admin` 依赖 `shop-mapper`，而 `shop-mapper` 已包含 `db.changelog-master.yaml`。如果在 `shop-admin` 中也创建同名文件，会导致 classpath 中出现两个 `db.changelog-master.yaml`，Liquibase 启动时报错：
+原因：这些模块依赖 `shop-mapper`，而 `shop-mapper` 已包含 `db.changelog-master.yaml`。如果在业务模块中也创建同名文件，会导致 classpath 中出现多个 `db.changelog-master.yaml`，Liquibase 启动时报错：
 
 ```
 Found 2 files with the path 'classpath:db/db.changelog-master.yaml'
 ```
 
-`shop-admin` 的 Liquibase 变更集通过 `shop-mapper` 的 `db.changelog-master.yaml` 中的 `includeAll` 机制自动加载，无需单独创建 master 文件。
+业务模块的 Liquibase 变更集通过 `shop-mapper` 的 `db.changelog-master.yaml` 中的 `includeAll` 机制自动加载，无需单独创建 master 文件。
+
+**业务模块 SQL 文件必须加模块前缀**（如 `api-`、`admin-`），避免跨模块 classpath 合并时文件名冲突。

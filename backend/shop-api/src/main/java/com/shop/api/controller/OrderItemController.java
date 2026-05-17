@@ -29,6 +29,9 @@ public class OrderItemController {
 
     /**
      * 获取订单详情列表
+     *
+     * @param orderId 订单ID
+     * @return 订单详情列表
      */
     @Operation(summary = "获取订单详情列表")
     @GetMapping("/list/{orderId}")
@@ -38,6 +41,9 @@ public class OrderItemController {
 
     /**
      * 添加订单详情
+     *
+     * @param orderItem 订单详情信息
+     * @return 操作结果
      */
     @Operation(summary = "添加订单详情")
     @PostMapping("/add")
@@ -47,6 +53,9 @@ public class OrderItemController {
 
     /**
      * 获取订单详情
+     *
+     * @param id 订单详情ID
+     * @return 订单详情
      */
     @Operation(summary = "获取订单详情")
     @GetMapping("/{id}")

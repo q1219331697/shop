@@ -31,6 +31,12 @@ public class ProductController {
 
     /**
      * 分页查询商品列表
+     *
+     * @param current 当前页码
+     * @param size 每页数量
+     * @param categoryId 分类ID
+     * @param keyword 搜索关键词
+     * @return 商品分页列表
      */
     @Operation(summary = "分页查询商品列表")
     @GetMapping("/list")
@@ -44,6 +50,9 @@ public class ProductController {
 
     /**
      * 获取商品详情
+     *
+     * @param id 商品ID
+     * @return 商品详情
      */
     @Operation(summary = "获取商品详情")
     @GetMapping("/{id}")
@@ -53,6 +62,9 @@ public class ProductController {
 
     /**
      * 添加商品
+     *
+     * @param product 商品信息
+     * @return 操作结果
      */
     @Operation(summary = "添加商品")
     @PostMapping("/add")
@@ -62,6 +74,9 @@ public class ProductController {
 
     /**
      * 更新商品
+     *
+     * @param product 商品信息
+     * @return 操作结果
      */
     @Operation(summary = "更新商品")
     @PutMapping("/update")
@@ -71,6 +86,9 @@ public class ProductController {
 
     /**
      * 删除商品
+     *
+     * @param id 商品ID
+     * @return 操作结果
      */
     @Operation(summary = "删除商品")
     @DeleteMapping("/{id}")

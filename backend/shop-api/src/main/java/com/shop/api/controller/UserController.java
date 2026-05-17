@@ -28,6 +28,9 @@ public class UserController {
 
     /**
      * 用户登录
+     *
+     * @param user 用户登录信息
+     * @return 登录令牌
      */
     @Operation(summary = "用户登录")
     @PostMapping("/login")
@@ -37,6 +40,9 @@ public class UserController {
 
     /**
      * 用户注册
+     *
+     * @param user 用户注册信息
+     * @return 操作结果
      */
     @Operation(summary = "用户注册")
     @PostMapping("/register")
@@ -46,6 +52,9 @@ public class UserController {
 
     /**
      * 获取用户信息
+     *
+     * @param id 用户ID
+     * @return 用户信息
      */
     @Operation(summary = "获取用户信息")
     @GetMapping("/info/{id}")
@@ -55,6 +64,9 @@ public class UserController {
 
     /**
      * 更新用户信息
+     *
+     * @param user 用户信息
+     * @return 操作结果
      */
     @Operation(summary = "更新用户信息")
     @PutMapping("/update")

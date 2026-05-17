@@ -31,6 +31,8 @@ public class CategoryController {
 
     /**
      * 获取所有分类列表
+     *
+     * @return 分类列表
      */
     @Operation(summary = "获取所有分类列表")
     @GetMapping("/list")
@@ -40,6 +42,9 @@ public class CategoryController {
 
     /**
      * 获取分类详情
+     *
+     * @param id 分类ID
+     * @return 分类详情
      */
     @Operation(summary = "获取分类详情")
     @GetMapping("/{id}")
@@ -49,6 +54,9 @@ public class CategoryController {
 
     /**
      * 添加分类
+     *
+     * @param category 分类信息
+     * @return 操作结果
      */
     @Operation(summary = "添加分类")
     @PostMapping("/add")
@@ -58,6 +66,9 @@ public class CategoryController {
 
     /**
      * 更新分类
+     *
+     * @param category 分类信息
+     * @return 操作结果
      */
     @Operation(summary = "更新分类")
     @PutMapping("/update")
@@ -67,6 +78,9 @@ public class CategoryController {
 
     /**
      * 删除分类
+     *
+     * @param id 分类ID
+     * @return 操作结果
      */
     @Operation(summary = "删除分类")
     @DeleteMapping("/{id}")

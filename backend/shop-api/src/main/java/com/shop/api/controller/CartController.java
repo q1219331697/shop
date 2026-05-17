@@ -31,6 +31,9 @@ public class CartController {
 
     /**
      * 获取用户购物车列表
+     *
+     * @param userId 用户ID
+     * @return 购物车列表
      */
     @Operation(summary = "获取用户购物车列表")
     @GetMapping("/list/{userId}")
@@ -40,6 +43,9 @@ public class CartController {
 
     /**
      * 添加商品到购物车
+     *
+     * @param cart 购物车信息
+     * @return 操作结果
      */
     @Operation(summary = "添加商品到购物车")
     @PostMapping("/add")
@@ -49,6 +55,9 @@ public class CartController {
 
     /**
      * 更新购物车商品数量
+     *
+     * @param cart 购物车信息
+     * @return 操作结果
      */
     @Operation(summary = "更新购物车商品数量")
     @PutMapping("/update")
@@ -58,6 +67,9 @@ public class CartController {
 
     /**
      * 删除购物车商品
+     *
+     * @param id 购物车项ID
+     * @return 操作结果
      */
     @Operation(summary = "删除购物车商品")
     @DeleteMapping("/{id}")
@@ -67,6 +79,9 @@ public class CartController {
 
     /**
      * 清空用户购物车
+     *
+     * @param userId 用户ID
+     * @return 操作结果
      */
     @Operation(summary = "清空用户购物车")
     @DeleteMapping("/clear/{userId}")

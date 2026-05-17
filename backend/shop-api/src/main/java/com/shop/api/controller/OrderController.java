@@ -30,6 +30,9 @@ public class OrderController {
 
     /**
      * 创建订单
+     *
+     * @param order 订单信息
+     * @return 创建的订单
      */
     @Operation(summary = "创建订单")
     @PostMapping("/create")
@@ -39,6 +42,9 @@ public class OrderController {
 
     /**
      * 获取订单详情
+     *
+     * @param id 订单ID
+     * @return 订单详情
      */
     @Operation(summary = "获取订单详情")
     @GetMapping("/{id}")
@@ -48,6 +54,11 @@ public class OrderController {
 
     /**
      * 获取用户订单列表
+     *
+     * @param userId 用户ID
+     * @param current 当前页码
+     * @param size 每页数量
+     * @return 订单分页列表
      */
     @Operation(summary = "获取用户订单列表")
     @GetMapping("/list/{userId}")
@@ -60,6 +71,9 @@ public class OrderController {
 
     /**
      * 取消订单
+     *
+     * @param id 订单ID
+     * @return 操作结果
      */
     @Operation(summary = "取消订单")
     @PutMapping("/cancel/{id}")
@@ -69,6 +83,10 @@ public class OrderController {
 
     /**
      * 更新订单状态
+     *
+     * @param id 订单ID
+     * @param status 订单状态
+     * @return 操作结果
      */
     @Operation(summary = "更新订单状态")
     @PutMapping("/status/{id}")
