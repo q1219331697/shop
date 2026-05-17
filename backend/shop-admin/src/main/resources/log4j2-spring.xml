@@ -20,7 +20,7 @@
 -->
 <Configuration status="WARN" monitorInterval="30">
     <Properties>
-        <Property name="KAFKA_BOOTSTRAP_SERVERS">localhost:9094</Property>
+        <Property name="KAFKA_BOOTSTRAP_SERVERS">${env:KAFKA_BOOTSTRAP_SERVERS:-localhost:9094}</Property>
         <Property name="KAFKA_TOPIC">shop-logs</Property>
         <Property name="KAFKA_SYNC_SEND">false</Property>
         <Property name="ROOT_LOG_LEVEL">INFO</Property>

@@ -26,7 +26,7 @@
     <Properties>
         <!-- Kafka配置 -->
         <!-- KAFKA_BOOTSTRAP_SERVERS: Kafka服务器地址，多个地址用逗号分隔 -->
-        <Property name="KAFKA_BOOTSTRAP_SERVERS">localhost:9094</Property>
+        <Property name="KAFKA_BOOTSTRAP_SERVERS">${env:KAFKA_BOOTSTRAP_SERVERS:-localhost:9094}</Property>
         <!-- KAFKA_TOPIC: 日志发送到的Kafka主题名称 -->
         <Property name="KAFKA_TOPIC">shop-logs</Property>
         <!-- KAFKA_SYNC_SEND: 是否同步发送日志，false表示异步发送（性能更好但可能丢失日志） -->

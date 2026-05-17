@@ -24,6 +24,7 @@ services:
       - ./volumes/mysql/init:/docker-entrypoint-initdb.d
     networks:
       - shop_network
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
@@ -42,6 +43,7 @@ services:
       - ./volumes/redis/data:/data
     networks:
       - shop_network
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -63,6 +65,7 @@ services:
       - ./volumes/rabbitmq/log:/var/log/rabbitmq
     networks:
       - shop_network
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "check_running"]
       interval: 15s
@@ -98,6 +101,7 @@ services:
       - ./volumes/kafka/config:/mnt/shared/config
     networks:
       - shop_network
+    restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 || exit 1"]
       interval: 15s
@@ -121,6 +125,8 @@ services:
       - ./volumes/elasticsearch/data:/usr/share/elasticsearch/data
     networks:
       - shop_network
+    restart: unless-stopped
+    mem_limit: 1g
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
       interval: 15s
@@ -145,6 +151,7 @@ services:
         condition: service_healthy
     networks:
       - shop_network
+    restart: unless-stopped
 
   # ==================== Kibana 可视化面板 ====================
   kibana:
@@ -161,6 +168,7 @@ services:
         condition: service_healthy
     networks:
       - shop_network
+    restart: unless-stopped
 
 # ==================== 网络配置 ====================
 networks:

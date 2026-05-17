@@ -43,7 +43,7 @@ show_help() {
     echo "  down        停止所有服务"
     echo "  restart     重启应用服务"
     echo "  status      查看服务状态"
-    echo "  logs [svc]  查看日志（默认查看应用日志）"
+    echo "  logs [svc]  查看日志（默认查看应用日志，支持 mysql/redis/kafka 等基础设施）"
     echo "  build       构建镜像后部署"
     echo ""
     echo "示例:"
@@ -79,7 +79,20 @@ case "${1:-help}" in
             info "正在自动启动基础设施..."
             docker compose -f docker-compose.infra.yml up -d
             info "等待基础设施就绪..."
-            sleep 15
+            # 健康检查：最多等待120秒
+            wait_count=0
+            while [ $wait_count -lt 24 ]; do
+                if docker compose -f docker-compose.infra.yml ps | grep -q "healthy\|running"; then
+                    break
+                fi
+                sleep 5
+                wait_count=$((wait_count + 1))
+            done
+            if [ $wait_count -ge 24 ]; then
+                warn "基础设施健康检查超时，继续启动应用..."
+            else
+                info "✅ 基础设施就绪"
+            fi
         fi
         docker compose -f docker-compose.app.yml up -d
         info "等待应用服务就绪..."
@@ -127,7 +140,15 @@ case "${1:-help}" in
 
     logs)
         SERVICE="${2:-shop-admin}"
-        docker compose -f docker-compose.app.yml logs -f --tail 100 "$SERVICE"
+        # 判断是查看基础设施还是应用服务日志
+        case "$SERVICE" in
+            mysql|redis|kafka|rabbitmq|elasticsearch|kibana|zookeeper|infra)
+                docker compose -f docker-compose.infra.yml logs -f --tail 100 "$SERVICE"
+                ;;
+            *)
+                docker compose -f docker-compose.app.yml logs -f --tail 100 "$SERVICE"
+                ;;
+        esac
         ;;
 
     build)

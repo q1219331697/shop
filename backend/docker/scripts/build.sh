@@ -29,15 +29,15 @@ VERSION="${APP_VERSION:-1.0.0}"
 NO_CACHE=""
 TARGET="all"
 
-for arg in "$@"; do
-    case $arg in
-        --no-cache) NO_CACHE="--no-cache" ;;
-        admin)      TARGET="admin" ;;
-        api)        TARGET="api" ;;
-        all)        TARGET="all" ;;
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --no-cache) NO_CACHE="--no-cache"; shift ;;
+        admin)      TARGET="admin"; shift ;;
+        api)        TARGET="api"; shift ;;
+        all)        TARGET="all"; shift ;;
         -v|--version)
-            shift
-            VERSION="$1"
+            VERSION="$2"
+            shift 2
             ;;
         -h|--help)
             echo "用法: $0 [选项] [目标]"
@@ -54,7 +54,7 @@ for arg in "$@"; do
             exit 0
             ;;
         *)
-            error "未知参数: $arg，使用 -h 查看帮助"
+            error "未知参数: $1，使用 -h 查看帮助"
             ;;
     esac
 done
@@ -63,6 +63,14 @@ cd "$PROJECT_ROOT"
 
 info "项目根目录: $PROJECT_ROOT"
 info "镜像版本: $VERSION"
+
+# -------------------- 拉取基础镜像 --------------------
+info "==========================================="
+info "拉取基础镜像..."
+info "==========================================="
+docker pull maven:3.9-eclipse-temurin-17 || error "拉取 maven:3.9-eclipse-temurin-17 失败"
+docker pull eclipse-temurin:17-jre-alpine || error "拉取 eclipse-temurin:17-jre-alpine 失败"
+info "✅ 基础镜像拉取完成"
 
 # 构建镜像（多阶段构建，Maven 编译在容器内完成）
 build_image() {
@@ -80,12 +88,7 @@ build_image() {
         -t "${name}:latest" \
         -f "${dockerfile}" \
         .
-
-    if [ $? -eq 0 ]; then
-        info "✅ ${name}:${VERSION} 镜像构建成功"
-    else
-        error "❌ ${name}:${VERSION} 镜像构建失败"
-    fi
+    info "✅ ${name}:${VERSION} 镜像构建成功"
 }
 
 case $TARGET in
