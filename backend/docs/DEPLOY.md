@@ -113,15 +113,15 @@ docker-compose up -d
 
 ```bash
 # Windows
-copy config\logstash\shop-logs.conf C:\Users\lzz\docker\volumes\logstash\pipeline\
+copy docker\config\logstash\shop-logs.conf C:\Users\lzz\docker\volumes\logstash\pipeline\
 
 # Linux/Mac
-cp config/logstash/shop-logs.conf /path/to/docker/volumes/logstash/pipeline/
+cp docker/config/logstash/shop-logs.conf /path/to/docker/volumes/logstash/pipeline/
 ```
 
 #### 4.2 配置说明
 
-Logstash 配置文件位于 `config/logstash/shop-logs.conf`，主要功能：
+Logstash 配置文件位于 `docker/config/logstash/shop-logs.conf`，主要功能：
 
 - 从 Kafka 的 `shop-logs` 主题接收日志
 - 解析 log4j2 格式的日志

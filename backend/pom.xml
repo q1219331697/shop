@@ -140,9 +140,9 @@
                 <version>3.3.0</version>
                 <configuration>
                     <!-- Checkstyle 规则配置文件路径 -->
-                    <configLocation>config/checkstyle/checkstyle.xml</configLocation>
+                    <configLocation>code-quality/checkstyle/checkstyle.xml</configLocation>
                     <!-- Checkstyle 抑制规则配置文件路径 -->
-                    <suppressionsLocation>config/checkstyle/suppressions.xml</suppressionsLocation>
+                    <suppressionsLocation>code-quality/checkstyle/suppressions.xml</suppressionsLocation>
                     <!-- 在控制台输出检查结果 -->
                     <consoleOutput>true</consoleOutput>
                     <!-- Checkstyle 检查失败时不中断构建 -->
