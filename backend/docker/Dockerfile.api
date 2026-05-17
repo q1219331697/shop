@@ -1,0 +1,79 @@
+# syntax=docker/dockerfile:1
+
+# ============================================================
+# shop-api Dockerfile - 多阶段构建
+# 构建命令: docker build -t shop-api:1.0.0 -f docker/Dockerfile.api .
+# ============================================================
+
+# -------------------- 阶段1: Maven 构建 --------------------
+FROM maven:3.9-eclipse-temurin-17 AS builder
+
+WORKDIR /build
+
+# 配置阿里云 Maven 镜像加速
+COPY docker/maven/settings.xml /root/.m2/settings.xml
+
+# 先复制 POM 文件，利用 Docker 缓存加速依赖下载
+# POM 不变时，依赖层可直接复用，无需重新下载
+COPY pom.xml ./
+COPY shop-common/pom.xml ./shop-common/
+COPY shop-mapper/pom.xml ./shop-mapper/
+COPY shop-service/pom.xml ./shop-service/
+COPY shop-api/pom.xml ./shop-api/
+COPY shop-admin/pom.xml ./shop-admin/
+
+# 下载依赖（POM 不变时此层被缓存）
+RUN --mount=type=cache,target=/root/.m2/repository \
+    mvn dependency:go-offline -pl shop-api -am -B
+
+# 复制源代码
+COPY shop-common/ ./shop-common/
+COPY shop-mapper/ ./shop-mapper/
+COPY shop-service/ ./shop-service/
+COPY shop-api/ ./shop-api/
+
+# 构建 JAR（利用缓存，跳过 checkstyle 和测试）
+RUN --mount=type=cache,target=/root/.m2/repository \
+    mvn clean package -DskipTests -Dcheckstyle.skip=true -pl shop-api -am -B
+
+# -------------------- 阶段2: 运行镜像 --------------------
+FROM eclipse-temurin:17-jre-alpine
+
+# 添加标签
+LABEL maintainer="shop-team"
+LABEL description="shop-api 前台API服务"
+LABEL version="1.0.0"
+
+# 安装 curl 用于健康检查，tzdata 用于时区支持
+RUN apk add --no-cache curl tzdata \
+    && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+    && echo "Asia/Shanghai" > /etc/timezone \
+    && apk del tzdata
+
+# 创建非 root 用户运行应用
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+# 设置工作目录
+WORKDIR /app
+
+# 从构建阶段复制 JAR 文件
+COPY --from=builder /build/shop-api/target/shop-api-1.0.0.jar app.jar
+
+# 修改文件所有者
+RUN chown -R appuser:appgroup /app
+
+# 切换到非 root 用户
+USER appuser
+
+# 暴露端口（shop-api 默认 8080）
+EXPOSE 8080
+
+# JVM 参数（可通过环境变量覆盖）
+ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseG1GC"
+
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8080/actuator/health || exit 1
+
+# 启动命令
+ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar app.jar"]
