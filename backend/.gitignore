@@ -26,6 +26,9 @@ buildNumber.properties
 .project
 .factorypath
 
+# MyBatis Plugin Cache
+.mybatis/
+
 # NetBeans
 /nbproject/private/
 /nbbuild/
