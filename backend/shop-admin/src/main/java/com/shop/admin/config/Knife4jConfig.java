@@ -13,8 +13,8 @@ import java.util.List;
 /**
  * Knife4j配置类 - API文档展示与授权配置
  * <p>
- * 启用 HTTP Basic 认证方案，用户在 Swagger UI 授权弹窗输入用户名密码后，
- * 后端验证凭据并生成 Token 写入 Redis，后续请求自动携带 Token 请求头。
+ * 启用 Token 请求头认证方案，用户在 Swagger UI 授权弹窗输入 Token 后，
+ * 后续请求自动携带 Token 请求头进行鉴权。
  * </p>
  *
  * @since 1.0.0
@@ -22,15 +22,12 @@ import java.util.List;
 @Configuration
 public class Knife4jConfig {
 
-    private static final String SECURITY_SCHEME_BASIC = "basicAuth";
     private static final String SECURITY_SCHEME_TOKEN = "tokenAuth";
 
     /**
      * 配置OpenAPI文档信息与安全方案
      * <p>
-     * 同时支持两种安全方案：
-     * 1. HTTP Basic - 用于 Swagger UI 授权弹窗输入用户名密码，后端验证后生成 Token 写入 Redis
-     * 2. APIKEY (Token请求头) - 用于已获取 Token 后的直接认证
+     * 安全方案：APIKEY (Token请求头) - 用于已获取 Token 后的直接认证
      * </p>
      *
      * @return OpenAPI配置实例
@@ -39,11 +36,6 @@ public class Knife4jConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .components(new Components()
-                        // HTTP Basic 认证方案
-                        .addSecuritySchemes(SECURITY_SCHEME_BASIC, new SecurityScheme()
-                                .type(SecurityScheme.Type.HTTP)
-                                .scheme("basic")
-                                .description("Swagger UI授权：输入管理员用户名和密码，后端验证后自动生成Token写入Redis"))
                         // Token 请求头认证方案
                         .addSecuritySchemes(SECURITY_SCHEME_TOKEN, new SecurityScheme()
                                 .type(SecurityScheme.Type.APIKEY)

@@ -80,8 +80,4 @@ knife4j:
     enable: true
     username: admin
     password: admin123
-  setting:
-    # 开启Swagger UI的Authorize功能
-    enable-open-authorize: true
-    language: zh_cn
 

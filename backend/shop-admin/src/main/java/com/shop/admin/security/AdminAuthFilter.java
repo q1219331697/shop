@@ -19,6 +19,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.Base64;
 
 /**
@@ -62,8 +63,7 @@ public class AdminAuthFilter extends OncePerRequestFilter {
         String requestURI = request.getRequestURI();
 
         // 放行白名单路径（无需认证即可访问）
-        if (authProperties.getPermitPrefixPaths().stream()
-                .anyMatch(requestURI::startsWith)) {
+        if (isPermittedPath(requestURI)) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -71,31 +71,42 @@ public class AdminAuthFilter extends OncePerRequestFilter {
         // 1. 优先从Token请求头获取
         String token = extractToken(request);
         if (token != null) {
-            log.debug("请求路径: {}, 提取到Token请求头", requestURI);
             if (authenticateByToken(token, request)) {
                 filterChain.doFilter(request, response);
                 return;
             }
-            log.info("管理员Token认证失败, URI: {}", requestURI);
-            writeUnauthorizedResponse(response);
+            handleAuthFailure(response, "Token认证失败, URI: " + requestURI);
             return;
         }
 
         // 2. 尝试从Authorization: Basic头解析（Swagger UI授权弹窗）
         String basicCredentials = extractBasicCredentials(request);
         if (basicCredentials != null) {
-            log.debug("请求路径: {}, 检测到Basic认证", requestURI);
             if (authenticateByBasic(basicCredentials, request, response)) {
                 filterChain.doFilter(request, response);
                 return;
             }
-            log.info("Basic认证失败, URI: {}", requestURI);
-            writeUnauthorizedResponse(response);
+            handleAuthFailure(response, "Basic认证失败, URI: " + requestURI);
             return;
         }
 
         // 无任何认证信息，返回401
-        log.info("未携带认证信息, URI: {}", requestURI);
+        handleAuthFailure(response, "未携带认证信息, URI: " + requestURI);
+    }
+
+    /**
+     * 判断请求路径是否在白名单中
+     */
+    private boolean isPermittedPath(String requestURI) {
+        return authProperties.getPermitPrefixPaths().stream()
+                .anyMatch(requestURI::startsWith);
+    }
+
+    /**
+     * 统一处理认证失败：记录日志并写入401响应
+     */
+    private void handleAuthFailure(HttpServletResponse response, String message) throws IOException {
+        log.info(message);
         writeUnauthorizedResponse(response);
     }
 
@@ -158,7 +169,8 @@ public class AdminAuthFilter extends OncePerRequestFilter {
             log.warn("Basic认证失败, 用户不存在, username: {}", username);
             return false;
         }
-        if (!password.equals(adminUser.getPassword())) {
+        if (!MessageDigest.isEqual(password.getBytes(StandardCharsets.UTF_8),
+                adminUser.getPassword().getBytes(StandardCharsets.UTF_8))) {
             log.warn("Basic认证失败, 密码错误, username: {}", username);
             return false;
         }
@@ -200,7 +212,7 @@ public class AdminAuthFilter extends OncePerRequestFilter {
      */
     private String extractToken(HttpServletRequest request) {
         String token = request.getHeader(TOKEN_HEADER);
-        return (token != null && !token.isEmpty()) ? token : null;
+        return StringUtils.hasText(token) ? token : null;
     }
 
     /**
@@ -214,7 +226,7 @@ public class AdminAuthFilter extends OncePerRequestFilter {
         if (authorization == null || !authorization.startsWith(BASIC_PREFIX)) {
             return null;
         }
-        String base64Credentials = authorization.substring(BASIC_PREFIX.length());
+        String base64Credentials = authorization.substring(BASIC_PREFIX.length()).trim();
         try {
             byte[] decoded = Base64.getDecoder().decode(base64Credentials);
             return new String(decoded, StandardCharsets.UTF_8);
