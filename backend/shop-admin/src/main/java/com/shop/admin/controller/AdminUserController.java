@@ -39,6 +39,10 @@ public class AdminUserController {
 
     /**
      * 分页查询管理员列表
+     *
+     * @param current 当前页码
+     * @param size 每页条数
+     * @return 管理员分页数据
      */
     @Operation(summary = "分页查询管理员列表")
     @GetMapping("/list")
@@ -51,6 +55,9 @@ public class AdminUserController {
 
     /**
      * 获取管理员详情
+     *
+     * @param id 管理员ID
+     * @return 管理员详情
      */
     @Operation(summary = "获取管理员详情")
     @GetMapping("/{id}")
@@ -60,6 +67,9 @@ public class AdminUserController {
 
     /**
      * 创建管理员
+     *
+     * @param adminUser 管理员信息
+     * @return 创建结果
      */
     @Operation(summary = "创建管理员")
     @PostMapping("/create")
@@ -69,6 +79,9 @@ public class AdminUserController {
 
     /**
      * 更新管理员信息
+     *
+     * @param adminUser 管理员信息
+     * @return 更新结果
      */
     @Operation(summary = "更新管理员信息")
     @PutMapping("/update")
@@ -78,6 +91,9 @@ public class AdminUserController {
 
     /**
      * 删除管理员
+     *
+     * @param id 管理员ID
+     * @return 删除结果
      */
     @Operation(summary = "删除管理员")
     @DeleteMapping("/{id}")
@@ -87,6 +103,10 @@ public class AdminUserController {
 
     /**
      * 为用户分配角色
+     *
+     * @param userId 用户ID
+     * @param roleIds 角色ID列表
+     * @return 分配结果
      */
     @Operation(summary = "为用户分配角色")
     @PostMapping("/{id}/roles")
@@ -97,6 +117,9 @@ public class AdminUserController {
 
     /**
      * 获取用户的角色ID列表
+     *
+     * @param userId 用户ID
+     * @return 角色ID列表
      */
     @Operation(summary = "获取用户的角色ID列表")
     @GetMapping("/{id}/roles")
@@ -106,6 +129,9 @@ public class AdminUserController {
 
     /**
      * 获取当前登录用户的菜单树
+     *
+     * @param request HTTP请求
+     * @return 菜单树列表
      */
     @Operation(summary = "获取当前登录用户的菜单树")
     @GetMapping("/menus")
@@ -117,6 +143,9 @@ public class AdminUserController {
 
     /**
      * 获取当前登录用户的权限编码列表
+     *
+     * @param request HTTP请求
+     * @return 权限编码列表
      */
     @Operation(summary = "获取当前登录用户的权限编码列表")
     @GetMapping("/permissions")

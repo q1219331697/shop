@@ -12,22 +12,25 @@ import java.util.List;
 public interface AdminUserService extends IService<AdminUserEntity> {
 
     /**
-     * 管理员登录
-     * @param adminUser 管理员信息
-     * @param ip 登录IP
-     * @return 登录结果（含token）
+     * 管理员登录，成功返回Token
+     *
+     * @param adminUser 管理员登录信息
+     * @param ip 登录IP地址
+     * @return 登录结果（含Token）
      */
     Result<String> login(AdminUserEntity adminUser, String ip);
 
     /**
-     * 管理员登出
-     * @param token token字符串
+     * 管理员登出，移除Redis中的Token
+     *
+     * @param token Token字符串
      * @return 登出结果
      */
     Result<Void> logout(String token);
 
     /**
      * 创建管理员
+     *
      * @param adminUser 管理员信息
      * @return 创建结果
      */
@@ -35,20 +38,23 @@ public interface AdminUserService extends IService<AdminUserEntity> {
 
     /**
      * 更新管理员信息
+     *
      * @param adminUser 管理员信息
      * @return 更新结果
      */
     Result<Void> updateAdminUser(AdminUserEntity adminUser);
 
     /**
-     * 获取管理员详情
+     * 获取管理员详情（密码置空）
+     *
      * @param id 管理员ID
-     * @return 管理员信息
+     * @return 管理员详情
      */
     Result<AdminUserEntity> getAdminUserInfo(Long id);
 
     /**
-     * 为用户分配角色
+     * 为用户分配角色（先删后插）
+     *
      * @param userId 用户ID
      * @param roleIds 角色ID列表
      * @return 分配结果
@@ -57,8 +63,17 @@ public interface AdminUserService extends IService<AdminUserEntity> {
 
     /**
      * 获取用户的角色ID列表
+     *
      * @param userId 用户ID
      * @return 角色ID列表
      */
     Result<List<Long>> getUserRoleIds(Long userId);
+
+    /**
+     * 根据用户名查询管理员
+     *
+     * @param username 用户名
+     * @return 管理员实体
+     */
+    AdminUserEntity getByUsername(String username);
 }

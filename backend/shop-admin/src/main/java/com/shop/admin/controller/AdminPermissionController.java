@@ -32,6 +32,8 @@ public class AdminPermissionController {
 
     /**
      * 获取权限树形结构
+     *
+     * @return 权限树形结构列表
      */
     @Operation(summary = "获取权限树形结构")
     @GetMapping("/tree")
@@ -41,6 +43,9 @@ public class AdminPermissionController {
 
     /**
      * 获取权限详情
+     *
+     * @param id 权限ID
+     * @return 权限详情
      */
     @Operation(summary = "获取权限详情")
     @GetMapping("/{id}")
@@ -50,6 +55,9 @@ public class AdminPermissionController {
 
     /**
      * 创建权限
+     *
+     * @param permission 权限信息
+     * @return 创建结果
      */
     @Operation(summary = "创建权限")
     @PostMapping("/create")
@@ -59,6 +67,9 @@ public class AdminPermissionController {
 
     /**
      * 更新权限
+     *
+     * @param permission 权限信息
+     * @return 更新结果
      */
     @Operation(summary = "更新权限")
     @PutMapping("/update")
@@ -68,6 +79,9 @@ public class AdminPermissionController {
 
     /**
      * 删除权限
+     *
+     * @param id 权限ID
+     * @return 删除结果
      */
     @Operation(summary = "删除权限")
     @DeleteMapping("/{id}")

@@ -34,6 +34,10 @@ public class AdminRoleController {
 
     /**
      * 分页查询角色列表
+     *
+     * @param current 当前页码
+     * @param size 每页条数
+     * @return 角色分页数据
      */
     @Operation(summary = "分页查询角色列表")
     @GetMapping("/list")
@@ -46,6 +50,8 @@ public class AdminRoleController {
 
     /**
      * 查询所有角色（下拉选择用）
+     *
+     * @return 所有角色列表
      */
     @Operation(summary = "查询所有角色")
     @GetMapping("/all")
@@ -55,6 +61,9 @@ public class AdminRoleController {
 
     /**
      * 获取角色详情
+     *
+     * @param id 角色ID
+     * @return 角色详情
      */
     @Operation(summary = "获取角色详情")
     @GetMapping("/{id}")
@@ -64,6 +73,9 @@ public class AdminRoleController {
 
     /**
      * 创建角色
+     *
+     * @param role 角色信息
+     * @return 创建结果
      */
     @Operation(summary = "创建角色")
     @PostMapping("/create")
@@ -73,6 +85,9 @@ public class AdminRoleController {
 
     /**
      * 更新角色
+     *
+     * @param role 角色信息
+     * @return 更新结果
      */
     @Operation(summary = "更新角色")
     @PutMapping("/update")
@@ -82,6 +97,9 @@ public class AdminRoleController {
 
     /**
      * 删除角色
+     *
+     * @param id 角色ID
+     * @return 删除结果
      */
     @Operation(summary = "删除角色")
     @DeleteMapping("/{id}")
@@ -91,6 +109,10 @@ public class AdminRoleController {
 
     /**
      * 为角色分配权限
+     *
+     * @param roleId 角色ID
+     * @param permissionIds 权限ID列表
+     * @return 分配结果
      */
     @Operation(summary = "为角色分配权限")
     @PostMapping("/{id}/permissions")
@@ -101,6 +123,9 @@ public class AdminRoleController {
 
     /**
      * 获取角色的权限ID列表
+     *
+     * @param roleId 角色ID
+     * @return 权限ID列表
      */
     @Operation(summary = "获取角色的权限ID列表")
     @GetMapping("/{id}/permissions")

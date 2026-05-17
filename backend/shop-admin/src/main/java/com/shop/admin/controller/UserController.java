@@ -30,6 +30,10 @@ public class UserController {
 
     /**
      * 分页查询用户列表
+     *
+     * @param current 当前页码
+     * @param size 每页条数
+     * @return 用户分页数据
      */
     @Operation(summary = "分页查询用户列表")
     @GetMapping("/list")
@@ -42,6 +46,9 @@ public class UserController {
 
     /**
      * 获取用户详情
+     *
+     * @param id 用户ID
+     * @return 用户详情
      */
     @Operation(summary = "获取用户详情")
     @GetMapping("/{id}")
@@ -51,6 +58,9 @@ public class UserController {
 
     /**
      * 更新用户信息
+     *
+     * @param user 用户信息
+     * @return 更新结果
      */
     @Operation(summary = "更新用户信息")
     @PutMapping("/update")
@@ -60,6 +70,9 @@ public class UserController {
 
     /**
      * 删除用户
+     *
+     * @param id 用户ID
+     * @return 删除结果
      */
     @Operation(summary = "删除用户")
     @DeleteMapping("/{id}")

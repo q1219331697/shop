@@ -28,6 +28,10 @@ public class OrderController {
 
     /**
      * 分页查询所有订单
+     *
+     * @param current 当前页码
+     * @param size 每页条数
+     * @return 订单分页数据
      */
     @Operation(summary = "分页查询所有订单")
     @GetMapping("/list")
@@ -40,6 +44,9 @@ public class OrderController {
 
     /**
      * 获取订单详情
+     *
+     * @param id 订单ID
+     * @return 订单详情
      */
     @Operation(summary = "获取订单详情")
     @GetMapping("/{id}")
@@ -49,6 +56,10 @@ public class OrderController {
 
     /**
      * 更新订单状态
+     *
+     * @param id 订单ID
+     * @param status 订单状态
+     * @return 更新结果
      */
     @Operation(summary = "更新订单状态")
     @PutMapping("/status/{id}")

@@ -4,9 +4,11 @@ package com.shop.admin.controller;
 import com.shop.admin.entity.AdminUserEntity;
 import com.shop.admin.service.AdminUserService;
 import com.shop.common.Result;
+import com.shop.common.ResultCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -27,8 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/public")
 public class PublicController {
 
-    private static final String TOKEN_HEADER = "Authorization";
-    private static final String TOKEN_PREFIX = "Bearer ";
+    private static final String TOKEN_HEADER = "Token";
 
     private final AdminUserService adminUserService;
 
@@ -38,34 +39,41 @@ public class PublicController {
 
     /**
      * 管理员登录
+     * <p>
+     * 登录成功后返回Token，前端需将Token存入请求头后续请求使用
+     * </p>
+     *
+     * @param adminUser 管理员登录信息
+     * @param request HTTP请求
+     * @param response HTTP响应
+     * @return 登录结果（含Token）
      */
     @Operation(summary = "管理员登录")
     @PostMapping("/login")
     public Result<String> login(@RequestBody AdminUserEntity adminUser,
-                                HttpServletRequest request) {
+                                HttpServletRequest request,
+                                HttpServletResponse response) {
         String ip = request.getRemoteAddr();
-        return adminUserService.login(adminUser, ip);
+        Result<String> result = adminUserService.login(adminUser, ip);
+        // 登录成功，将Token写入响应头，方便前端获取
+        if (result.getCode() == ResultCode.SUCCESS && result.getData() != null) {
+            response.setHeader(TOKEN_HEADER, result.getData());
+        }
+        return result;
     }
 
     /**
      * 管理员登出
+     * <p>
+     * 登出后从Redis中移除Token
+     * </p>
+     *
+     * @param token Token字符串
+     * @return 登出结果
      */
     @Operation(summary = "管理员登出")
     @PostMapping("/logout")
-    public Result<Void> logout(@RequestHeader(TOKEN_HEADER) String authorization) {
-        String token = extractToken(authorization);
+    public Result<Void> logout(@RequestHeader(value = TOKEN_HEADER, required = false) String token) {
         return adminUserService.logout(token);
-    }
-
-    /**
-     * 从Authorization头中提取Token
-     * @param authorization Authorization请求头
-     * @return token字符串
-     */
-    private String extractToken(String authorization) {
-        if (authorization != null && authorization.startsWith(TOKEN_PREFIX)) {
-            return authorization.substring(TOKEN_PREFIX.length());
-        }
-        return null;
     }
 }
