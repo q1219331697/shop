@@ -96,8 +96,7 @@ package-lock.json
 *.pid
 *.seed
 
-startup-log.txt
-build-log.txt
-
+# 启动日志
 startup-log.txt
 startup.log
+build-log.txt
