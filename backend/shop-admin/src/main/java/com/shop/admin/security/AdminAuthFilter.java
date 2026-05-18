@@ -96,6 +96,9 @@ public class AdminAuthFilter extends OncePerRequestFilter {
 
     /**
      * 判断请求路径是否在白名单中
+     *
+     * @param requestURI 请求路径
+     * @return true-在白名单中 false-不在白名单中
      */
     private boolean isPermittedPath(String requestURI) {
         return authProperties.getPermitPrefixPaths().stream()
@@ -104,6 +107,10 @@ public class AdminAuthFilter extends OncePerRequestFilter {
 
     /**
      * 统一处理认证失败：记录日志并写入401响应
+     *
+     * @param response HTTP响应
+     * @param message 失败信息
+     * @throws IOException IO异常
      */
     private void handleAuthFailure(HttpServletResponse response, String message) throws IOException {
         log.info(message);

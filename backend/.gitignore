@@ -96,3 +96,5 @@ package-lock.json
 *.pid
 *.seed
 
+startup-log.txt
+build-log.txt

@@ -45,3 +45,8 @@
 - .bat 文件使用 ANSI 颜色输出（GREEN/RED/YELLOW/BLUE）
 - .sh 文件使用 echo -e 颜色输出
 - 错误信息用红色 [ERROR]，普通信息用绿色 [INFO]，警告用黄色 [WARN]
+
+## 构建与启动
+
+- 启动项目时**禁止跳过 checkstyle 检查**（不得使用 `-Dcheckstyle.skip=true` 等参数）
+- 若 checkstyle 检查失败，必须修复代码使其符合规则，而非跳过检查

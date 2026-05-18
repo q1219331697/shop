@@ -82,6 +82,18 @@
             <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
         </dependency>
 
+        <!-- ==================== 运维监控 ==================== -->
+        <!-- Spring Boot Actuator（生产级监控与管理端点） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <!-- AOP（Actuator startup端点依赖，用于记录Bean初始化耗时） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+
         <!-- ==================== 开发工具 ==================== -->
         <!-- Lombok 注解处理器 -->
         <dependency>
