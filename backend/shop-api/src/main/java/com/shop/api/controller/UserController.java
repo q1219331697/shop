@@ -3,6 +3,7 @@ package com.shop.api.controller;
 import com.shop.common.Result;
 import com.shop.entity.UserEntity;
 import com.shop.service.UserService;
+import com.shop.util.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,9 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     /**
      * 用户登录
      *
@@ -35,7 +39,13 @@ public class UserController {
     @Operation(summary = "用户登录")
     @PostMapping("/login")
     public Result<String> login(@RequestBody UserEntity user) {
-        return userService.login(user);
+        Result<UserEntity> result = userService.login(user);
+        if (result.isSuccess()) {
+            UserEntity loginUser = result.getData();
+            String token = jwtUtil.generateToken(loginUser.getId(), loginUser.getUsername());
+            return Result.success(token);
+        }
+        return Result.error(result.getCode(), result.getMessage());
     }
 
     /**

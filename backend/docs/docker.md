@@ -432,8 +432,7 @@ docker run --rm -p 8080:8080 shop-api:1.0.0
 | `MYSQL_USERNAME` | `root` | 数据库用户名 |
 | `MYSQL_PASSWORD` | (空) | 数据库密码 |
 | `REDIS_PASSWORD` | (空) | Redis 密码 |
-| `JWT_SECRET` | `shop-secret-key-...` | JWT 签名密钥 |
-| `JWT_EXPIRATION` | `604800000` | JWT 过期时间(ms) |
+| `APP_LOG_KAFKA_BOOTSTRAP__SERVERS` | `kafka:9092` | 日志Kafka服务器地址 |
 
 ### 8.2 Spring Boot 环境变量映射
 
@@ -453,12 +452,10 @@ SPRING_DATA_REDIS_PASSWORD           →  spring.data.redis.password
 # 开发环境: docker/.env（默认值，无需修改）
 MYSQL_PASSWORD=
 REDIS_PASSWORD=
-JWT_SECRET=shop-secret-key-for-jwt-token-generation
 
 # 生产环境: docker/.env.prod（⚠️ 必须修改）
 MYSQL_PASSWORD=YOUR_STRONG_PASSWORD
 REDIS_PASSWORD=YOUR_REDIS_PASSWORD
-JWT_SECRET=YOUR_PRODUCTION_JWT_SECRET_KEY_AT_LEAST_32_CHARS
 ADMIN_JAVA_OPTS=-Xms1g -Xmx2g -XX:+UseG1GC
 API_JAVA_OPTS=-Xms1g -Xmx2g -XX:+UseG1GC
 ```
@@ -505,8 +502,8 @@ shop-api (Log4j2) ────┘
 
 ### 10.2 容器内 vs 宿主机 Kafka 配置
 
-| 环境 | KAFKA_BOOTSTRAP_SERVERS | 说明 |
-|------|------------------------|------|
+| 环境 | APP_LOG_KAFKA_BOOTSTRAP__SERVERS | 说明 |
+|------|----------------------------------|------|
 | 容器内 | `kafka:9092` | 使用服务名 + 内部端口 |
 | 宿主机 IDE | `localhost:9094` | 使用 localhost + 外部端口 |
 
@@ -564,7 +561,6 @@ docker cp shop-redis:/data/dump.rdb ./redis_backup_$(date +%Y%m%d).rdb
 ### 12.1 部署清单
 
 - [ ] 复制 `.env.prod.template` 为 `.env.prod` 并修改所有密码
-- [ ] 修改 `JWT_SECRET` 为强密钥（≥32字符）
 - [ ] 调整 JVM 参数（建议 `-Xms1g -Xmx2g`）
 - [ ] 配置 Elasticsearch 安全认证
 - [ ] 设置 MySQL 强密码
@@ -662,8 +658,8 @@ docker exec shop-admin ping redis
 ### 13.3 Kafka 连接失败
 
 ```bash
-# 容器内: KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-# 宿主机: KAFKA_BOOTSTRAP_SERVERS=localhost:9094
+# 容器内: APP_LOG_KAFKA_BOOTSTRAP__SERVERS=kafka:9092
+# 宿主机: APP_LOG_KAFKA_BOOTSTRAP__SERVERS=localhost:9094
 
 # 检查 Kafka 状态
 docker exec shop-kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list

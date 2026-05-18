@@ -11,11 +11,11 @@ import com.shop.entity.UserEntity;
 public interface UserService extends IService<UserEntity> {
 
     /**
-     * 用户登录
-     * @param user 用户信息
-     * @return 登录结果
+     * 用户登录验证
+     * @param user 用户信息（username + password）
+     * @return 登录成功返回用户实体，失败返回错误信息
      */
-    Result<String> login(UserEntity user);
+    Result<UserEntity> login(UserEntity user);
 
     /**
      * 用户注册

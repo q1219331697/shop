@@ -50,29 +50,34 @@ mybatis-plus:
       logic-delete-value: 1
       logic-not-delete-value: 0
 
-# JWT配置
-jwt:
-  secret: shop-secret-key-for-jwt-token-generation
-  expiration: 604800000
+# 应用自定义配置
+app:
+  # 管理员配置
+  admin:
+    token:
+      # Token过期时间（Spring Boot Duration格式）
+      # 支持写法: 30s(秒), 30m(分钟), 2h(小时), 1d(天), PT2H30M(2小时30分钟)
+      expire: 2h
+    auth:
+      # 前缀匹配的放行路径（无需认证即可访问）
+      permit-prefix-paths:
+        - /public/
+        - /favicon.ico
+        - /doc.html
+        - /webjars/
+        - /v3/api-docs
+        - /swagger-resources
+        - /swagger-ui
+        - /api-docs
+        - /actuator
 
-# 管理员配置
-admin:
-  token:
-    # Token过期时间（Spring Boot Duration格式）
-    # 支持写法: 30s(秒), 30m(分钟), 2h(小时), 1d(天), PT2H30M(2小时30分钟)
-    expire: 2h
-  auth:
-    # 前缀匹配的放行路径（无需认证即可访问）
-    permit-prefix-paths:
-      - /public/
-      - /favicon.ico
-      - /doc.html
-      - /webjars/
-      - /v3/api-docs
-      - /swagger-resources
-      - /swagger-ui
-      - /api-docs
-      - /actuator
+  # 日志配置
+  log:
+    kafka:
+      bootstrap-servers: localhost:9094
+    level:
+      app: DEBUG
+      mybatis-plus: DEBUG
 
 # Actuator监控端点配置
 management:

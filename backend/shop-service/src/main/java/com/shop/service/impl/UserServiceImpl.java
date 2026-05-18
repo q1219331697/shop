@@ -7,9 +7,7 @@ import com.shop.common.ResultCode;
 import com.shop.entity.UserEntity;
 import com.shop.mapper.UserMapper;
 import com.shop.service.UserService;
-import com.shop.util.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -20,11 +18,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> implements UserService {
 
-    @Autowired
-    private JwtUtil jwtUtil;
+
 
     @Override
-    public Result<String> login(UserEntity user) {
+    public Result<UserEntity> login(UserEntity user) {
         log.info("用户登录请求, username: {}", user.getUsername());
 
         // 根据用户名查询用户
@@ -49,10 +46,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
             return Result.error(ResultCode.USER_DISABLED, "用户已被禁用");
         }
 
-        // 生成JWT token
-        String token = jwtUtil.generateToken(dbUser.getId(), dbUser.getUsername());
+        // 不返回密码
+        dbUser.setPassword(null);
         log.info("用户登录成功, userId: {}, username: {}", dbUser.getId(), dbUser.getUsername());
-        return Result.success(token);
+        return Result.success(dbUser);
     }
 
     @Override

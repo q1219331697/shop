@@ -2,11 +2,9 @@ package com.shop.admin.security;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -24,12 +22,11 @@ public class AdminTokenService {
     private static final int MASK_MIN_TOKEN_LENGTH = 8;
     private static final int MASK_VISIBLE_CHARS = 4;
 
-    @Value("${admin.token.expire:2h}")
-    private Duration tokenExpire;
-
+    private final AdminProperties adminProperties;
     private final StringRedisTemplate redisTemplate;
 
-    public AdminTokenService(StringRedisTemplate redisTemplate) {
+    public AdminTokenService(AdminProperties adminProperties, StringRedisTemplate redisTemplate) {
+        this.adminProperties = adminProperties;
         this.redisTemplate = redisTemplate;
     }
 
@@ -58,7 +55,8 @@ public class AdminTokenService {
         String key = TOKEN_KEY_PREFIX + token;
         // 格式：adminUserId:username
         String value = adminUserId + VALUE_SEPARATOR + username;
-        redisTemplate.opsForValue().set(key, value, tokenExpire.toSeconds(), TimeUnit.SECONDS);
+        long expireSeconds = adminProperties.getToken().getExpire().toSeconds();
+        redisTemplate.opsForValue().set(key, value, expireSeconds, TimeUnit.SECONDS);
         log.info("创建管理员Token, adminUserId: {}, username: {}", adminUserId, username);
         return token;
     }
@@ -110,7 +108,7 @@ public class AdminTokenService {
     public void refreshToken(String token) {
         String key = TOKEN_KEY_PREFIX + token;
         if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
-            redisTemplate.expire(key, tokenExpire.toSeconds(), TimeUnit.SECONDS);
+            redisTemplate.expire(key, adminProperties.getToken().getExpire().toSeconds(), TimeUnit.SECONDS);
         }
     }
 

@@ -15,31 +15,11 @@
 
   参数覆盖方式：
     1. 直接修改下面的属性值
-    2. JVM参数覆盖: java -DKAFKA_BOOTSTRAP_SERVERS=xxx -jar xxx.jar
-    3. 环境变量覆盖: export KAFKA_BOOTSTRAP_SERVERS=xxx
+    2. JVM参数覆盖: java -Dapp.log.kafka.bootstrap-servers=xxx -jar xxx.jar
+    3. 环境变量覆盖: export APP_LOG_KAFKA_BOOTSTRAP__SERVERS=xxx
+    4. Spring配置覆盖: 在application.yml中设置 app.log.kafka.bootstrap-servers: xxx
 -->
 <Configuration status="WARN" monitorInterval="30">
-    <!--
-      全局属性定义区域
-      在此定义的属性可以在配置文件的其他地方通过${属性名}的方式引用
-    -->
-    <Properties>
-        <!-- Kafka配置 -->
-        <!-- KAFKA_BOOTSTRAP_SERVERS: Kafka服务器地址，多个地址用逗号分隔 -->
-        <Property name="KAFKA_BOOTSTRAP_SERVERS">${env:KAFKA_BOOTSTRAP_SERVERS:-localhost:9094}</Property>
-        <!-- KAFKA_TOPIC: 日志发送到的Kafka主题名称 -->
-        <Property name="KAFKA_TOPIC">shop-logs</Property>
-        <!-- KAFKA_SYNC_SEND: 是否同步发送日志，false表示异步发送（性能更好但可能丢失日志） -->
-        <Property name="KAFKA_SYNC_SEND">false</Property>
-
-        <!-- 日志级别配置：日志级别从低到高：TRACE < DEBUG < INFO < WARN < ERROR < FATAL -->
-        <!-- ROOT_LOG_LEVEL: 根日志级别，所有Logger的默认级别 -->
-        <Property name="ROOT_LOG_LEVEL">INFO</Property>
-        <!-- MYBATIS_PLUS_LOG_LEVEL: MyBatis-Plus的日志级别，DEBUG级别会显示SQL语句 -->
-        <Property name="MYBATIS_PLUS_LOG_LEVEL">DEBUG</Property>
-        <!-- APP_LOG_LEVEL: 应用程序包（com.shop）的日志级别 -->
-        <Property name="APP_LOG_LEVEL">DEBUG</Property>
-    </Properties>
 
     <!--
       Appenders（输出器）定义区域
@@ -71,7 +51,7 @@
           topic: Kafka主题名称
           syncSend: 是否同步发送
         -->
-        <Kafka name="Kafka" topic="${KAFKA_TOPIC}" syncSend="${KAFKA_SYNC_SEND}">
+        <Kafka name="Kafka" topic="shop-logs" syncSend="false">
             <!--
               Kafka专用的日志格式
               %d{ISO8601} - ISO8601时间格式（如 2026-05-11T19:53:23.608+08:00）
@@ -86,7 +66,7 @@
             <!-- 此语法依赖 -spring 后缀命名，否则会报 IllegalStateException -->
             <PatternLayout pattern="[%d{ISO8601}] [${spring:spring.application.name}] [%t] [%level] [%C.%M(%L)] - [%msg%n]" charset="UTF-8"/>
             <!-- bootstrap.servers: Kafka服务器地址 -->
-            <Property name="bootstrap.servers">${KAFKA_BOOTSTRAP_SERVERS}</Property>
+            <Property name="bootstrap.servers">${spring:app.log.kafka.bootstrap-servers}</Property>
         </Kafka>
     </Appenders>
 
@@ -100,7 +80,7 @@
           level: 日志级别
           所有未单独配置的Logger都继承此配置
         -->
-        <Root level="${ROOT_LOG_LEVEL}">
+        <Root level="INFO">
             <!-- 引用Console和Kafka两个Appender，表示日志同时输出到控制台和Kafka -->
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Kafka"/>
@@ -109,11 +89,11 @@
           MyBatis-Plus日志记录器
           DEBUG级别会输出SQL语句和参数信息，便于调试
         -->
-        <Logger name="com.baomidou.mybatisplus" level="${MYBATIS_PLUS_LOG_LEVEL}"/>
+        <Logger name="com.baomidou.mybatisplus" level="${spring:app.log.level.mybatis-plus}"/>
         <!--
           应用程序日志记录器
           配置项目包（com.shop）的日志级别
         -->
-        <Logger name="com.shop" level="${APP_LOG_LEVEL}"/>
+        <Logger name="com.shop" level="${spring:app.log.level.app}"/>
     </Loggers>
 </Configuration>

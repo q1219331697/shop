@@ -49,8 +49,21 @@ mybatis-plus:
       logic-delete-value: 1
       logic-not-delete-value: 0
 
-# JWT配置
-jwt:
-  secret: shop-secret-key-for-jwt-token-generation
-  expiration: 604800000
+# 应用自定义配置
+app:
+  # API模块配置
+  api:
+    # JWT配置
+    jwt:
+      # JWT密钥（生产环境必须修改为强密钥，≥32字符）
+      secret: shop-secret-key-for-jwt-token-generation
+      # JWT过期时间（毫秒），604800000ms = 7天
+      expiration: 604800000
+  # 日志配置
+  log:
+    kafka:
+      bootstrap-servers: localhost:9094
+    level:
+      app: DEBUG
+      mybatis-plus: DEBUG
 

@@ -3,8 +3,6 @@ package com.shop.util;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -15,22 +13,27 @@ import java.util.Map;
 /**
  * JWT工具类
  * 用于生成和验证JWT令牌
+ * <p>
+ * 纯工具类，通过构造函数传入密钥和过期时间，不依赖Spring容器
+ * </p>
+ *
  * @since 1.0.0
  */
-@Component
 public class JwtUtil {
 
-    /**
-     * JWT密钥
-     */
-    @Value("${jwt.secret}")
-    private String secret;
+    private final String secret;
+    private final Long expiration;
 
     /**
-     * JWT过期时间（毫秒）
+     * 构造JWT工具类
+     *
+     * @param secret     JWT密钥
+     * @param expiration JWT过期时间（毫秒）
      */
-    @Value("${jwt.expiration}")
-    private Long expiration;
+    public JwtUtil(String secret, Long expiration) {
+        this.secret = secret;
+        this.expiration = expiration;
+    }
 
     /**
      * 获取签名密钥

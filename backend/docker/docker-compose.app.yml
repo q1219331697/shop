@@ -23,11 +23,8 @@ services:
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD:-}
-      # Kafka 日志配置（容器内使用内部端口 9092）
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      # JWT 配置
-      JWT_SECRET: ${JWT_SECRET:-shop-secret-key-for-jwt-token-generation}
-      JWT_EXPIRATION: ${JWT_EXPIRATION:-604800000}
+      # 日志Kafka配置（容器内使用内部端口 9092）
+      APP_LOG_KAFKA_BOOTSTRAP__SERVERS: kafka:9092
       # 时区
       TZ: Asia/Shanghai
     depends_on:
@@ -62,11 +59,8 @@ services:
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD:-}
-      # Kafka 日志配置
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      # JWT 配置
-      JWT_SECRET: ${JWT_SECRET:-shop-secret-key-for-jwt-token-generation}
-      JWT_EXPIRATION: ${JWT_EXPIRATION:-604800000}
+      # 日志Kafka配置
+      APP_LOG_KAFKA_BOOTSTRAP__SERVERS: kafka:9092
       # 时区
       TZ: Asia/Shanghai
     depends_on:

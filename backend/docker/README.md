@@ -1,4 +1,4 @@
-# shop-admin Docker 部署文档
+# Shop 项目 Docker 部署文档
 
 ## 目录
 
@@ -21,7 +21,7 @@
 
 ## 1. 概述
 
-shop-admin 是商城项目的后台管理模块，提供管理端 REST 接口，包含商品管理、订单管理、用户管理等功能。本文档详细说明如何使用 Docker 容器化部署 shop-admin 服务。
+Shop 是商城项目，包含 shop-admin（后台管理）和 shop-api（前台API）两个服务模块。本文档详细说明如何使用 Docker 容器化部署 Shop 项目。
 
 ### 技术栈
 
@@ -41,6 +41,7 @@ shop-admin 是商城项目的后台管理模块，提供管理端 REST 接口，
 | 服务 | 端口 | 说明 |
 |------|------|------|
 | shop-admin | 8081 | 后台管理 API |
+| shop-api | 8080 | 前台 API |
 | MySQL | 3306 | 数据库 |
 | Redis | 6379 | 缓存 |
 | Kafka | 9092 / 9094 | 内部通信 / 外部访问 |
@@ -77,14 +78,19 @@ shop-admin 是商城项目的后台管理模块，提供管理端 REST 接口，
                     │                         ▲              │
   ┌──────────┐      │  ┌───────────┐    ┌─────┴─────┐      │
   │          │      │  │           │    │           │      │
-  │ 客户端    │──────┼─►│shop-admin │    │  MySQL    │      │
+  │ 管理端    │──────┼─►│shop-admin │    │  MySQL    │      │
   │          │      │  │ :8081     │───►│  :3306    │      │
-  └──────────┘      │  │           │    │           │      │
-                    │  └─────┬─────┘    └───────────┘      │
+  └──────────┘      │  └─────┬─────┘    └───────────┘      │
                     │        │                              │
-                    │        ▼                              │
-                    │  ┌───────────┐                        │
-                    │  │  Redis    │                        │
+  ┌──────────┐      │  ┌─────┴─────┐                        │
+  │          │      │  │           │                        │
+  │ 前台用户  │──────┼─►│ shop-api  │                        │
+  │          │      │  │ :8080     │───┐                    │
+  └──────────┘      │  └───────────┘   │                    │
+                    │        │         │                    │
+                    │        ▼         │                    │
+                    │  ┌───────────┐   │                    │
+                    │  │  Redis    │◄──┘                    │
                     │  │  :6379    │                        │
                     │  └───────────┘                        │
                     │                                         │
@@ -94,7 +100,7 @@ shop-admin 是商城项目的后台管理模块，提供管理端 REST 接口，
 ### 日志流向
 
 ```
-shop-admin (Log4j2 Kafka Appender)
+shop-admin / shop-api (Log4j2 Kafka Appender)
     │
     ▼
 Kafka (shop-logs topic)
@@ -103,7 +109,7 @@ Kafka (shop-logs topic)
 Logstash (解析、过滤、格式化)
     │
     ▼
-Elasticsearch (索引: shop-admin-logs-YYYY.MM.dd)
+Elasticsearch (索引: shop-logs-YYYY.MM.dd)
     │
     ▼
 Kibana (可视化查询)
@@ -183,41 +189,49 @@ docker compose up -d
 # 3. 回到项目根目录，构建镜像（多阶段构建，无需本机 Maven）
 cd ..
 docker build -t shop-admin:1.0.0 -f docker/Dockerfile.admin .
+docker build -t shop-api:1.0.0 -f docker/Dockerfile.api .
 
-# 4. 运行 shop-admin 容器
-docker run -d   --name shop-admin   --network shop_network   -p 8081:8081   -e SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/shop?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true   -e SPRING_DATASOURCE_USERNAME=root   -e SPRING_REDIS_HOST=redis   -e KAFKA_BOOTSTRAP_SERVERS=kafka:9092   shop-admin:1.0.0
+# 4. 启动所有服务（基础设施 + 应用）
+cd docker
+docker compose up -d
 
 # 5. 查看启动日志
-docker logs -f shop-admin
+docker compose logs -f
 ```
 
 ### 4.2 验证部署
 
 ```bash
 # 检查容器状态
-docker ps
+docker compose ps
 
 # 健康检查
 curl http://localhost:8081/actuator/health
+curl http://localhost:8080/actuator/health
 
 # 访问 API 文档
-# 浏览器打开: http://localhost:8081/doc.html
+# shop-admin: http://localhost:8081/doc.html
+# shop-api:   http://localhost:8080/doc.html
 ```
 
 ---
 
 ## 5. Dockerfile 详解
 
-shop-admin 采用**多阶段构建**方式，第一阶段在容器内用 Maven 编译打包，第二阶段将 JAR 复制到精简的 JRE Alpine 镜像中运行。
+shop-admin 和 shop-api 均采用**多阶段构建**方式，第一阶段在容器内用 Maven 编译打包，第二阶段将 JAR 复制到精简的 JRE Alpine 镜像中运行。两个服务的 Dockerfile 结构相同，仅模块名和端口不同。
 
 ### 5.1 构建流程
 
 ```bash
-# 一条命令完成编译 + 构建镜像（无需本机安装 Maven）
+# 构建所有镜像（无需本机安装 Maven）
 docker build -t shop-admin:1.0.0 -f docker/Dockerfile.admin .
+docker build -t shop-api:1.0.0 -f docker/Dockerfile.api .
+
+# 或使用构建脚本
+docker/scripts/build.sh all
 ```
 
-### 5.2 多阶段构建详解
+### 5.2 多阶段构建详解（以 shop-admin 为例）
 
 ```dockerfile
 # ---- 阶段1: Maven 构建 ----
@@ -260,16 +274,17 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 WORKDIR /app
 
 # 从构建阶段复制 JAR
-COPY --from=builder /build/shop-admin/target/shop-admin-1.0.0.jar app.jar
+COPY --from=builder --chown=appuser:appgroup /build/shop-admin/target/shop-admin-*.jar app.jar
 
-RUN chown -R appuser:appgroup /app
 USER appuser
 EXPOSE 8081
 ```
 
+> shop-api 的 Dockerfile 结构完全相同，仅将 `shop-admin` 替换为 `shop-api`，端口为 `8080`。
+
 **关键设计:**
 
-- **多阶段构建**: 编译环境和运行环境分离，最终镜像只包含 JRE + JAR，体积约 579MB（磁盘 223MB）
+- **多阶段构建**: 编译环境和运行环境分离，最终镜像只包含 JRE + JAR
 - **阿里云镜像**: `docker/maven/settings.xml` 配置阿里云加速，容器内依赖下载更快
 - **BuildKit 缓存**: `--mount=type=cache` 持久化 Maven 仓库，POM 不变时依赖层直接复用
 - **分层 COPY**: 先 COPY POM 下载依赖（缓存层），再 COPY 源码编译（代码变更只重建此层）
@@ -285,6 +300,7 @@ EXPOSE 8081
 ```bash
 # 在项目根目录执行
 docker build -t shop-admin:1.0.0 -f docker/Dockerfile.admin .
+docker build -t shop-api:1.0.0 -f docker/Dockerfile.api .
 ```
 
 ### 6.2 指定平台构建
@@ -292,6 +308,7 @@ docker build -t shop-admin:1.0.0 -f docker/Dockerfile.admin .
 ```bash
 # 构建 Linux AMD64 镜像（在 Windows ARM 设备上交叉编译）
 docker build --platform linux/amd64 -t shop-admin:1.0.0 -f docker/Dockerfile.admin .
+docker build --platform linux/amd64 -t shop-api:1.0.0 -f docker/Dockerfile.api .
 ```
 
 ### 6.3 不使用缓存构建
@@ -299,13 +316,18 @@ docker build --platform linux/amd64 -t shop-admin:1.0.0 -f docker/Dockerfile.adm
 ```bash
 # 完全重新构建（不使用任何缓存层）
 docker build --no-cache -t shop-admin:1.0.0 -f docker/Dockerfile.admin .
+docker build --no-cache -t shop-api:1.0.0 -f docker/Dockerfile.api .
 ```
 
-### 6.4 构建参数
+### 6.4 使用构建脚本
 
 ```bash
-# 自定义 JVM 堆内存（构建时注入）
-docker build   --build-arg JAVA_OPTS="-Xms512m -Xmx1024m"   -t shop-admin:1.0.0   -f docker/Dockerfile.admin .
+# 使用脚本构建（推荐）
+docker/scripts/build.sh all           # 构建所有镜像
+docker/scripts/build.sh admin         # 仅构建 shop-admin
+docker/scripts/build.sh api           # 仅构建 shop-api
+docker/scripts/build.sh --no-cache    # 不使用缓存构建
+docker/scripts/build.sh -v 2.0.0      # 指定版本号
 ```
 
 ### 6.5 镜像标签规范
@@ -313,8 +335,9 @@ docker build   --build-arg JAVA_OPTS="-Xms512m -Xmx1024m"   -t shop-admin:1.0.0 
 ```bash
 # 版本标签
 docker tag shop-admin:1.0.0 shop-admin:latest
+docker tag shop-api:1.0.0 shop-api:latest
 docker tag shop-admin:1.0.0 registry.example.com/shop-admin:1.0.0
-docker tag shop-admin:1.0.0 registry.example.com/shop-admin:latest
+docker tag shop-api:1.0.0 registry.example.com/shop-api:1.0.0
 ```
 
 ---
@@ -324,19 +347,32 @@ docker tag shop-admin:1.0.0 registry.example.com/shop-admin:latest
 ### 7.1 基础运行
 
 ```bash
-docker run -d   --name shop-admin   -p 8081:8081   shop-admin:1.0.0
+docker run -d --name shop-admin -p 8081:8081 shop-admin:1.0.0
+docker run -d --name shop-api -p 8080:8080 shop-api:1.0.0
 ```
 
-### 7.2 连接基础设施
+### 7.2 使用 Docker Compose（推荐）
+
+推荐使用 Docker Compose 统一管理服务，无需手动指定环境变量：
 
 ```bash
-docker run -d   --name shop-admin   --network shop_network   -p 8081:8081   -e SPRING_DATASOURCE_URL="jdbc:mysql://mysql:3306/shop?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true"   -e SPRING_DATASOURCE_USERNAME=root   -e SPRING_REDIS_HOST=redis   -e SPRING_REDIS_PORT=6379   -e KAFKA_BOOTSTRAP_SERVERS=kafka:9092   -e KAFKA_TOPIC=shop-logs   shop-admin:1.0.0
+cd docker
+
+# 启动基础设施
+docker/scripts/deploy.sh infra
+
+# 构建并启动应用
+docker/scripts/deploy.sh build
 ```
 
-### 7.3 完整生产配置
+### 7.3 手动连接基础设施
 
 ```bash
-docker run -d   --name shop-admin   --network shop_network   --restart unless-stopped   -p 8081:8081   -e JAVA_OPTS="-Xms512m -Xmx1024m -XX:+UseG1GC -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/app/logs/"   -e SPRING_DATASOURCE_URL="jdbc:mysql://mysql:3306/shop?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true"   -e SPRING_DATASOURCE_USERNAME=root   -e SPRING_DATASOURCE_PASSWORD=your_password   -e SPRING_REDIS_HOST=redis   -e SPRING_REDIS_PORT=6379   -e SPRING_REDIS_PASSWORD=your_redis_password   -e KAFKA_BOOTSTRAP_SERVERS=kafka:9092   -e KAFKA_TOPIC=shop-logs   -e JWT_SECRET=your-production-secret-key   -e JWT_EXPIRATION=604800000   -v shop-admin-logs:/app/logs   shop-admin:1.0.0
+# shop-admin
+docker run -d   --name shop-admin   --network shop_network   -p 8081:8081   -e SPRING_DATASOURCE_URL="jdbc:mysql://mysql:3306/shop?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true"   -e SPRING_DATASOURCE_USERNAME=root   -e SPRING_DATA_REDIS_HOST=redis   -e SPRING_DATA_REDIS_PORT=6379   -e APP_LOG_KAFKA_BOOTSTRAP__SERVERS=kafka:9092   shop-admin:1.0.0
+
+# shop-api
+docker run -d   --name shop-api   --network shop_network   -p 8080:8080   -e SPRING_DATASOURCE_URL="jdbc:mysql://mysql:3306/shop?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true"   -e SPRING_DATASOURCE_USERNAME=root   -e SPRING_DATA_REDIS_HOST=redis   -e SPRING_DATA_REDIS_PORT=6379   -e APP_LOG_KAFKA_BOOTSTRAP__SERVERS=kafka:9092   shop-api:1.0.0
 ```
 
 ### 7.4 容器管理命令
@@ -395,14 +431,10 @@ services:
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: ""
       # Redis 配置
-      SPRING_REDIS_HOST: redis
-      SPRING_REDIS_PORT: 6379
-      # Kafka 日志配置
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      KAFKA_TOPIC: shop-logs
-      # JWT 配置
-      JWT_SECRET: "shop-secret-key-for-jwt-token-generation"
-      JWT_EXPIRATION: "604800000"
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      # 日志Kafka配置
+      APP_LOG_KAFKA_BOOTSTRAP__SERVERS: kafka:9092
       # 时区
       TZ: Asia/Shanghai
     depends_on:
@@ -462,13 +494,10 @@ Redis ──────┘
 | `SPRING_DATASOURCE_URL` | `jdbc:mysql://localhost:3306/shop?...` | 数据库连接 URL |
 | `SPRING_DATASOURCE_USERNAME` | `root` | 数据库用户名 |
 | `SPRING_DATASOURCE_PASSWORD` | (空) | 数据库密码 |
-| `SPRING_REDIS_HOST` | `localhost` | Redis 主机地址 |
-| `SPRING_REDIS_PORT` | `6379` | Redis 端口 |
-| `SPRING_REDIS_PASSWORD` | (空) | Redis 密码 |
-| `KAFKA_BOOTSTRAP_SERVERS` | `localhost:9094` | Kafka 服务器地址 |
-| `KAFKA_TOPIC` | `shop-logs` | Kafka 日志主题 |
-| `JWT_SECRET` | `shop-secret-key-...` | JWT 签名密钥 |
-| `JWT_EXPIRATION` | `604800000` | JWT 过期时间（毫秒） |
+| `SPRING_DATA_REDIS_HOST` | `localhost` | Redis 主机地址 |
+| `SPRING_DATA_REDIS_PORT` | `6379` | Redis 端口 |
+| `SPRING_DATA_REDIS_PASSWORD` | (空) | Redis 密码 |
+| `APP_LOG_KAFKA_BOOTSTRAP__SERVERS` | `localhost:9094` | 日志Kafka服务器地址 |
 | `TZ` | `Asia/Shanghai` | 容器时区 |
 
 ### 9.2 Spring Boot 环境变量映射
@@ -480,9 +509,9 @@ Spring Boot 自动将环境变量映射到配置属性，规则如下：
 SPRING_DATASOURCE_URL            → spring.datasource.url
 SPRING_DATASOURCE_USERNAME       → spring.datasource.username
 SPRING_DATASOURCE_PASSWORD       → spring.datasource.password
-SPRING_REDIS_HOST                → spring.data.redis.host
-SPRING_REDIS_PORT                → spring.data.redis.port
-SPRING_REDIS_PASSWORD            → spring.data.redis.password
+SPRING_DATA_REDIS_HOST                → spring.data.redis.host
+SPRING_DATA_REDIS_PORT                → spring.data.redis.port
+SPRING_DATA_REDIS_PASSWORD            → spring.data.redis.password
 ```
 
 ### 9.3 使用 .env 文件
@@ -495,10 +524,9 @@ JAVA_OPTS=-Xms512m -Xmx1024m -XX:+UseG1GC
 SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/shop?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
 SPRING_DATASOURCE_USERNAME=root
 SPRING_DATASOURCE_PASSWORD=
-SPRING_REDIS_HOST=redis
-SPRING_REDIS_PORT=6379
-KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-JWT_SECRET=your-production-secret-key
+SPRING_DATA_REDIS_HOST=redis
+SPRING_DATA_REDIS_PORT=6379
+APP_LOG_KAFKA_BOOTSTRAP__SERVERS=kafka:9092
 ```
 
 使用方式：
@@ -574,7 +602,7 @@ shop-admin 采用 **Log4j2 → Kafka → Logstash → Elasticsearch → Kibana**
 1. **Log4j2**: 应用日志通过 Kafka Appender 发送到 Kafka
 2. **Kafka**: 作为日志缓冲区，topic 为 `shop-logs`
 3. **Logstash**: 从 Kafka 消费日志，解析格式后写入 Elasticsearch
-4. **Elasticsearch**: 存储日志，索引格式 `shop-admin-logs-YYYY.MM.dd`
+4. **Elasticsearch**: 存储日志，索引格式 `shop-logs-YYYY.MM.dd`
 5. **Kibana**: 可视化查询日志
 
 ### 11.2 Log4j2 Kafka 配置
@@ -582,19 +610,19 @@ shop-admin 采用 **Log4j2 → Kafka → Logstash → Elasticsearch → Kibana**
 `log4j2-spring.xml` 中的关键配置：
 
 ```xml
-<Kafka name="Kafka" topic="${KAFKA_TOPIC}" syncSend="${KAFKA_SYNC_SEND}">
+<Kafka name="KafkaAppender" topic="shop-logs">
     <PatternLayout pattern="[%d{ISO8601}] [${spring:spring.application.name}] [%t] [%level] [%C.%M(%L)] - [%msg%n]" charset="UTF-8"/>
-    <Property name="bootstrap.servers">${KAFKA_BOOTSTRAP_SERVERS}</Property>
+    <Property name="bootstrap.servers">${spring:app.log.kafka.bootstrap-servers}</Property>
 </Kafka>
 ```
 
 **Docker 环境中需修改的参数：**
 
-| 参数 | 默认值 | Docker 值 | 说明 |
-|------|--------|-----------|------|
-| `KAFKA_BOOTSTRAP_SERVERS` | `localhost:9094` | `kafka:9092` | 容器内使用服务名 + 内部端口 |
-| `KAFKA_TOPIC` | `shop-logs` | `shop-logs` | 无需修改 |
-| `KAFKA_SYNC_SEND` | `false` | `false` | 异步发送，不影响性能 |
+| 环境变量 | 配置属性 | 默认值 | Docker 值 | 说明 |
+|----------|----------|--------|-----------|------|
+| `APP_LOG_KAFKA_BOOTSTRAP__SERVERS` | `app.log.kafka.bootstrap-servers` | `localhost:9094` | `kafka:9092` | 容器内使用服务名 + 内部端口 |
+
+> **注意**: 环境变量中双下划线 `__` 映射为配置属性中的连字符 `-`，这是 Spring Boot Relaxed Binding 规范。
 
 ### 11.3 查看容器日志
 
@@ -614,7 +642,7 @@ docker logs --since "2024-01-01T00:00:00" --until "2024-01-01T12:00:00" shop-adm
 1. 打开浏览器访问 `http://localhost:5601`
 2. 进入 **Management → Stack Management → Data Views**
 3. 创建数据视图：
-   - 索引模式：`shop-admin-logs-*`
+   - 索引模式：`shop-logs-*`
    - 时间字段：`@timestamp`
 4. 进入 **Analytics → Discover** 查看日志
 5. 常用筛选：
@@ -791,7 +819,7 @@ docker exec shop-admin ping redis
 docker exec shop-redis redis-cli ping
 
 # 解决方案：
-# 1. 设置 SPRING_REDIS_HOST=redis（服务名）
+# 1. 设置 SPRING_DATA_REDIS_HOST=redis（服务名）
 # 2. 检查 Redis 密码配置
 ```
 
@@ -807,8 +835,8 @@ docker ps | grep kafka
 docker exec shop-kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list
 
 # 解决方案：
-# 1. 容器内使用 KAFKA_BOOTSTRAP_SERVERS=kafka:9092（内部端口）
-# 2. 宿主机使用 KAFKA_BOOTSTRAP_SERVERS=localhost:9094（外部端口）
+# 1. 容器内使用 APP_LOG_KAFKA_BOOTSTRAP__SERVERS=kafka:9092（内部端口）
+# 2. 宿主机使用 APP_LOG_KAFKA_BOOTSTRAP__SERVERS=localhost:9094（外部端口）
 ```
 
 ### 14.5 镜像构建缓慢
@@ -885,6 +913,7 @@ docker system prune                    # 一键清理
 | 服务 | 容器端口 | 宿主机端口 | 用途 |
 |------|----------|------------|------|
 | shop-admin | 8081 | 8081 | 管理 API |
+| shop-api | 8080 | 8080 | 前台 API |
 | MySQL | 3306 | 3306 | 数据库 |
 | Redis | 6379 | 6379 | 缓存 |
 | Kafka | 9092 | 9092 | 内部通信 |

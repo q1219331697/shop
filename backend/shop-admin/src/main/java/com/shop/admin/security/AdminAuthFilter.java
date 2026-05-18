@@ -43,18 +43,18 @@ public class AdminAuthFilter extends OncePerRequestFilter {
     private final AdminPermissionService adminPermissionService;
     private final AdminUserService adminUserService;
     private final ObjectMapper objectMapper;
-    private final AdminAuthProperties authProperties;
+    private final AdminProperties adminProperties;
 
     public AdminAuthFilter(AdminTokenService adminTokenService,
                            AdminPermissionService adminPermissionService,
                            AdminUserService adminUserService,
                            ObjectMapper objectMapper,
-                           AdminAuthProperties authProperties) {
+                           AdminProperties adminProperties) {
         this.adminTokenService = adminTokenService;
         this.adminPermissionService = adminPermissionService;
         this.adminUserService = adminUserService;
         this.objectMapper = objectMapper;
-        this.authProperties = authProperties;
+        this.adminProperties = adminProperties;
     }
 
     @Override
@@ -101,7 +101,7 @@ public class AdminAuthFilter extends OncePerRequestFilter {
      * @return true-在白名单中 false-不在白名单中
      */
     private boolean isPermittedPath(String requestURI) {
-        return authProperties.getPermitPrefixPaths().stream()
+        return adminProperties.getAuth().getPermitPrefixPaths().stream()
                 .anyMatch(requestURI::startsWith);
     }
 

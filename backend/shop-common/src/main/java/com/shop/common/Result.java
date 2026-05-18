@@ -35,6 +35,14 @@ public class Result<T> implements Serializable {
     private T data;
 
     /**
+     * 判断是否成功
+     * @return 是否成功
+     */
+    public boolean isSuccess() {
+        return ResultCode.SUCCESS == this.code;
+    }
+
+    /**
      * 返回成功结果（无数据）
      * @param <T> 数据类型
      * @return 成功结果

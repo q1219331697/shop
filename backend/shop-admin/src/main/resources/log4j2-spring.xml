@@ -15,36 +15,28 @@
 
   参数覆盖方式：
     1. 直接修改下面的属性值
-    2. JVM参数覆盖: java -DKAFKA_BOOTSTRAP_SERVERS=xxx -jar xxx.jar
-    3. 环境变量覆盖: export KAFKA_BOOTSTRAP_SERVERS=xxx
+    2. JVM参数覆盖: java -Dapp.log.kafka.bootstrap-servers=xxx -jar xxx.jar
+    3. 环境变量覆盖: export APP_LOG_KAFKA_BOOTSTRAP__SERVERS=xxx
+    4. Spring配置覆盖: 在application.yml中设置 app.log.kafka.bootstrap-servers: xxx
 -->
 <Configuration status="WARN" monitorInterval="30">
-    <Properties>
-        <Property name="KAFKA_BOOTSTRAP_SERVERS">${env:KAFKA_BOOTSTRAP_SERVERS:-localhost:9094}</Property>
-        <Property name="KAFKA_TOPIC">shop-logs</Property>
-        <Property name="KAFKA_SYNC_SEND">false</Property>
-        <Property name="ROOT_LOG_LEVEL">INFO</Property>
-        <Property name="MYBATIS_PLUS_LOG_LEVEL">DEBUG</Property>
-        <Property name="APP_LOG_LEVEL">DEBUG</Property>
-    </Properties>
-
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
         </Console>
 
-        <Kafka name="Kafka" topic="${KAFKA_TOPIC}" syncSend="${KAFKA_SYNC_SEND}">
+        <Kafka name="Kafka" topic="shop-logs" syncSend="false">
             <PatternLayout pattern="[%d{ISO8601}] [${spring:spring.application.name}] [%t] [%level] [%C.%M(%L)] - [%msg%n]" charset="UTF-8"/>
-            <Property name="bootstrap.servers">${KAFKA_BOOTSTRAP_SERVERS}</Property>
+            <Property name="bootstrap.servers">${spring:app.log.kafka.bootstrap-servers}</Property>
         </Kafka>
     </Appenders>
 
     <Loggers>
-        <Root level="${ROOT_LOG_LEVEL}">
+        <Root level="INFO">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Kafka"/>
         </Root>
-        <Logger name="com.baomidou.mybatisplus" level="${MYBATIS_PLUS_LOG_LEVEL}"/>
-        <Logger name="com.shop" level="${APP_LOG_LEVEL}"/>
+        <Logger name="com.baomidou.mybatisplus" level="${spring:app.log.level.mybatis-plus}"/>
+        <Logger name="com.shop" level="${spring:app.log.level.app}"/>
     </Loggers>
 </Configuration>

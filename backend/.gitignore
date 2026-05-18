@@ -98,3 +98,6 @@ package-lock.json
 
 startup-log.txt
 build-log.txt
+
+startup-log.txt
+startup.log

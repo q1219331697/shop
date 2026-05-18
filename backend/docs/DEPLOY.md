@@ -95,7 +95,7 @@ docker run -d \
   -e SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/shop \
   -e SPRING_DATASOURCE_USERNAME=root \
   -e SPRING_DATASOURCE_PASSWORD=your_password \
-  -e SPRING_REDIS_HOST=redis \
+  -e SPRING_DATA_REDIS_HOST=redis \
   shop:1.0.0
 ```
 
