@@ -72,6 +72,26 @@ admin:
       - /swagger-resources
       - /swagger-ui
       - /api-docs
+      - /actuator
+
+# Actuator监控端点配置
+management:
+  endpoints:
+    web:
+      # 端点基础路径（默认为/actuator）
+      base-path: /actuator
+      exposure:
+        # 暴露所有端点（生产环境注意安全，建议按需开放）
+        include: "*"
+  endpoint:
+    startup:
+      # 启用startup端点（记录Bean初始化耗时，需配合AOP使用）
+      access: read_only
+    health:
+      # 显示详细健康信息（always/when-authorized/never）
+      show-details: always
+      # 显示各组件的详细状态
+      show-components: always
 
 knife4j:
   enable: true
