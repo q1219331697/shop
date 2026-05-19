@@ -9,7 +9,7 @@ import com.shop.admin.mapper.AdminUserRoleMapper;
 import com.shop.admin.security.AdminTokenService;
 import com.shop.admin.service.AdminUserService;
 import com.shop.common.Result;
-import com.shop.common.ResultCode;
+import com.shop.common.ResultCodeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,17 +49,17 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
         AdminUserEntity dbUser = getByUsername(username);
         if (dbUser == null) {
             log.warn("管理员登录失败, 用户不存在, username: {}", username);
-            return Result.error(ResultCode.USER_NOT_EXIST, "管理员不存在");
+            return Result.error(ResultCodeEnum.USER_NOT_EXIST, "管理员不存在");
         }
 
         if (!adminUser.getPassword().equals(dbUser.getPassword())) {
             log.warn("管理员登录失败, 密码错误, username: {}", username);
-            return Result.error(ResultCode.PASSWORD_ERROR, "密码错误");
+            return Result.error(ResultCodeEnum.PASSWORD_ERROR, "密码错误");
         }
 
         if (dbUser.getStatus() == 0) {
             log.warn("管理员登录失败, 用户已被禁用, username: {}", username);
-            return Result.error(ResultCode.USER_DISABLED, "管理员已被禁用");
+            return Result.error(ResultCodeEnum.USER_DISABLED, "管理员已被禁用");
         }
 
         // 更新登录信息
@@ -87,7 +87,7 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
             return Result.success();
         }
         log.warn("管理员登出失败, token无效");
-        return Result.error(ResultCode.OPERATION_FAILED, "登出失败，token无效");
+        return Result.error(ResultCodeEnum.OPERATION_FAILED, "登出失败，token无效");
     }
 
     /**
@@ -103,7 +103,7 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
 
         if (isUsernameExists(username)) {
             log.warn("创建管理员失败, 用户名已存在, username: {}", username);
-            return Result.error(ResultCode.USERNAME_EXIST, "管理员用户名已存在");
+            return Result.error(ResultCodeEnum.USERNAME_EXIST, "管理员用户名已存在");
         }
 
         if (adminUser.getStatus() == null) {
@@ -116,7 +116,7 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
         } else {
             log.error("创建管理员失败, username: {}", username);
         }
-        return success ? Result.success() : Result.error(ResultCode.OPERATION_FAILED, "创建管理员失败");
+        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "创建管理员失败");
     }
 
     /**
@@ -133,13 +133,13 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
         AdminUserEntity existUser = this.getById(id);
         if (existUser == null) {
             log.warn("更新管理员信息失败, 管理员不存在, adminUserId: {}", id);
-            return Result.error(ResultCode.USER_NOT_EXIST, "管理员不存在");
+            return Result.error(ResultCodeEnum.USER_NOT_EXIST, "管理员不存在");
         }
 
         String newUsername = adminUser.getUsername();
         if (newUsername != null && !newUsername.equals(existUser.getUsername()) && isUsernameExists(newUsername)) {
             log.warn("更新管理员信息失败, 用户名已存在, username: {}", newUsername);
-            return Result.error(ResultCode.USERNAME_EXIST, "管理员用户名已存在");
+            return Result.error(ResultCodeEnum.USERNAME_EXIST, "管理员用户名已存在");
         }
 
         boolean success = this.updateById(adminUser);
@@ -148,7 +148,7 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
         } else {
             log.error("更新管理员信息失败, adminUserId: {}", id);
         }
-        return success ? Result.success() : Result.error(ResultCode.OPERATION_FAILED, "更新管理员失败");
+        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "更新管理员失败");
     }
 
     /**
@@ -163,7 +163,7 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
         AdminUserEntity adminUser = this.getById(id);
         if (adminUser == null) {
             log.warn("获取管理员信息失败, 管理员不存在, adminUserId: {}", id);
-            return Result.error(ResultCode.USER_NOT_EXIST, "管理员不存在");
+            return Result.error(ResultCodeEnum.USER_NOT_EXIST, "管理员不存在");
         }
         adminUser.setPassword(null);
         return Result.success(adminUser);
@@ -183,7 +183,7 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
 
         if (this.getById(userId) == null) {
             log.warn("分配角色失败, 用户不存在, userId: {}", userId);
-            return Result.error(ResultCode.USER_NOT_EXIST, "管理员不存在");
+            return Result.error(ResultCodeEnum.USER_NOT_EXIST, "管理员不存在");
         }
 
         // 删除原有角色关联

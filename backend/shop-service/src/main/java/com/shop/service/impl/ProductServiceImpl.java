@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.shop.common.Result;
-import com.shop.common.ResultCode;
+import com.shop.common.ResultCodeEnum;
 import com.shop.entity.CategoryEntity;
 import com.shop.entity.ProductEntity;
 import com.shop.mapper.ProductMapper;
@@ -61,7 +61,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, ProductEntity
         ProductEntity product = this.getById(id);
         if (product == null) {
             log.warn("查询商品详情失败, 商品不存在, productId: {}", id);
-            return Result.error(ResultCode.PRODUCT_NOT_EXIST, "商品不存在");
+            return Result.error(ResultCodeEnum.PRODUCT_NOT_EXIST, "商品不存在");
         }
         log.info("查询商品详情成功, productId: {}", id);
         return Result.success(product);
@@ -75,7 +75,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, ProductEntity
             CategoryEntity category = categoryService.getById(product.getCategoryId());
             if (category == null) {
                 log.warn("添加商品失败, 分类不存在, categoryId: {}", product.getCategoryId());
-                return Result.error(ResultCode.CATEGORY_NOT_EXIST, "分类不存在");
+                return Result.error(ResultCodeEnum.CATEGORY_NOT_EXIST, "分类不存在");
             }
         }
 
@@ -90,7 +90,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, ProductEntity
         } else {
             log.error("添加商品失败, productName: {}", product.getName());
         }
-        return success ? Result.success() : Result.error(ResultCode.OPERATION_FAILED, "添加商品失败");
+        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "添加商品失败");
     }
 
     @Override
@@ -99,7 +99,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, ProductEntity
         ProductEntity existProduct = this.getById(product.getId());
         if (existProduct == null) {
             log.warn("更新商品失败, 商品不存在, productId: {}", product.getId());
-            return Result.error(ResultCode.PRODUCT_NOT_EXIST, "商品不存在");
+            return Result.error(ResultCodeEnum.PRODUCT_NOT_EXIST, "商品不存在");
         }
 
         // 验证分类是否存在
@@ -107,7 +107,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, ProductEntity
             CategoryEntity category = categoryService.getById(product.getCategoryId());
             if (category == null) {
                 log.warn("更新商品失败, 分类不存在, categoryId: {}", product.getCategoryId());
-                return Result.error(ResultCode.CATEGORY_NOT_EXIST, "分类不存在");
+                return Result.error(ResultCodeEnum.CATEGORY_NOT_EXIST, "分类不存在");
             }
         }
 
@@ -117,7 +117,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, ProductEntity
         } else {
             log.error("更新商品失败, productId: {}", product.getId());
         }
-        return success ? Result.success() : Result.error(ResultCode.OPERATION_FAILED, "更新商品失败");
+        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "更新商品失败");
     }
 
     @Override
@@ -126,7 +126,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, ProductEntity
         ProductEntity product = this.getById(id);
         if (product == null) {
             log.warn("删除商品失败, 商品不存在, productId: {}", id);
-            return Result.error(ResultCode.PRODUCT_NOT_EXIST, "商品不存在");
+            return Result.error(ResultCodeEnum.PRODUCT_NOT_EXIST, "商品不存在");
         }
 
         boolean success = this.removeById(id);
@@ -135,6 +135,6 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, ProductEntity
         } else {
             log.error("删除商品失败, productId: {}", id);
         }
-        return success ? Result.success() : Result.error(ResultCode.OPERATION_FAILED, "删除商品失败");
+        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "删除商品失败");
     }
 }

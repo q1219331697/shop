@@ -3,7 +3,7 @@ package com.shop.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.shop.common.Result;
-import com.shop.common.ResultCode;
+import com.shop.common.ResultCodeEnum;
 import com.shop.entity.CartEntity;
 import com.shop.entity.ProductEntity;
 import com.shop.mapper.CartMapper;
@@ -45,14 +45,14 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartEntity> impleme
         ProductEntity product = productService.getById(cart.getProductId());
         if (product == null) {
             log.warn("添加购物车失败, 商品不存在, productId: {}", cart.getProductId());
-            return Result.error(ResultCode.PRODUCT_NOT_EXIST, "商品不存在");
+            return Result.error(ResultCodeEnum.PRODUCT_NOT_EXIST, "商品不存在");
         }
 
         // 检查库存
         if (product.getStock() < cart.getQuantity()) {
             log.warn("添加购物车失败, 库存不足, productId: {}, stock: {}, quantity: {}",
                     cart.getProductId(), product.getStock(), cart.getQuantity());
-            return Result.error(ResultCode.STOCK_INSUFFICIENT, "库存不足");
+            return Result.error(ResultCodeEnum.STOCK_INSUFFICIENT, "库存不足");
         }
 
         // 检查购物车是否已存在该商品
@@ -71,7 +71,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartEntity> impleme
             } else {
                 log.error("更新购物车数量失败, cartId: {}", existCart.getId());
             }
-            return success ? Result.success() : Result.error(ResultCode.OPERATION_FAILED, "添加购物车失败");
+            return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "添加购物车失败");
         } else {
             // 新增购物车项
             cart.setProductName(product.getName());
@@ -83,7 +83,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartEntity> impleme
             } else {
                 log.error("添加购物车失败, userId: {}, productId: {}", cart.getUserId(), cart.getProductId());
             }
-            return success ? Result.success() : Result.error(ResultCode.OPERATION_FAILED, "添加购物车失败");
+            return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "添加购物车失败");
         }
     }
 
@@ -93,7 +93,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartEntity> impleme
         CartEntity existCart = this.getById(cart.getId());
         if (existCart == null) {
             log.warn("更新购物车项失败, 购物车项不存在, cartId: {}", cart.getId());
-            return Result.error(ResultCode.CART_ITEM_NOT_EXIST, "购物车项不存在");
+            return Result.error(ResultCodeEnum.CART_ITEM_NOT_EXIST, "购物车项不存在");
         }
 
         // 验证商品库存
@@ -101,7 +101,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartEntity> impleme
         if (product != null && product.getStock() < cart.getQuantity()) {
             log.warn("更新购物车项失败, 库存不足, productId: {}, stock: {}, quantity: {}",
                     product.getId(), product.getStock(), cart.getQuantity());
-            return Result.error(ResultCode.STOCK_INSUFFICIENT, "库存不足");
+            return Result.error(ResultCodeEnum.STOCK_INSUFFICIENT, "库存不足");
         }
 
         boolean success = this.updateById(cart);
@@ -110,7 +110,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartEntity> impleme
         } else {
             log.error("更新购物车项失败, cartId: {}", cart.getId());
         }
-        return success ? Result.success() : Result.error(ResultCode.OPERATION_FAILED, "更新购物车失败");
+        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "更新购物车失败");
     }
 
     @Override
@@ -119,7 +119,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartEntity> impleme
         CartEntity cart = this.getById(id);
         if (cart == null) {
             log.warn("删除购物车项失败, 购物车项不存在, cartId: {}", id);
-            return Result.error(ResultCode.CART_ITEM_NOT_EXIST, "购物车项不存在");
+            return Result.error(ResultCodeEnum.CART_ITEM_NOT_EXIST, "购物车项不存在");
         }
 
         boolean success = this.removeById(id);
@@ -128,7 +128,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartEntity> impleme
         } else {
             log.error("删除购物车项失败, cartId: {}", id);
         }
-        return success ? Result.success() : Result.error(ResultCode.OPERATION_FAILED, "删除购物车项失败");
+        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "删除购物车项失败");
     }
 
     @Override
@@ -142,6 +142,6 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartEntity> impleme
         } else {
             log.error("清空购物车失败, userId: {}", userId);
         }
-        return success ? Result.success() : Result.error(ResultCode.OPERATION_FAILED, "清空购物车失败");
+        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "清空购物车失败");
     }
 }

@@ -11,7 +11,7 @@ import com.shop.admin.mapper.AdminRolePermissionMapper;
 import com.shop.admin.mapper.AdminUserRoleMapper;
 import com.shop.admin.service.AdminPermissionService;
 import com.shop.common.Result;
-import com.shop.common.ResultCode;
+import com.shop.common.ResultCodeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,7 +50,7 @@ public class AdminPermissionServiceImpl
         codeWrapper.eq(AdminPermissionEntity::getPermissionCode, permission.getPermissionCode());
         if (this.count(codeWrapper) > 0) {
             log.warn("创建权限失败, 权限编码已存在, permissionCode: {}", permission.getPermissionCode());
-            return Result.error(ResultCode.PARAM_ERROR, "权限编码已存在");
+            return Result.error(ResultCodeEnum.PARAM_ERROR, "权限编码已存在");
         }
 
         // 校验父权限存在
@@ -58,7 +58,7 @@ public class AdminPermissionServiceImpl
             AdminPermissionEntity parent = this.getById(permission.getParentId());
             if (parent == null) {
                 log.warn("创建权限失败, 父权限不存在, parentId: {}", permission.getParentId());
-                return Result.error(ResultCode.PARAM_ERROR, "父权限不存在");
+                return Result.error(ResultCodeEnum.PARAM_ERROR, "父权限不存在");
             }
         }
 
@@ -79,7 +79,7 @@ public class AdminPermissionServiceImpl
         } else {
             log.error("创建权限失败, permissionCode: {}", permission.getPermissionCode());
         }
-        return success ? Result.success() : Result.error(ResultCode.OPERATION_FAILED, "创建权限失败");
+        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "创建权限失败");
     }
 
     @Override
@@ -88,7 +88,7 @@ public class AdminPermissionServiceImpl
         AdminPermissionEntity existPermission = this.getById(permission.getId());
         if (existPermission == null) {
             log.warn("更新权限失败, 权限不存在, permissionId: {}", permission.getId());
-            return Result.error(ResultCode.PARAM_ERROR, "权限不存在");
+            return Result.error(ResultCodeEnum.PARAM_ERROR, "权限不存在");
         }
 
         // 校验权限编码唯一
@@ -98,14 +98,14 @@ public class AdminPermissionServiceImpl
             codeWrapper.eq(AdminPermissionEntity::getPermissionCode, permission.getPermissionCode());
             if (this.count(codeWrapper) > 0) {
                 log.warn("更新权限失败, 权限编码已存在, permissionCode: {}", permission.getPermissionCode());
-                return Result.error(ResultCode.PARAM_ERROR, "权限编码已存在");
+                return Result.error(ResultCodeEnum.PARAM_ERROR, "权限编码已存在");
             }
         }
 
         // 不能将父权限设为自己
         if (permission.getParentId() != null && permission.getParentId().equals(permission.getId())) {
             log.warn("更新权限失败, 父权限不能为自己, permissionId: {}", permission.getId());
-            return Result.error(ResultCode.PARAM_ERROR, "父权限不能为自己");
+            return Result.error(ResultCodeEnum.PARAM_ERROR, "父权限不能为自己");
         }
 
         boolean success = this.updateById(permission);
@@ -114,7 +114,7 @@ public class AdminPermissionServiceImpl
         } else {
             log.error("更新权限失败, permissionId: {}", permission.getId());
         }
-        return success ? Result.success() : Result.error(ResultCode.OPERATION_FAILED, "更新权限失败");
+        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "更新权限失败");
     }
 
     @Override
@@ -124,7 +124,7 @@ public class AdminPermissionServiceImpl
         AdminPermissionEntity existPermission = this.getById(id);
         if (existPermission == null) {
             log.warn("删除权限失败, 权限不存在, permissionId: {}", id);
-            return Result.error(ResultCode.PARAM_ERROR, "权限不存在");
+            return Result.error(ResultCodeEnum.PARAM_ERROR, "权限不存在");
         }
 
         // 检查是否有子权限
@@ -132,7 +132,7 @@ public class AdminPermissionServiceImpl
         childWrapper.eq(AdminPermissionEntity::getParentId, id);
         if (this.count(childWrapper) > 0) {
             log.warn("删除权限失败, 存在子权限, permissionId: {}", id);
-            return Result.error(ResultCode.OPERATION_FAILED, "存在子权限，无法删除");
+            return Result.error(ResultCodeEnum.OPERATION_FAILED, "存在子权限，无法删除");
         }
 
         // 删除角色权限关联
@@ -147,7 +147,7 @@ public class AdminPermissionServiceImpl
         } else {
             log.error("删除权限失败, permissionId: {}", id);
         }
-        return success ? Result.success() : Result.error(ResultCode.OPERATION_FAILED, "删除权限失败");
+        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "删除权限失败");
     }
 
     @Override
@@ -156,7 +156,7 @@ public class AdminPermissionServiceImpl
         AdminPermissionEntity permission = this.getById(id);
         if (permission == null) {
             log.warn("获取权限信息失败, 权限不存在, permissionId: {}", id);
-            return Result.error(ResultCode.PARAM_ERROR, "权限不存在");
+            return Result.error(ResultCodeEnum.PARAM_ERROR, "权限不存在");
         }
         return Result.success(permission);
     }

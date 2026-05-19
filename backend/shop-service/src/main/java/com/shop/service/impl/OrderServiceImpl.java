@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.shop.common.Result;
-import com.shop.common.ResultCode;
+import com.shop.common.ResultCodeEnum;
 import com.shop.enums.OrderStatusEnum;
 import com.shop.entity.OrderEntity;
 import com.shop.mapper.OrderMapper;
@@ -42,7 +42,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderEntity> impl
         } else {
             log.error("创建订单失败, userId: {}", order.getUserId());
         }
-        return success ? Result.success(order) : Result.error(ResultCode.OPERATION_FAILED, "创建订单失败");
+        return success ? Result.success(order) : Result.error(ResultCodeEnum.OPERATION_FAILED, "创建订单失败");
     }
 
     @Override
@@ -51,7 +51,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderEntity> impl
         OrderEntity order = this.getById(id);
         if (order == null) {
             log.warn("查询订单详情失败, 订单不存在, orderId: {}", id);
-            return Result.error(ResultCode.ORDER_NOT_EXIST, "订单不存在");
+            return Result.error(ResultCodeEnum.ORDER_NOT_EXIST, "订单不存在");
         }
         log.info("查询订单详情成功, orderId: {}, orderNo: {}", id, order.getOrderNo());
         return Result.success(order);
@@ -76,13 +76,13 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderEntity> impl
         OrderEntity order = this.getById(id);
         if (order == null) {
             log.warn("取消订单失败, 订单不存在, orderId: {}", id);
-            return Result.error(ResultCode.ORDER_NOT_EXIST, "订单不存在");
+            return Result.error(ResultCodeEnum.ORDER_NOT_EXIST, "订单不存在");
         }
 
         // 只有待付款和待发货的订单可以取消
         if (order.getStatus() > OrderStatusEnum.PENDING_SHIPMENT.getCode()) {
             log.warn("取消订单失败, 当前订单状态不允许取消, orderId: {}, status: {}", id, order.getStatus());
-            return Result.error(ResultCode.ORDER_STATUS_ERROR, "当前订单状态不允许取消");
+            return Result.error(ResultCodeEnum.ORDER_STATUS_ERROR, "当前订单状态不允许取消");
         }
 
         order.setStatus(OrderStatusEnum.CANCELLED.getCode()); // 已取消
@@ -92,7 +92,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderEntity> impl
         } else {
             log.error("取消订单失败, orderId: {}", id);
         }
-        return success ? Result.success() : Result.error(ResultCode.OPERATION_FAILED, "取消订单失败");
+        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "取消订单失败");
     }
 
     @Override
@@ -102,13 +102,13 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderEntity> impl
         OrderEntity order = this.getById(id);
         if (order == null) {
             log.warn("更新订单状态失败, 订单不存在, orderId: {}", id);
-            return Result.error(ResultCode.ORDER_NOT_EXIST, "订单不存在");
+            return Result.error(ResultCodeEnum.ORDER_NOT_EXIST, "订单不存在");
         }
 
         // 验证状态流转是否合法
         if (!isValidStatusTransition(order.getStatus(), status)) {
             log.warn("更新订单状态失败, 订单状态流转不合法, orderId: {}, oldStatus: {}, newStatus: {}", id, order.getStatus(), status);
-            return Result.error(ResultCode.ORDER_STATUS_ERROR, "订单状态流转不合法");
+            return Result.error(ResultCodeEnum.ORDER_STATUS_ERROR, "订单状态流转不合法");
         }
 
         order.setStatus(status);
@@ -118,7 +118,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderEntity> impl
         } else {
             log.error("更新订单状态失败, orderId: {}", id);
         }
-        return success ? Result.success() : Result.error(ResultCode.OPERATION_FAILED, "更新订单状态失败");
+        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "更新订单状态失败");
     }
 
     /**

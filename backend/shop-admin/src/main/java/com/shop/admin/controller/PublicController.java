@@ -4,7 +4,6 @@ package com.shop.admin.controller;
 import com.shop.admin.entity.AdminUserEntity;
 import com.shop.admin.service.AdminUserService;
 import com.shop.common.Result;
-import com.shop.common.ResultCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -56,7 +55,7 @@ public class PublicController {
         String ip = request.getRemoteAddr();
         Result<String> result = adminUserService.login(adminUser, ip);
         // 登录成功，将Token写入响应头，方便前端获取
-        if (result.getCode() == ResultCode.SUCCESS && result.getData() != null) {
+        if (result.getData() != null) {
             response.setHeader(TOKEN_HEADER, result.getData());
         }
         return result;

@@ -3,7 +3,7 @@ package com.shop.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.shop.common.Result;
-import com.shop.common.ResultCode;
+import com.shop.common.ResultCodeEnum;
 import com.shop.entity.OrderEntity;
 import com.shop.entity.OrderItemEntity;
 import com.shop.entity.ProductEntity;
@@ -40,7 +40,7 @@ public class OrderItemServiceImpl extends ServiceImpl<OrderItemMapper, OrderItem
         OrderEntity order = orderService.getById(orderId);
         if (order == null) {
             log.warn("查询订单详情列表失败, 订单不存在, orderId: {}", orderId);
-            return Result.error(ResultCode.ORDER_NOT_EXIST, "订单不存在");
+            return Result.error(ResultCodeEnum.ORDER_NOT_EXIST, "订单不存在");
         }
 
         LambdaQueryWrapper<OrderItemEntity> wrapper = new LambdaQueryWrapper<>();
@@ -59,14 +59,14 @@ public class OrderItemServiceImpl extends ServiceImpl<OrderItemMapper, OrderItem
         OrderEntity order = orderService.getById(orderItem.getOrderId());
         if (order == null) {
             log.warn("添加订单详情失败, 订单不存在, orderId: {}", orderItem.getOrderId());
-            return Result.error(ResultCode.ORDER_NOT_EXIST, "订单不存在");
+            return Result.error(ResultCodeEnum.ORDER_NOT_EXIST, "订单不存在");
         }
 
         // 验证商品是否存在
         ProductEntity product = productService.getById(orderItem.getProductId());
         if (product == null) {
             log.warn("添加订单详情失败, 商品不存在, productId: {}", orderItem.getProductId());
-            return Result.error(ResultCode.PRODUCT_NOT_EXIST, "商品不存在");
+            return Result.error(ResultCodeEnum.PRODUCT_NOT_EXIST, "商品不存在");
         }
 
         // 设置商品信息
@@ -87,7 +87,7 @@ public class OrderItemServiceImpl extends ServiceImpl<OrderItemMapper, OrderItem
         } else {
             log.error("添加订单详情失败, orderId: {}, productId: {}", orderItem.getOrderId(), orderItem.getProductId());
         }
-        return success ? Result.success() : Result.error(ResultCode.OPERATION_FAILED, "添加订单详情失败");
+        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "添加订单详情失败");
     }
 
     @Override
@@ -96,7 +96,7 @@ public class OrderItemServiceImpl extends ServiceImpl<OrderItemMapper, OrderItem
         OrderItemEntity orderItem = this.getById(id);
         if (orderItem == null) {
             log.warn("查询订单详情失败, 订单详情不存在, orderItemId: {}", id);
-            return Result.error(ResultCode.ORDER_ITEM_NOT_EXIST, "订单详情不存在");
+            return Result.error(ResultCodeEnum.ORDER_ITEM_NOT_EXIST, "订单详情不存在");
         }
         log.info("查询订单详情成功, orderItemId: {}", id);
         return Result.success(orderItem);

@@ -3,7 +3,7 @@ package com.shop.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.shop.common.Result;
-import com.shop.common.ResultCode;
+import com.shop.common.ResultCodeEnum;
 import com.shop.entity.CategoryEntity;
 import com.shop.entity.ProductEntity;
 import com.shop.mapper.CategoryMapper;
@@ -44,7 +44,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, CategoryEnt
         CategoryEntity category = this.getById(id);
         if (category == null) {
             log.warn("查询分类详情失败, 分类不存在, categoryId: {}", id);
-            return Result.error(ResultCode.CATEGORY_NOT_EXIST, "分类不存在");
+            return Result.error(ResultCodeEnum.CATEGORY_NOT_EXIST, "分类不存在");
         }
         log.info("查询分类详情成功, categoryId: {}", id);
         return Result.success(category);
@@ -58,7 +58,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, CategoryEnt
         wrapper.eq(CategoryEntity::getName, category.getName());
         if (this.count(wrapper) > 0) {
             log.warn("添加分类失败, 分类名称已存在, categoryName: {}", category.getName());
-            return Result.error(ResultCode.CATEGORY_NAME_EXIST, "分类名称已存在");
+            return Result.error(ResultCodeEnum.CATEGORY_NAME_EXIST, "分类名称已存在");
         }
 
         // 设置默认状态
@@ -77,7 +77,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, CategoryEnt
         } else {
             log.error("添加分类失败, categoryName: {}", category.getName());
         }
-        return success ? Result.success() : Result.error(ResultCode.OPERATION_FAILED, "添加分类失败");
+        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "添加分类失败");
     }
 
     @Override
@@ -86,7 +86,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, CategoryEnt
         CategoryEntity existCategory = this.getById(category.getId());
         if (existCategory == null) {
             log.warn("更新分类失败, 分类不存在, categoryId: {}", category.getId());
-            return Result.error(ResultCode.CATEGORY_NOT_EXIST, "分类不存在");
+            return Result.error(ResultCodeEnum.CATEGORY_NOT_EXIST, "分类不存在");
         }
 
         // 如果修改分类名称，检查新名称是否已存在
@@ -95,7 +95,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, CategoryEnt
             wrapper.eq(CategoryEntity::getName, category.getName());
             if (this.count(wrapper) > 0) {
                 log.warn("更新分类失败, 分类名称已存在, categoryName: {}", category.getName());
-                return Result.error(ResultCode.CATEGORY_NAME_EXIST, "分类名称已存在");
+                return Result.error(ResultCodeEnum.CATEGORY_NAME_EXIST, "分类名称已存在");
             }
         }
 
@@ -105,7 +105,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, CategoryEnt
         } else {
             log.error("更新分类失败, categoryId: {}", category.getId());
         }
-        return success ? Result.success() : Result.error(ResultCode.OPERATION_FAILED, "更新分类失败");
+        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "更新分类失败");
     }
 
     @Override
@@ -114,7 +114,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, CategoryEnt
         CategoryEntity category = this.getById(id);
         if (category == null) {
             log.warn("删除分类失败, 分类不存在, categoryId: {}", id);
-            return Result.error(ResultCode.CATEGORY_NOT_EXIST, "分类不存在");
+            return Result.error(ResultCodeEnum.CATEGORY_NOT_EXIST, "分类不存在");
         }
 
         // 检查分类下是否有商品
@@ -123,7 +123,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, CategoryEnt
         long productCount = productService.count(wrapper);
         if (productCount > 0) {
             log.warn("删除分类失败, 该分类下存在商品, categoryId: {}, productCount: {}", id, productCount);
-            return Result.error(ResultCode.CATEGORY_HAS_PRODUCTS, "该分类下存在商品，无法删除");
+            return Result.error(ResultCodeEnum.CATEGORY_HAS_PRODUCTS, "该分类下存在商品，无法删除");
         }
 
         boolean success = this.removeById(id);
@@ -132,6 +132,6 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, CategoryEnt
         } else {
             log.error("删除分类失败, categoryId: {}", id);
         }
-        return success ? Result.success() : Result.error(ResultCode.OPERATION_FAILED, "删除分类失败");
+        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "删除分类失败");
     }
 }

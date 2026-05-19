@@ -11,7 +11,7 @@ import com.shop.admin.mapper.AdminRolePermissionMapper;
 import com.shop.admin.mapper.AdminUserRoleMapper;
 import com.shop.admin.service.AdminRoleService;
 import com.shop.common.Result;
-import com.shop.common.ResultCode;
+import com.shop.common.ResultCodeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,7 +46,7 @@ public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRole
         nameWrapper.eq(AdminRoleEntity::getRoleName, role.getRoleName());
         if (this.count(nameWrapper) > 0) {
             log.warn("创建角色失败, 角色名称已存在, roleName: {}", role.getRoleName());
-            return Result.error(ResultCode.PARAM_ERROR, "角色名称已存在");
+            return Result.error(ResultCodeEnum.PARAM_ERROR, "角色名称已存在");
         }
 
         // 校验角色编码唯一
@@ -54,7 +54,7 @@ public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRole
         codeWrapper.eq(AdminRoleEntity::getRoleCode, role.getRoleCode());
         if (this.count(codeWrapper) > 0) {
             log.warn("创建角色失败, 角色编码已存在, roleCode: {}", role.getRoleCode());
-            return Result.error(ResultCode.PARAM_ERROR, "角色编码已存在");
+            return Result.error(ResultCodeEnum.PARAM_ERROR, "角色编码已存在");
         }
 
         if (role.getStatus() == null) {
@@ -70,7 +70,7 @@ public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRole
         } else {
             log.error("创建角色失败, roleName: {}", role.getRoleName());
         }
-        return success ? Result.success() : Result.error(ResultCode.OPERATION_FAILED, "创建角色失败");
+        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "创建角色失败");
     }
 
     @Override
@@ -79,7 +79,7 @@ public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRole
         AdminRoleEntity existRole = this.getById(role.getId());
         if (existRole == null) {
             log.warn("更新角色失败, 角色不存在, roleId: {}", role.getId());
-            return Result.error(ResultCode.PARAM_ERROR, "角色不存在");
+            return Result.error(ResultCodeEnum.PARAM_ERROR, "角色不存在");
         }
 
         // 校验角色名称唯一
@@ -88,7 +88,7 @@ public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRole
             nameWrapper.eq(AdminRoleEntity::getRoleName, role.getRoleName());
             if (this.count(nameWrapper) > 0) {
                 log.warn("更新角色失败, 角色名称已存在, roleName: {}", role.getRoleName());
-                return Result.error(ResultCode.PARAM_ERROR, "角色名称已存在");
+                return Result.error(ResultCodeEnum.PARAM_ERROR, "角色名称已存在");
             }
         }
 
@@ -101,7 +101,7 @@ public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRole
         } else {
             log.error("更新角色失败, roleId: {}", role.getId());
         }
-        return success ? Result.success() : Result.error(ResultCode.OPERATION_FAILED, "更新角色失败");
+        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "更新角色失败");
     }
 
     @Override
@@ -111,7 +111,7 @@ public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRole
         AdminRoleEntity existRole = this.getById(id);
         if (existRole == null) {
             log.warn("删除角色失败, 角色不存在, roleId: {}", id);
-            return Result.error(ResultCode.PARAM_ERROR, "角色不存在");
+            return Result.error(ResultCodeEnum.PARAM_ERROR, "角色不存在");
         }
 
         // 检查是否有用户关联此角色
@@ -119,7 +119,7 @@ public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRole
         userRoleWrapper.eq(AdminUserRoleEntity::getRoleId, id);
         if (userRoleMapper.selectCount(userRoleWrapper) > 0) {
             log.warn("删除角色失败, 角色下存在用户, roleId: {}", id);
-            return Result.error(ResultCode.OPERATION_FAILED, "该角色下存在用户，无法删除");
+            return Result.error(ResultCodeEnum.OPERATION_FAILED, "该角色下存在用户，无法删除");
         }
 
         // 删除角色权限关联
@@ -134,7 +134,7 @@ public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRole
         } else {
             log.error("删除角色失败, roleId: {}", id);
         }
-        return success ? Result.success() : Result.error(ResultCode.OPERATION_FAILED, "删除角色失败");
+        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "删除角色失败");
     }
 
     @Override
@@ -143,7 +143,7 @@ public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRole
         AdminRoleEntity role = this.getById(id);
         if (role == null) {
             log.warn("获取角色信息失败, 角色不存在, roleId: {}", id);
-            return Result.error(ResultCode.PARAM_ERROR, "角色不存在");
+            return Result.error(ResultCodeEnum.PARAM_ERROR, "角色不存在");
         }
         return Result.success(role);
     }
@@ -155,7 +155,7 @@ public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRole
         AdminRoleEntity existRole = this.getById(roleId);
         if (existRole == null) {
             log.warn("分配权限失败, 角色不存在, roleId: {}", roleId);
-            return Result.error(ResultCode.PARAM_ERROR, "角色不存在");
+            return Result.error(ResultCodeEnum.PARAM_ERROR, "角色不存在");
         }
 
         // 删除原有权限关联
