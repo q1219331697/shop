@@ -11,13 +11,6 @@ REM ============================================================
 
 setlocal enabledelayedexpansion
 
-REM 颜色定义（Windows 10+ 支持 ANSI 转义码）
-for /f %%a in ('echo prompt $E ^| cmd') do set "ESC=%%a"
-set "GREEN=%ESC%[92m"
-set "YELLOW=%ESC%[93m"
-set "RED=%ESC%[91m"
-set "NC=%ESC%[0m"
-
 REM 在 shift 前保存脚本目录（shift 会改变 %0）
 set SCRIPT_DIR=%~dp0
 
@@ -62,7 +55,7 @@ if /i "%~1"=="-h" (
     echo   -h          显示帮助信息
     exit /b 0
 )
-echo %RED%[ERROR]%NC% 未知参数: %~1
+echo [ERROR] 未知参数: %~1
 exit /b 1
 :end_parse
 
@@ -70,58 +63,122 @@ REM 切换到项目根目录（scripts 在 docker/scripts 下，需向上两级�
 cd /d "%SCRIPT_DIR%..\.."
 set PROJECT_ROOT=%CD%
 
-echo %GREEN%[INFO]%NC% 项目根目录: %CD%
-echo %GREEN%[INFO]%NC% 镜像版本: %VERSION%
+echo.
+echo ========================================
+echo   Shop 项目 Docker 镜像构建
+echo ========================================
+echo [INFO] 项目根目录: %CD%
+echo [INFO] 镜像版本:   %VERSION%
+echo [INFO] 构建目标:   %TARGET%
+if "%NO_CACHE%"=="--no-cache" (
+    echo [WARN] 已启用 --no-cache，将不使用 Docker 缓存
+)
+echo.
 
-REM -------------------- 拉取基础镜像 --------------------
-echo ==========================================
-echo %GREEN%[INFO]%NC% 拉取基础镜像...
-echo ==========================================
+REM -------------------- 阶段1: 前置检查 --------------------
+echo [1/4] 前置检查
+echo ----------------------------------------
+
+echo [CHECK] 检查 Docker 是否运行...
+docker info >nul 2>&1
+if errorlevel 1 (
+    echo [ERROR] Docker 未运行或未安装，请先启动 Docker
+    exit /b 1
+)
+echo [OK] Docker 正在运行
+
+echo [CHECK] 检查 Docker 磁盘空间...
+for /f "tokens=*" %%i in ('docker system df --format "{{.Size}}" 2^>nul') do echo [OK] Docker 磁盘使用: %%i
+
+echo [CHECK] 检查项目文件完整性...
+if not exist "pom.xml" (
+    echo [ERROR] 未找到 pom.xml，请确认在项目根目录运行
+    exit /b 1
+)
+echo [OK] pom.xml 存在
+if not exist "docker\dockerfile.admin" (
+    echo [ERROR] 未找到 docker\dockerfile.admin
+    exit /b 1
+)
+echo [OK] Dockerfile.admin 存在
+if not exist "docker\dockerfile.api" (
+    echo [ERROR] 未找到 docker\dockerfile.api
+    exit /b 1
+)
+echo [OK] Dockerfile.api 存在
+echo.
+
+REM -------------------- 阶段2: 拉取基础镜像 --------------------
+echo [2/4] 拉取基础镜像
+echo ----------------------------------------
+
+echo [PULL] 拉取 Maven + JDK17 构建镜像 (maven:3.9-eclipse-temurin-17)...
 docker pull maven:3.9-eclipse-temurin-17
 if errorlevel 1 (
-    echo %RED%[ERROR]%NC% 拉取 maven:3.9-eclipse-temurin-17 失败
+    echo [ERROR] 拉取 maven:3.9-eclipse-temurin-17 失败
     exit /b 1
 )
+echo [OK] maven:3.9-eclipse-temurin-17 拉取成功
+
+echo [PULL] 拉取 JRE17 运行镜像 (eclipse-temurin:17-jre-alpine)...
 docker pull eclipse-temurin:17-jre-alpine
 if errorlevel 1 (
-    echo %RED%[ERROR]%NC% 拉取 eclipse-temurin:17-jre-alpine 失败
+    echo [ERROR] 拉取 eclipse-temurin:17-jre-alpine 失败
     exit /b 1
 )
-echo %GREEN%[INFO]%NC% 基础镜像拉取完成
+echo [OK] eclipse-temurin:17-jre-alpine 拉取成功
+echo.
 
 if not "%TARGET%"=="admin" if not "%TARGET%"=="api" if not "%TARGET%"=="all" (
-    echo %RED%[ERROR]%NC% 未知目标: %TARGET%
+    echo [ERROR] 未知目标: %TARGET%
     exit /b 1
 )
+
+REM -------------------- 阶段3: 构建应用镜像 --------------------
+echo [3/4] 构建应用镜像
+echo ----------------------------------------
 
 :build_admin
 if not "%TARGET%"=="admin" if not "%TARGET%"=="all" goto build_api
-echo ==========================================
-echo %GREEN%[INFO]%NC% 构建 shop-admin:%VERSION% 镜像（多阶段构建）
-echo ==========================================
-docker build %NO_CACHE% -t shop-admin:%VERSION% -t shop-admin:latest -f docker/Dockerfile.admin .
+echo [BUILD] 构建 shop-admin:%VERSION%
+echo [BUILD]   阶段1: maven:3.9-eclipse-temurin-17 (编译打包)
+echo [BUILD]   阶段2: eclipse-temurin:17-jre-alpine (精简运行)
+echo.
+docker build %NO_CACHE% --progress=plain -t shop-admin:%VERSION% -t shop-admin:latest -f docker/dockerfile.admin .
 if errorlevel 1 (
-    echo %RED%[ERROR]%NC% shop-admin 构建失败
+    echo.
+    echo [ERROR] shop-admin:%VERSION% 构建失败！请检查上方构建日志
     exit /b 1
 )
-echo %GREEN%[INFO]%NC% shop-admin:%VERSION% 构建成功
+echo.
+echo [OK] shop-admin:%VERSION% 构建成功
+echo.
 
 :build_api
 if not "%TARGET%"=="api" if not "%TARGET%"=="all" goto done
-echo ==========================================
-echo %GREEN%[INFO]%NC% 构建 shop-api:%VERSION% 镜像（多阶段构建）
-echo ==========================================
-docker build %NO_CACHE% -t shop-api:%VERSION% -t shop-api:latest -f docker/Dockerfile.api .
+echo [BUILD] 构建 shop-api:%VERSION%
+echo [BUILD]   阶段1: maven:3.9-eclipse-temurin-17 (编译打包)
+echo [BUILD]   阶段2: eclipse-temurin:17-jre-alpine (精简运行)
+echo.
+docker build %NO_CACHE% --progress=plain -t shop-api:%VERSION% -t shop-api:latest -f docker/dockerfile.api .
 if errorlevel 1 (
-    echo %RED%[ERROR]%NC% shop-api 构建失败
+    echo.
+    echo [ERROR] shop-api:%VERSION% 构建失败！请检查上方构建日志
     exit /b 1
 )
-echo %GREEN%[INFO]%NC% shop-api:%VERSION% 构建成功
-goto done
+echo.
+echo [OK] shop-api:%VERSION% 构建成功
+echo.
 
+REM -------------------- 阶段4: 构建结果汇总 --------------------
 :done
-echo ==========================================
-echo %GREEN%[INFO]%NC% 构建完成！
-echo ==========================================
-docker images | findstr "shop-admin shop-api"
+echo [4/4] 构建结果汇总
+echo ----------------------------------------
+echo [OK] 全部构建完成！
+echo.
+echo 镜像列表:
+docker images --format "  {{.Repository}}:{{.Tag}}	{{.Size}}	{{.CreatedAt}}" | findstr "shop-admin shop-api"
+echo.
+echo 运行方式:
+echo   docker-compose -f docker/docker-compose.app.yml up -d
 exit /b 0

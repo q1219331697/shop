@@ -16,7 +16,7 @@
   参数覆盖方式：
     1. 直接修改下面的属性值
     2. JVM参数覆盖: java -Dapp.log.kafka.bootstrap-servers=xxx -jar xxx.jar
-    3. 环境变量覆盖: export APP_LOG_KAFKA_BOOTSTRAP__SERVERS=xxx
+    3. 环境变量覆盖: export APP_LOG_KAFKA_BOOTSTRAP_SERVERS=xxx
     4. Spring配置覆盖: 在application.yml中设置 app.log.kafka.bootstrap-servers: xxx
 -->
 <Configuration status="WARN" monitorInterval="30">

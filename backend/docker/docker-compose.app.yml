@@ -24,7 +24,7 @@ services:
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD:-}
       # 日志Kafka配置（容器内使用内部端口 9092）
-      APP_LOG_KAFKA_BOOTSTRAP__SERVERS: kafka:9092
+      APP_LOG_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       # 时区
       TZ: Asia/Shanghai
     depends_on:
@@ -60,7 +60,7 @@ services:
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD:-}
       # 日志Kafka配置
-      APP_LOG_KAFKA_BOOTSTRAP__SERVERS: kafka:9092
+      APP_LOG_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       # 时区
       TZ: Asia/Shanghai
     depends_on:

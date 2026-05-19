@@ -50,3 +50,8 @@
 
 - 启动项目时**禁止跳过 checkstyle 检查**（不得使用 `-Dcheckstyle.skip=true` 等参数）
 - 若 checkstyle 检查失败，必须修复代码使其符合规则，而非跳过检查
+- **禁止全量 `mvn install`**，避免依赖模块不更新的问题
+- 正确的构建启动流程：
+  1. 先 install 依赖模块：`mvnw install -pl shop-common,shop-service`
+  2. 再启动目标模块：`mvnw spring-boot:run -pl shop-admin`（或 `shop-api`）
+- 终端命令必须使用 PowerShell 语法（用 `;` 连接命令，不用 `&&`）
