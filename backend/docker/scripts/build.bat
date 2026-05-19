@@ -144,7 +144,7 @@ echo [BUILD] 构建 shop-admin:%VERSION%
 echo [BUILD]   阶段1: maven:3.9-eclipse-temurin-17 (编译打包)
 echo [BUILD]   阶段2: eclipse-temurin:17-jre-alpine (精简运行)
 echo.
-docker build %NO_CACHE% --progress=plain -t shop-admin:%VERSION% -t shop-admin:latest -f docker/dockerfile.admin .
+docker build %NO_CACHE% --progress=plain -t shop-admin:%VERSION% -t shop-admin:latest -f docker/Dockerfile.admin .
 if errorlevel 1 (
     echo.
     echo [ERROR] shop-admin:%VERSION% 构建失败！请检查上方构建日志
@@ -160,7 +160,7 @@ echo [BUILD] 构建 shop-api:%VERSION%
 echo [BUILD]   阶段1: maven:3.9-eclipse-temurin-17 (编译打包)
 echo [BUILD]   阶段2: eclipse-temurin:17-jre-alpine (精简运行)
 echo.
-docker build %NO_CACHE% --progress=plain -t shop-api:%VERSION% -t shop-api:latest -f docker/dockerfile.api .
+docker build %NO_CACHE% --progress=plain -t shop-api:%VERSION% -t shop-api:latest -f docker/Dockerfile.api .
 if errorlevel 1 (
     echo.
     echo [ERROR] shop-api:%VERSION% 构建失败！请检查上方构建日志
