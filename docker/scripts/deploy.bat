@@ -61,11 +61,11 @@ echo   Kibana:         http://localhost:5601
 goto done
 
 :app
-echo %GREEN%[INFO]%NC% 启动应用服务...
-docker compose -f docker-compose.app.yml up -d
+echo %GREEN%[INFO]%NC% 启动应用服务（含基础设施）...
+docker compose -f docker-compose.infra.yml -f docker-compose.app.yml up -d
 echo %GREEN%[INFO]%NC% 等待应用服务就绪...
 timeout /t 10 /nobreak >nul
-docker compose -f docker-compose.app.yml ps
+docker compose -f docker-compose.infra.yml -f docker-compose.app.yml ps
 echo.
 echo %GREEN%[INFO]%NC% 应用服务启动完成
 echo   shop-admin API: http://localhost:8081
@@ -94,7 +94,7 @@ goto done
 
 :restart
 echo %GREEN%[INFO]%NC% 重启应用服务...
-docker compose -f docker-compose.app.yml restart
+docker compose -f docker-compose.infra.yml -f docker-compose.app.yml restart
 echo %GREEN%[INFO]%NC% 应用服务已重启
 goto done
 
@@ -118,7 +118,7 @@ if /i "%SERVICE%"=="elasticsearch" goto logs_infra
 if /i "%SERVICE%"=="kibana" goto logs_infra
 if /i "%SERVICE%"=="zookeeper" goto logs_infra
 if /i "%SERVICE%"=="infra" goto logs_infra
-docker compose -f docker-compose.app.yml logs -f --tail 100 %SERVICE%
+docker compose -f docker-compose.infra.yml -f docker-compose.app.yml logs -f --tail 100 %SERVICE%
 goto done
 :logs_infra
 docker compose -f docker-compose.infra.yml logs -f --tail 100 %SERVICE%
@@ -128,9 +128,9 @@ goto done
 echo %GREEN%[INFO]%NC% 构建镜像...
 call "%SCRIPT_DIR%build.bat" all
 echo %GREEN%[INFO]%NC% 启动所有服务...
-docker compose up -d
+docker compose -f docker-compose.infra.yml -f docker-compose.app.yml up -d
 timeout /t 15 /nobreak >nul
-docker compose ps
+docker compose -f docker-compose.infra.yml -f docker-compose.app.yml ps
 echo %GREEN%[INFO]%NC% 构建部署完成
 goto done
 

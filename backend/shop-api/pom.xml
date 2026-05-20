@@ -68,6 +68,13 @@
             <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
         </dependency>
 
+        <!-- ==================== 监控 ==================== -->
+        <!-- Spring Boot Actuator 健康检查与监控端点 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
         <!-- ==================== 安全与认证 ==================== -->
         <!-- Spring Security 安全框架 -->
         <dependency>
