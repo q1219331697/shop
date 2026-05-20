@@ -6,7 +6,7 @@
 # ============================================================
 
 # -------------------- 阶段1: Node 构建 --------------------
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 
 WORKDIR /build
 
@@ -23,7 +23,7 @@ COPY frontend/admin-ui/ ./
 RUN npm run build
 
 # -------------------- 阶段2: Nginx 运行 --------------------
-FROM nginx:1.27-alpine
+FROM nginx:1.31-alpine
 
 # 添加标签
 LABEL maintainer="shop-team"
