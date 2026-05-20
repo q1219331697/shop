@@ -72,6 +72,7 @@ echo   shop-admin API: http://localhost:8081
 echo   shop-admin Doc: http://localhost:8081/doc.html
 echo   shop-api API:   http://localhost:8080
 echo   shop-api Doc:   http://localhost:8080/doc.html
+echo   admin-ui:       http://localhost:80
 goto done
 
 :all

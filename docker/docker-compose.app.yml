@@ -78,6 +78,25 @@ services:
       retries: 3
       start_period: 60s
 
+  # ==================== shop-admin-ui 后台管理前端 ====================
+  shop-admin-ui:
+    image: shop-admin-ui:${APP_VERSION:-1.0.0}
+    container_name: ${APP_NAME}-admin-ui
+    ports:
+      - "${ADMIN_UI_PORT:-5173}:80"
+    depends_on:
+      shop-admin:
+        condition: service_healthy
+    networks:
+      - shop_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
 # ==================== 网络配置 ====================
 networks:
   shop_network:

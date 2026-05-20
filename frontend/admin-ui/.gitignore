@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Auto generated
+src/auto-imports.d.ts
+src/components.d.ts
+
+# Env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*

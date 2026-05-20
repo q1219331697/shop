@@ -5,6 +5,7 @@
 #   ./build.sh           # 构建所有镜像
 #   ./build.sh admin     # 仅构建 shop-admin
 #   ./build.sh api       # 仅构建 shop-api
+#   ./build.sh admin-ui  # 仅构建 shop-admin-ui
 #   ./build.sh --no-cache # 不使用缓存构建
 # ============================================================
 
@@ -34,6 +35,7 @@ while [[ $# -gt 0 ]]; do
         --no-cache) NO_CACHE="--no-cache"; shift ;;
         admin)      TARGET="admin"; shift ;;
         api)        TARGET="api"; shift ;;
+        admin-ui)   TARGET="admin-ui"; shift ;;
         all)        TARGET="all"; shift ;;
         -v|--version)
             VERSION="$2"
@@ -45,6 +47,7 @@ while [[ $# -gt 0 ]]; do
             echo "目标:"
             echo "  admin       仅构建 shop-admin 镜像"
             echo "  api         仅构建 shop-api 镜像"
+            echo "  admin-ui    仅构建 shop-admin-ui 镜像"
             echo "  all         构建所有镜像（默认）"
             echo ""
             echo "选项:"
@@ -70,6 +73,13 @@ info "拉取基础镜像..."
 info "==========================================="
 docker pull maven:3.9-eclipse-temurin-17 || error "拉取 maven:3.9-eclipse-temurin-17 失败"
 docker pull eclipse-temurin:17-jre-alpine || error "拉取 eclipse-temurin:17-jre-alpine 失败"
+
+# 前端镜像基础拉取（仅 admin-ui 或 all 时需要）
+if [[ "$TARGET" == "admin-ui" || "$TARGET" == "all" ]]; then
+    docker pull node:20-alpine || error "拉取 node:20-alpine 失败"
+    docker pull nginx:1.27-alpine || error "拉取 nginx:1.27-alpine 失败"
+fi
+
 info "✅ 基础镜像拉取完成"
 
 # 构建镜像（多阶段构建，Maven 编译在容器内完成）
@@ -98,9 +108,13 @@ case $TARGET in
     api)
         build_image "shop-api" "docker/Dockerfile.api"
         ;;
+    admin-ui)
+        build_image "shop-admin-ui" "docker/Dockerfile.admin-ui"
+        ;;
     all)
         build_image "shop-admin" "docker/Dockerfile.admin"
         build_image "shop-api" "docker/Dockerfile.api"
+        build_image "shop-admin-ui" "docker/Dockerfile.admin-ui"
         ;;
 esac
 

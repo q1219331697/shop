@@ -6,6 +6,7 @@ REM 用法:
 REM   build.bat           # 构建所有镜像
 REM   build.bat admin     # 仅构建 shop-admin
 REM   build.bat api       # 仅构建 shop-api
+REM   build.bat admin-ui  # 仅构建 shop-admin-ui
 REM   build.bat --no-cache # 不使用缓存构建
 REM ============================================================
 
@@ -35,6 +36,11 @@ if /i "%~1"=="api" (
     shift
     goto parse_args
 )
+if /i "%~1"=="admin-ui" (
+    set TARGET=admin-ui
+    shift
+    goto parse_args
+)
 if /i "%~1"=="-v" (
     set VERSION=%~2
     shift
@@ -47,6 +53,7 @@ if /i "%~1"=="-h" (
     echo 目标:
     echo   admin       仅构建 shop-admin 镜像
     echo   api         仅构建 shop-api 镜像
+    echo   admin-ui    仅构建 shop-admin-ui 镜像
     echo   all         构建所有镜像（默认）
     echo.
     echo 选项:
@@ -96,16 +103,21 @@ if not exist "backend\pom.xml" (
     exit /b 1
 )
 echo [OK] backend\pom.xml 存在
-if not exist "docker\dockerfile.admin" (
-    echo [ERROR] 未找到 docker\dockerfile.admin
+if not exist "docker\Dockerfile.admin" (
+    echo [ERROR] 未找到 docker\Dockerfile.admin
     exit /b 1
 )
 echo [OK] Dockerfile.admin 存在
-if not exist "docker\dockerfile.api" (
-    echo [ERROR] 未找到 docker\dockerfile.api
+if not exist "docker\Dockerfile.api" (
+    echo [ERROR] 未找到 docker\Dockerfile.api
     exit /b 1
 )
 echo [OK] Dockerfile.api 存在
+if not exist "docker\Dockerfile.admin-ui" (
+    echo [ERROR] 未找到 docker\Dockerfile.admin-ui
+    exit /b 1
+)
+echo [OK] Dockerfile.admin-ui 存在
 echo.
 
 REM -------------------- 阶段2: 拉取基础镜像 --------------------
@@ -127,9 +139,30 @@ if errorlevel 1 (
     exit /b 1
 )
 echo [OK] eclipse-temurin:17-jre-alpine 拉取成功
+
+REM 前端镜像基础拉取（仅 admin-ui 或 all 时需要）
+if not "%TARGET%"=="admin-ui" if not "%TARGET%"=="all" goto skip_frontend_pull
+
+echo [PULL] 拉取 Node20 构建镜像 (node:20-alpine)...
+docker pull node:20-alpine
+if errorlevel 1 (
+    echo [ERROR] 拉取 node:20-alpine 失败
+    exit /b 1
+)
+echo [OK] node:20-alpine 拉取成功
+
+echo [PULL] 拉取 Nginx 运行镜像 (nginx:1.27-alpine)...
+docker pull nginx:1.27-alpine
+if errorlevel 1 (
+    echo [ERROR] 拉取 nginx:1.27-alpine 失败
+    exit /b 1
+)
+echo [OK] nginx:1.27-alpine 拉取成功
+
+:skip_frontend_pull
 echo.
 
-if not "%TARGET%"=="admin" if not "%TARGET%"=="api" if not "%TARGET%"=="all" (
+if not "%TARGET%"=="admin" if not "%TARGET%"=="api" if not "%TARGET%"=="admin-ui" if not "%TARGET%"=="all" (
     echo [ERROR] 未知目标: %TARGET%
     exit /b 1
 )
@@ -155,7 +188,7 @@ echo [OK] shop-admin:%VERSION% 构建成功
 echo.
 
 :build_api
-if not "%TARGET%"=="api" if not "%TARGET%"=="all" goto done
+if not "%TARGET%"=="api" if not "%TARGET%"=="all" goto build_admin_ui
 echo [BUILD] 构建 shop-api:%VERSION%
 echo [BUILD]   阶段1: maven:3.9-eclipse-temurin-17 (编译打包)
 echo [BUILD]   阶段2: eclipse-temurin:17-jre-alpine (精简运行)
@@ -170,6 +203,22 @@ echo.
 echo [OK] shop-api:%VERSION% 构建成功
 echo.
 
+:build_admin_ui
+if not "%TARGET%"=="admin-ui" if not "%TARGET%"=="all" goto done
+echo [BUILD] 构建 shop-admin-ui:%VERSION%
+echo [BUILD]   阶段1: node:20-alpine (编译打包)
+echo [BUILD]   阶段2: nginx:1.27-alpine (精简运行)
+echo.
+docker build %NO_CACHE% --progress=plain -t shop-admin-ui:%VERSION% -t shop-admin-ui:latest -f docker/Dockerfile.admin-ui .
+if errorlevel 1 (
+    echo.
+    echo [ERROR] shop-admin-ui:%VERSION% 构建失败！请检查上方构建日志
+    exit /b 1
+)
+echo.
+echo [OK] shop-admin-ui:%VERSION% 构建成功
+echo.
+
 REM -------------------- 阶段4: 构建结果汇总 --------------------
 :done
 echo [4/4] 构建结果汇总
@@ -177,7 +226,7 @@ echo ----------------------------------------
 echo [OK] 全部构建完成！
 echo.
 echo 镜像列表:
-docker images --format "  {{.Repository}}:{{.Tag}}	{{.Size}}	{{.CreatedAt}}" | findstr "shop-admin shop-api"
+docker images --format "  {{.Repository}}:{{.Tag}}	{{.Size}}	{{.CreatedAt}}" | findstr "shop-admin shop-api shop-admin-ui"
 echo.
 echo 运行方式:
 echo   docker-compose -f docker/docker-compose.app.yml up -d

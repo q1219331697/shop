@@ -92,7 +92,6 @@ dist/
 *.local
 .env.local
 .env.*.local
-package-lock.json
 
 # npm / yarn / pnpm
 npm-debug.log*
@@ -135,10 +134,6 @@ build-log.txt
 # ========================
 # Sensitive / Secrets
 # ========================
-*.env
-.env
-.env.production
-.env.staging
 *.key
 *.pem
 *.p12
