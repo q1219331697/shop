@@ -2,7 +2,10 @@
 # Docker Compose - 基础设施服务
 # 仅包含 MySQL、Redis、Kafka、RabbitMQ、ELK 等中间件
 # 用途: 开发环境启动基础设施，应用在本地 IDE 运行
-# 变量说明: 在 .env 文件中配置，APP_NAME 控制容器名前缀
+# 变量说明: 在 .env.<环境> 文件中配置，APP_NAME 控制容器名前缀和网络隔离
+# 多环境部署:
+#   测试: docker compose --env-file .env.test -f docker-compose.infra.yml up -d
+#   生产: docker compose --env-file .env.prod -f docker-compose.infra.yml up -d
 # ============================================================
 
 services:
@@ -11,15 +14,15 @@ services:
     image: mysql:9.7
     container_name: ${APP_NAME}-mysql
     ports:
-      - "3306:3306"
+      - "${MYSQL_PORT:-3306}:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: ""
+      MYSQL_ROOT_PASSWORD: "${MYSQL_PASSWORD:-}"
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
       MYSQL_DATABASE: shop
       TZ: Asia/Shanghai
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_0900_ai_ci
     volumes:
-      - ./volumes/mysql/data:/var/lib/mysql
+      - ./volumes/${APP_NAME}/mysql/data:/var/lib/mysql
       - ./volumes/mysql/conf:/etc/mysql/conf.d
       - ./volumes/mysql/init:/docker-entrypoint-initdb.d
     networks:
@@ -37,10 +40,10 @@ services:
     image: redis:8-alpine
     container_name: ${APP_NAME}-redis
     ports:
-      - "6379:6379"
-    command: redis-server --appendonly yes
+      - "${REDIS_PORT:-6379}:6379"
+    command: redis-server --appendonly yes ${REDIS_PASSWORD:+--requirepass ${REDIS_PASSWORD}}
     volumes:
-      - ./volumes/redis/data:/data
+      - ./volumes/${APP_NAME}/redis/data:/data
     networks:
       - shop_network
     restart: unless-stopped
@@ -55,14 +58,14 @@ services:
     image: rabbitmq:3-management
     container_name: ${APP_NAME}-rabbitmq
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "${RABBITMQ_MGMT_PORT:-15672}:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: shop
-      RABBITMQ_DEFAULT_PASS: shop123
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-shop}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-shop123}
     volumes:
-      - ./volumes/rabbitmq/data:/var/lib/rabbitmq
-      - ./volumes/rabbitmq/log:/var/log/rabbitmq
+      - ./volumes/${APP_NAME}/rabbitmq/data:/var/lib/rabbitmq
+      - ./volumes/${APP_NAME}/rabbitmq/log:/var/log/rabbitmq
     networks:
       - shop_network
     restart: unless-stopped
@@ -78,13 +81,13 @@ services:
     image: apache/kafka:latest
     container_name: ${APP_NAME}-kafka
     ports:
-      - "9092:9092"
-      - "9094:9094"
+      - "${KAFKA_PORT:-9092}:9092"
+      - "${KAFKA_EXTERNAL_PORT:-9094}:9094"
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_LISTENERS: INTERNAL://:9092,CONTROLLER://:9093,EXTERNAL://:9094
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:9094
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:${KAFKA_EXTERNAL_PORT:-9094}
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
@@ -96,9 +99,9 @@ services:
       KAFKA_NUM_PARTITIONS: 3
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
     volumes:
-      - ./volumes/kafka/data:/var/lib/kafka/data
-      - ./volumes/kafka/secrets:/etc/kafka/secrets
-      - ./volumes/kafka/config:/mnt/shared/config
+      - ./volumes/${APP_NAME}/kafka/data:/var/lib/kafka/data
+      - ./volumes/${APP_NAME}/kafka/secrets:/etc/kafka/secrets
+      - ./volumes/${APP_NAME}/kafka/config:/mnt/shared/config
     networks:
       - shop_network
     restart: unless-stopped
@@ -119,10 +122,10 @@ services:
       - xpack.security.enabled=false
       - TZ=Asia/Shanghai
     ports:
-      - "9200:9200"
+      - "${ES_PORT:-9200}:9200"
       - "9300:9300"
     volumes:
-      - ./volumes/elasticsearch/data:/usr/share/elasticsearch/data
+      - ./volumes/${APP_NAME}/elasticsearch/data:/usr/share/elasticsearch/data
     networks:
       - shop_network
     restart: unless-stopped
@@ -141,11 +144,11 @@ services:
     environment:
       - TZ=Asia/Shanghai
     ports:
-      - "5044:5044"
+      - "${LOGSTASH_PORT:-5044}:5044"
       - "9600:9600"
     volumes:
       - ./config/logstash:/usr/share/logstash/pipeline
-      - ./volumes/logstash/data:/usr/share/logstash/data
+      - ./volumes/${APP_NAME}/logstash/data:/usr/share/logstash/data
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -158,7 +161,7 @@ services:
     image: kibana:9.3.3
     container_name: ${APP_NAME}-kibana
     ports:
-      - "5601:5601"
+      - "${KIBANA_PORT:-5601}:5601"
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
       - I18N_LOCALE=zh-CN

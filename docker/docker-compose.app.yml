@@ -1,8 +1,11 @@
 # ============================================================
 # Docker Compose - 应用服务
 # 仅包含 shop-admin 和 shop-api 应用
-# 依赖: 需要先启动基础设施（docker compose -f docker-compose.infra.yml up -d）
-# 变量说明: 在 .env 文件中配置，APP_NAME 控制容器名前缀
+# 依赖: 需要先启动基础设施（docker compose --env-file .env.<环境> -f docker-compose.infra.yml up -d）
+# 变量说明: 在 .env.<环境> 文件中配置，APP_NAME 控制容器名前缀和网络隔离
+# 多环境部署:
+#   测试: docker compose --env-file .env.test -f docker-compose.app.yml up -d
+#   生产: docker compose --env-file .env.prod -f docker-compose.app.yml up -d
 # ============================================================
 
 services:
@@ -101,5 +104,6 @@ services:
 networks:
   shop_network:
     # 引用基础设施创建的网络，确保应用和中间件在同一网络
+    # 通过 APP_NAME 隔离不同环境的网络
     external: true
     name: ${APP_NAME}_network

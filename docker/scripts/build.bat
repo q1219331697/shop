@@ -8,6 +8,10 @@ REM   build.bat admin     # 仅构建 shop-admin
 REM   build.bat api       # 仅构建 shop-api
 REM   build.bat admin-ui  # 仅构建 shop-admin-ui
 REM   build.bat --no-cache # 不使用缓存构建
+REM
+REM 版本标签格式: 基础版本-日期-序号（如 1.0.0-20260518-1）
+REM   -v 1.2.0             → 1.2.0-20260518-1
+REM   同日再次构建          → 1.2.0-20260518-2
 REM ============================================================
 
 setlocal enabledelayedexpansion
@@ -15,9 +19,13 @@ setlocal enabledelayedexpansion
 REM 在 shift 前保存脚本目录（shift 会改变 %0）
 set SCRIPT_DIR=%~dp0
 
-set VERSION=1.0.0
+set BASE_VERSION=1.0.0
 set NO_CACHE=
 set TARGET=all
+
+REM 生成构建日期（YYYYMMDD）
+for /f "tokens=2 delims==" %%i in ('wmic os get localdatetime /value ^| find "="') do set DATETIME=%%i
+set BUILD_DATE=%DATETIME:~0,8%
 
 :parse_args
 if "%~1"=="" goto end_parse
@@ -42,7 +50,7 @@ if /i "%~1"=="admin-ui" (
     goto parse_args
 )
 if /i "%~1"=="-v" (
-    set VERSION=%~2
+    set BASE_VERSION=%~2
     shift
     shift
     goto parse_args
@@ -58,8 +66,12 @@ if /i "%~1"=="-h" (
     echo.
     echo 选项:
     echo   --no-cache  不使用 Docker 缓存
-    echo   -v VERSION  指定版本号（默认: 1.0.0）
+    echo   -v VERSION  指定基础版本号（默认: 1.0.0，自动追加日期序号）
     echo   -h          显示帮助信息
+    echo.
+    echo 版本标签格式: 基础版本-日期-序号
+    echo   示例: 1.0.0-20260518-1
+    echo   同日多次构建序号自动递增: 1.0.0-20260518-1 → 1.0.0-20260518-2
     exit /b 0
 )
 echo [ERROR] 未知参数: %~1
@@ -75,7 +87,8 @@ echo ========================================
 echo   Shop 项目 Docker 镜像构建
 echo ========================================
 echo [INFO] 项目根目录: %CD%
-echo [INFO] 镜像版本:   %VERSION%
+echo [INFO] 基础版本:   %BASE_VERSION%
+echo [INFO] 构建日期:   %BUILD_DATE%
 echo [INFO] 构建目标:   %TARGET%
 if "%NO_CACHE%"=="--no-cache" (
     echo [WARN] 已启用 --no-cache，将不使用 Docker 缓存
@@ -170,6 +183,18 @@ if not "%TARGET%"=="admin" if not "%TARGET%"=="api" if not "%TARGET%"=="admin-ui
 REM -------------------- 阶段3: 构建应用镜像 --------------------
 echo [3/4] 构建应用镜像
 echo ----------------------------------------
+
+REM 自动计算当日构建序号
+:calc_seq
+set SEQ=1
+for /f "tokens=*" %%t in ('docker images --format "{{.Tag}}" shop-admin 2^>nul ^| findstr /r ".*-%BUILD_DATE%-[0-9]*"') do (
+    for /f "tokens=3 delims=-" %%s in ("%%t") do (
+        if %%s GEQ !SEQ! set /a SEQ=%%s+1
+    )
+)
+set VERSION=%BASE_VERSION%-%BUILD_DATE%-%SEQ%
+echo [INFO] 镜像版本:   %VERSION%
+echo.
 
 :build_admin
 if not "%TARGET%"=="admin" if not "%TARGET%"=="all" goto build_api
