@@ -9,6 +9,7 @@ import com.shop.admin.entity.AdminUserRoleEntity;
 import com.shop.admin.mapper.AdminRoleMapper;
 import com.shop.admin.mapper.AdminRolePermissionMapper;
 import com.shop.admin.mapper.AdminUserRoleMapper;
+import com.shop.admin.service.AdminPermissionService;
 import com.shop.admin.service.AdminRoleService;
 import com.shop.common.Result;
 import com.shop.common.ResultCodeEnum;
@@ -30,11 +31,14 @@ public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRole
 
     private final AdminRolePermissionMapper rolePermissionMapper;
     private final AdminUserRoleMapper userRoleMapper;
+    private final AdminPermissionService adminPermissionService;
 
     public AdminRoleServiceImpl(AdminRolePermissionMapper rolePermissionMapper,
-                                AdminUserRoleMapper userRoleMapper) {
+                                AdminUserRoleMapper userRoleMapper,
+                                AdminPermissionService adminPermissionService) {
         this.rolePermissionMapper = rolePermissionMapper;
         this.userRoleMapper = userRoleMapper;
+        this.adminPermissionService = adminPermissionService;
     }
 
     @Override
@@ -98,6 +102,8 @@ public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRole
         boolean success = this.updateById(role);
         if (success) {
             log.info("更新角色成功, roleId: {}", role.getId());
+            // 角色状态变更时，清除拥有该角色的所有用户的权限缓存
+            clearPermissionCacheByRoleId(role.getId());
         } else {
             log.error("更新角色失败, roleId: {}", role.getId());
         }
@@ -131,6 +137,8 @@ public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRole
         boolean success = this.removeById(id);
         if (success) {
             log.info("删除角色成功, roleId: {}", id);
+            // 清除拥有该角色的所有用户的权限缓存
+            clearPermissionCacheByRoleId(id);
         } else {
             log.error("删除角色失败, roleId: {}", id);
         }
@@ -177,6 +185,10 @@ public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRole
         }
 
         log.info("为角色分配权限成功, roleId: {}", roleId);
+
+        // 清除拥有该角色的所有用户的权限缓存
+        clearPermissionCacheByRoleId(roleId);
+
         return Result.success();
     }
 
@@ -205,5 +217,25 @@ public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRole
             return Collections.emptyList();
         }
         return this.listByIds(roleIds);
+    }
+
+    /**
+     * 根据角色ID清除拥有该角色的所有用户的权限缓存
+     * @param roleId 角色ID
+     */
+    private void clearPermissionCacheByRoleId(Long roleId) {
+        LambdaQueryWrapper<AdminUserRoleEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(AdminUserRoleEntity::getRoleId, roleId);
+        List<Long> userIds = userRoleMapper.selectList(wrapper)
+                .stream()
+                .map(AdminUserRoleEntity::getUserId)
+                .distinct()
+                .collect(Collectors.toList());
+        for (Long userId : userIds) {
+            adminPermissionService.clearPermissionCache(userId);
+        }
+        if (!userIds.isEmpty()) {
+            log.info("清除角色关联用户权限缓存, roleId: {}, 受影响用户数: {}", roleId, userIds.size());
+        }
     }
 }

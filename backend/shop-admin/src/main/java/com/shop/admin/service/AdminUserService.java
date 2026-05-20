@@ -76,4 +76,12 @@ public interface AdminUserService extends IService<AdminUserEntity> {
      * @return 管理员实体
      */
     AdminUserEntity getByUsername(String username);
+
+    /**
+     * 删除管理员（同时清除角色关联和权限缓存）
+     *
+     * @param id 管理员ID
+     * @return 删除结果
+     */
+    Result<Void> deleteAdminUser(Long id);
 }

@@ -2,6 +2,7 @@
 package com.shop.admin.controller;
 
 import com.shop.admin.entity.AdminPermissionEntity;
+import com.shop.admin.security.RequirePermission;
 import com.shop.admin.service.AdminPermissionService;
 import com.shop.common.Result;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,13 +20,13 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 /**
- * 后台权限管理控制器
+ * 权限管理控制器
  * @since 1.1.0
  */
-@Tag(name = "后台-权限管理", description = "后台权限管理接口")
+@Tag(name = "权限管理", description = "权限管理接口")
 @RestController
-@RequestMapping("/admin/permission")
-public class AdminPermissionController {
+@RequestMapping("/permission")
+public class PermissionController {
 
     @Autowired
     private AdminPermissionService adminPermissionService;
@@ -35,6 +36,7 @@ public class AdminPermissionController {
      *
      * @return 权限树形结构列表
      */
+    @RequirePermission("system:permission:query")
     @Operation(summary = "获取权限树形结构")
     @GetMapping("/tree")
     public Result<List<AdminPermissionEntity>> tree() {
@@ -47,6 +49,7 @@ public class AdminPermissionController {
      * @param id 权限ID
      * @return 权限详情
      */
+    @RequirePermission("system:permission:query")
     @Operation(summary = "获取权限详情")
     @GetMapping("/{id}")
     public Result<AdminPermissionEntity> getById(@PathVariable Long id) {
@@ -59,6 +62,7 @@ public class AdminPermissionController {
      * @param permission 权限信息
      * @return 创建结果
      */
+    @RequirePermission("system:permission:create")
     @Operation(summary = "创建权限")
     @PostMapping("/create")
     public Result<Void> create(@RequestBody AdminPermissionEntity permission) {
@@ -71,6 +75,7 @@ public class AdminPermissionController {
      * @param permission 权限信息
      * @return 更新结果
      */
+    @RequirePermission("system:permission:update")
     @Operation(summary = "更新权限")
     @PutMapping("/update")
     public Result<Void> update(@RequestBody AdminPermissionEntity permission) {
@@ -83,6 +88,7 @@ public class AdminPermissionController {
      * @param id 权限ID
      * @return 删除结果
      */
+    @RequirePermission("system:permission:delete")
     @Operation(summary = "删除权限")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {

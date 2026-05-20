@@ -1,6 +1,7 @@
 package com.shop.admin.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.shop.admin.security.RequirePermission;
 import com.shop.common.Result;
 import com.shop.entity.OrderEntity;
 import com.shop.service.OrderService;
@@ -18,9 +19,9 @@ import org.springframework.web.bind.annotation.RestController;
  * 后台订单管理控制器
  * @since 1.0.0
  */
-@Tag(name = "后台-订单管理", description = "后台订单管理接口")
+@Tag(name = "订单管理", description = "订单管理接口")
 @RestController
-@RequestMapping("/admin/order")
+@RequestMapping("/order")
 public class OrderController {
 
     @Autowired
@@ -33,6 +34,7 @@ public class OrderController {
      * @param size 每页条数
      * @return 订单分页数据
      */
+    @RequirePermission("order:query")
     @Operation(summary = "分页查询所有订单")
     @GetMapping("/list")
     public Result<IPage<OrderEntity>> list(
@@ -48,6 +50,7 @@ public class OrderController {
      * @param id 订单ID
      * @return 订单详情
      */
+    @RequirePermission("order:query")
     @Operation(summary = "获取订单详情")
     @GetMapping("/{id}")
     public Result<OrderEntity> getById(@PathVariable Long id) {
@@ -61,6 +64,7 @@ public class OrderController {
      * @param status 订单状态
      * @return 更新结果
      */
+    @RequirePermission("order:update")
     @Operation(summary = "更新订单状态")
     @PutMapping("/status/{id}")
     public Result<Void> updateStatus(@PathVariable Long id, @RequestParam Integer status) {

@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author shop
  * @since 1.0.0
  */
-@Tag(name = "后台-公开接口", description = "无需认证的公开接口")
+@Tag(name = "公开接口", description = "无需认证的公开接口")
 @RestController
 @RequestMapping("/public")
 public class PublicController {

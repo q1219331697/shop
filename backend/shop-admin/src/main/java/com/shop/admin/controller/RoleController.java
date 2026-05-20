@@ -3,6 +3,7 @@ package com.shop.admin.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.shop.admin.entity.AdminRoleEntity;
+import com.shop.admin.security.RequirePermission;
 import com.shop.admin.service.AdminRoleService;
 import com.shop.common.Result;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,13 +22,13 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 /**
- * 后台角色管理控制器
+ * 角色管理控制器
  * @since 1.1.0
  */
-@Tag(name = "后台-角色管理", description = "后台角色管理接口")
+@Tag(name = "角色管理", description = "角色管理接口")
 @RestController
-@RequestMapping("/admin/role")
-public class AdminRoleController {
+@RequestMapping("/role")
+public class RoleController {
 
     @Autowired
     private AdminRoleService adminRoleService;
@@ -39,6 +40,7 @@ public class AdminRoleController {
      * @param size 每页条数
      * @return 角色分页数据
      */
+    @RequirePermission("system:role:query")
     @Operation(summary = "分页查询角色列表")
     @GetMapping("/list")
     public Result<IPage<AdminRoleEntity>> list(
@@ -53,6 +55,7 @@ public class AdminRoleController {
      *
      * @return 所有角色列表
      */
+    @RequirePermission("system:role:query")
     @Operation(summary = "查询所有角色")
     @GetMapping("/all")
     public Result<List<AdminRoleEntity>> all() {
@@ -65,6 +68,7 @@ public class AdminRoleController {
      * @param id 角色ID
      * @return 角色详情
      */
+    @RequirePermission("system:role:query")
     @Operation(summary = "获取角色详情")
     @GetMapping("/{id}")
     public Result<AdminRoleEntity> getById(@PathVariable Long id) {
@@ -77,6 +81,7 @@ public class AdminRoleController {
      * @param role 角色信息
      * @return 创建结果
      */
+    @RequirePermission("system:role:create")
     @Operation(summary = "创建角色")
     @PostMapping("/create")
     public Result<Void> create(@RequestBody AdminRoleEntity role) {
@@ -89,6 +94,7 @@ public class AdminRoleController {
      * @param role 角色信息
      * @return 更新结果
      */
+    @RequirePermission("system:role:update")
     @Operation(summary = "更新角色")
     @PutMapping("/update")
     public Result<Void> update(@RequestBody AdminRoleEntity role) {
@@ -101,6 +107,7 @@ public class AdminRoleController {
      * @param id 角色ID
      * @return 删除结果
      */
+    @RequirePermission("system:role:delete")
     @Operation(summary = "删除角色")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
@@ -114,6 +121,7 @@ public class AdminRoleController {
      * @param permissionIds 权限ID列表
      * @return 分配结果
      */
+    @RequirePermission("system:role:assign")
     @Operation(summary = "为角色分配权限")
     @PostMapping("/{id}/permissions")
     public Result<Void> assignPermissions(@PathVariable("id") Long roleId,
@@ -127,6 +135,7 @@ public class AdminRoleController {
      * @param roleId 角色ID
      * @return 权限ID列表
      */
+    @RequirePermission("system:role:query")
     @Operation(summary = "获取角色的权限ID列表")
     @GetMapping("/{id}/permissions")
     public Result<List<Long>> getRolePermissionIds(@PathVariable("id") Long roleId) {

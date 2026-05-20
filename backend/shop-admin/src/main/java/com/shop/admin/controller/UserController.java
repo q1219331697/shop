@@ -1,6 +1,7 @@
 package com.shop.admin.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.shop.admin.security.RequirePermission;
 import com.shop.common.Result;
 import com.shop.entity.UserEntity;
 import com.shop.service.UserService;
@@ -20,9 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
  * 后台用户管理控制器
  * @since 1.0.0
  */
-@Tag(name = "后台-用户管理", description = "后台用户管理接口")
+@Tag(name = "用户管理", description = "用户管理接口")
 @RestController
-@RequestMapping("/admin/user")
+@RequestMapping("/user")
 public class UserController {
 
     @Autowired
@@ -35,6 +36,7 @@ public class UserController {
      * @param size 每页条数
      * @return 用户分页数据
      */
+    @RequirePermission("user:query")
     @Operation(summary = "分页查询用户列表")
     @GetMapping("/list")
     public Result<IPage<UserEntity>> list(
@@ -50,6 +52,7 @@ public class UserController {
      * @param id 用户ID
      * @return 用户详情
      */
+    @RequirePermission("user:query")
     @Operation(summary = "获取用户详情")
     @GetMapping("/{id}")
     public Result<UserEntity> getById(@PathVariable Long id) {
@@ -62,6 +65,7 @@ public class UserController {
      * @param user 用户信息
      * @return 更新结果
      */
+    @RequirePermission("user:update")
     @Operation(summary = "更新用户信息")
     @PutMapping("/update")
     public Result<Void> update(@RequestBody UserEntity user) {
@@ -74,6 +78,7 @@ public class UserController {
      * @param id 用户ID
      * @return 删除结果
      */
+    @RequirePermission("user:delete")
     @Operation(summary = "删除用户")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {

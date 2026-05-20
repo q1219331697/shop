@@ -4,21 +4,26 @@ package com.shop.admin.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.shop.admin.entity.AdminPermissionEntity;
+import com.shop.admin.entity.AdminRoleEntity;
 import com.shop.admin.entity.AdminRolePermissionEntity;
 import com.shop.admin.entity.AdminUserRoleEntity;
 import com.shop.admin.mapper.AdminPermissionMapper;
+import com.shop.admin.mapper.AdminRoleMapper;
 import com.shop.admin.mapper.AdminRolePermissionMapper;
 import com.shop.admin.mapper.AdminUserRoleMapper;
 import com.shop.admin.service.AdminPermissionService;
 import com.shop.common.Result;
 import com.shop.common.ResultCodeEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -31,13 +36,22 @@ public class AdminPermissionServiceImpl
         extends ServiceImpl<AdminPermissionMapper, AdminPermissionEntity>
         implements AdminPermissionService {
 
+    private static final String PERM_CACHE_PREFIX = "admin:user:permissions:";
+    private static final long PERM_CACHE_HOURS = 2;
+
     private final AdminRolePermissionMapper rolePermissionMapper;
     private final AdminUserRoleMapper userRoleMapper;
+    private final AdminRoleMapper roleMapper;
+    private final StringRedisTemplate redisTemplate;
 
     public AdminPermissionServiceImpl(AdminRolePermissionMapper rolePermissionMapper,
-                                      AdminUserRoleMapper userRoleMapper) {
+                                      AdminUserRoleMapper userRoleMapper,
+                                      AdminRoleMapper roleMapper,
+                                      StringRedisTemplate redisTemplate) {
         this.rolePermissionMapper = rolePermissionMapper;
         this.userRoleMapper = userRoleMapper;
+        this.roleMapper = roleMapper;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
@@ -174,12 +188,32 @@ public class AdminPermissionServiceImpl
 
     @Override
     public List<String> getPermissionCodesByUserId(Long userId) {
+        // 先从Redis缓存获取
+        String cacheKey = PERM_CACHE_PREFIX + userId;
+        String cached = redisTemplate.opsForValue().get(cacheKey);
+        if (cached != null && !cached.isEmpty()) {
+            return parsePermissionCodes(cached);
+        }
+
         // 获取用户角色ID列表
         LambdaQueryWrapper<AdminUserRoleEntity> urWrapper = new LambdaQueryWrapper<>();
         urWrapper.eq(AdminUserRoleEntity::getUserId, userId);
         List<Long> roleIds = userRoleMapper.selectList(urWrapper)
                 .stream()
                 .map(AdminUserRoleEntity::getRoleId)
+                .collect(Collectors.toList());
+
+        if (roleIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // 过滤禁用的角色（只保留状态为正常的角色）
+        LambdaQueryWrapper<AdminRoleEntity> roleWrapper = new LambdaQueryWrapper<>();
+        roleWrapper.in(AdminRoleEntity::getId, roleIds);
+        roleWrapper.eq(AdminRoleEntity::getStatus, 1);
+        roleIds = roleMapper.selectList(roleWrapper)
+                .stream()
+                .map(AdminRoleEntity::getId)
                 .collect(Collectors.toList());
 
         if (roleIds.isEmpty()) {
@@ -204,12 +238,25 @@ public class AdminPermissionServiceImpl
         pWrapper.in(AdminPermissionEntity::getId, permissionIds);
         pWrapper.eq(AdminPermissionEntity::getStatus, 1);
         pWrapper.select(AdminPermissionEntity::getPermissionCode);
-        return this.list(pWrapper)
+        List<String> permissionCodes = this.list(pWrapper)
                 .stream()
                 .map(AdminPermissionEntity::getPermissionCode)
                 .collect(Collectors.toList());
+
+        // 写入Redis缓存
+        if (!permissionCodes.isEmpty()) {
+            String cacheValue = String.join(",", permissionCodes);
+            redisTemplate.opsForValue().set(cacheKey, cacheValue, PERM_CACHE_HOURS, TimeUnit.HOURS);
+        }
+
+        return permissionCodes;
     }
 
+    /**
+     * 根据用户ID获取菜单树
+     * @param userId 用户ID
+     * @return 菜单树列表
+     */
     @Override
     public List<AdminPermissionEntity> getMenuTreeByUserId(Long userId) {
         // 获取用户角色ID列表
@@ -218,6 +265,19 @@ public class AdminPermissionServiceImpl
         List<Long> roleIds = userRoleMapper.selectList(urWrapper)
                 .stream()
                 .map(AdminUserRoleEntity::getRoleId)
+                .collect(Collectors.toList());
+
+        if (roleIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // 过滤禁用的角色
+        LambdaQueryWrapper<AdminRoleEntity> roleWrapper = new LambdaQueryWrapper<>();
+        roleWrapper.in(AdminRoleEntity::getId, roleIds);
+        roleWrapper.eq(AdminRoleEntity::getStatus, 1);
+        roleIds = roleMapper.selectList(roleWrapper)
+                .stream()
+                .map(AdminRoleEntity::getId)
                 .collect(Collectors.toList());
 
         if (roleIds.isEmpty()) {
@@ -247,6 +307,42 @@ public class AdminPermissionServiceImpl
         List<AdminPermissionEntity> menus = this.list(pWrapper);
 
         return buildTree(menus, 0L);
+    }
+
+    @Override
+    public void clearPermissionCache(Long userId) {
+        String cacheKey = PERM_CACHE_PREFIX + userId;
+        redisTemplate.delete(cacheKey);
+        log.info("清除用户权限缓存, userId: {}", userId);
+    }
+
+    @Override
+    public void clearAllPermissionCache() {
+        Set<String> keys = redisTemplate.keys(PERM_CACHE_PREFIX + "*");
+        if (keys != null && !keys.isEmpty()) {
+            redisTemplate.delete(keys);
+            log.info("清除所有用户权限缓存, 共{}条", keys.size());
+        }
+    }
+
+    /**
+     * 解析缓存中的权限编码字符串
+     * @param cached 缓存值，逗号分隔
+     * @return 权限编码列表
+     */
+    private List<String> parsePermissionCodes(String cached) {
+        if (cached == null || cached.isEmpty()) {
+            return Collections.emptyList();
+        }
+        String[] parts = cached.split(",");
+        List<String> codes = new ArrayList<>(parts.length);
+        for (String part : parts) {
+            String trimmed = part.trim();
+            if (!trimmed.isEmpty()) {
+                codes.add(trimmed);
+            }
+        }
+        return codes;
     }
 
     /**

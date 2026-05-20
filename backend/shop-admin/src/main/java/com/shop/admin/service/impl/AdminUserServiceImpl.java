@@ -7,6 +7,7 @@ import com.shop.admin.entity.AdminUserRoleEntity;
 import com.shop.admin.mapper.AdminUserMapper;
 import com.shop.admin.mapper.AdminUserRoleMapper;
 import com.shop.admin.security.AdminTokenService;
+import com.shop.admin.service.AdminPermissionService;
 import com.shop.admin.service.AdminUserService;
 import com.shop.common.Result;
 import com.shop.common.ResultCodeEnum;
@@ -28,10 +29,13 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
 
     private final AdminTokenService adminTokenService;
     private final AdminUserRoleMapper userRoleMapper;
+    private final AdminPermissionService adminPermissionService;
 
-    public AdminUserServiceImpl(AdminTokenService adminTokenService, AdminUserRoleMapper userRoleMapper) {
+    public AdminUserServiceImpl(AdminTokenService adminTokenService, AdminUserRoleMapper userRoleMapper,
+                                AdminPermissionService adminPermissionService) {
         this.adminTokenService = adminTokenService;
         this.userRoleMapper = userRoleMapper;
+        this.adminPermissionService = adminPermissionService;
     }
 
     /**
@@ -145,6 +149,8 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
         boolean success = this.updateById(adminUser);
         if (success) {
             log.info("更新管理员信息成功, adminUserId: {}", id);
+            // 用户状态变更时清除权限缓存
+            adminPermissionService.clearPermissionCache(id);
         } else {
             log.error("更新管理员信息失败, adminUserId: {}", id);
         }
@@ -202,6 +208,10 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
         }
 
         log.info("为用户分配角色成功, userId: {}", userId);
+
+        // 清除用户权限缓存
+        adminPermissionService.clearPermissionCache(userId);
+
         return Result.success();
     }
 
@@ -246,5 +256,39 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
         LambdaQueryWrapper<AdminUserEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(AdminUserEntity::getUsername, username);
         return this.count(wrapper) > 0;
+    }
+
+    /**
+     * 删除管理员（同时清除角色关联和权限缓存）
+     *
+     * @param id 管理员ID
+     * @return 删除结果
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Void> deleteAdminUser(Long id) {
+        log.info("删除管理员请求, adminUserId: {}", id);
+        AdminUserEntity existUser = this.getById(id);
+        if (existUser == null) {
+            log.warn("删除管理员失败, 管理员不存在, adminUserId: {}", id);
+            return Result.error(ResultCodeEnum.USER_NOT_EXIST, "管理员不存在");
+        }
+
+        // 删除用户角色关联
+        LambdaQueryWrapper<AdminUserRoleEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(AdminUserRoleEntity::getUserId, id);
+        userRoleMapper.delete(wrapper);
+
+        // 清除权限缓存
+        adminPermissionService.clearPermissionCache(id);
+
+        // 删除用户
+        boolean success = this.removeById(id);
+        if (success) {
+            log.info("删除管理员成功, adminUserId: {}", id);
+        } else {
+            log.error("删除管理员失败, adminUserId: {}", id);
+        }
+        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "删除管理员失败");
     }
 }

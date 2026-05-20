@@ -1,11 +1,18 @@
+
 package com.shop.admin.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.shop.admin.entity.AdminPermissionEntity;
+
 import com.shop.admin.entity.AdminUserEntity;
+import com.shop.admin.vo.AdminUserPermissionVo;
+import com.shop.admin.security.RequirePermission;
 import com.shop.admin.service.AdminPermissionService;
+import com.shop.admin.service.AdminRoleService;
 import com.shop.admin.service.AdminUserService;
 import com.shop.common.Result;
+import com.shop.common.ResultCodeEnum;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,12 +30,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 /**
- * 后台管理用户控制器
+ * 管理员管理控制器
  * @since 1.0.0
  */
-@Tag(name = "后台-管理员管理", description = "后台管理员管理接口")
+@Tag(name = "管理员管理", description = "管理员管理接口")
 @RestController
-@RequestMapping("/admin-user")
+@RequestMapping("/adminUser")
 public class AdminUserController {
 
     @Autowired
@@ -37,6 +44,9 @@ public class AdminUserController {
     @Autowired
     private AdminPermissionService adminPermissionService;
 
+    @Autowired
+    private AdminRoleService adminRoleService;
+
     /**
      * 分页查询管理员列表
      *
@@ -44,13 +54,14 @@ public class AdminUserController {
      * @param size 每页条数
      * @return 管理员分页数据
      */
+    @RequirePermission("system:admin:query")
     @Operation(summary = "分页查询管理员列表")
     @GetMapping("/list")
     public Result<IPage<AdminUserEntity>> list(
             @RequestParam(defaultValue = "1") Long current,
             @RequestParam(defaultValue = "10") Long size) {
         return Result.success(adminUserService.page(
-                new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(current, size)));
+                new Page<>(current, size)));
     }
 
     /**
@@ -59,6 +70,7 @@ public class AdminUserController {
      * @param id 管理员ID
      * @return 管理员详情
      */
+    @RequirePermission("system:admin:query")
     @Operation(summary = "获取管理员详情")
     @GetMapping("/{id}")
     public Result<AdminUserEntity> getById(@PathVariable Long id) {
@@ -71,6 +83,7 @@ public class AdminUserController {
      * @param adminUser 管理员信息
      * @return 创建结果
      */
+    @RequirePermission("system:admin:create")
     @Operation(summary = "创建管理员")
     @PostMapping("/create")
     public Result<Void> create(@RequestBody AdminUserEntity adminUser) {
@@ -83,6 +96,7 @@ public class AdminUserController {
      * @param adminUser 管理员信息
      * @return 更新结果
      */
+    @RequirePermission("system:admin:update")
     @Operation(summary = "更新管理员信息")
     @PutMapping("/update")
     public Result<Void> update(@RequestBody AdminUserEntity adminUser) {
@@ -95,10 +109,11 @@ public class AdminUserController {
      * @param id 管理员ID
      * @return 删除结果
      */
+    @RequirePermission("system:admin:delete")
     @Operation(summary = "删除管理员")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
-        return adminUserService.removeById(id) ? Result.success() : Result.error("删除管理员失败");
+        return adminUserService.deleteAdminUser(id);
     }
 
     /**
@@ -108,6 +123,7 @@ public class AdminUserController {
      * @param roleIds 角色ID列表
      * @return 分配结果
      */
+    @RequirePermission("system:admin:update")
     @Operation(summary = "为用户分配角色")
     @PostMapping("/{id}/roles")
     public Result<Void> assignRoles(@PathVariable("id") Long userId,
@@ -121,6 +137,7 @@ public class AdminUserController {
      * @param userId 用户ID
      * @return 角色ID列表
      */
+    @RequirePermission("system:admin:query")
     @Operation(summary = "获取用户的角色ID列表")
     @GetMapping("/{id}/roles")
     public Result<List<Long>> getUserRoleIds(@PathVariable("id") Long userId) {
@@ -153,6 +170,32 @@ public class AdminUserController {
         Long adminUserId = (Long) request.getAttribute("adminUserId");
         List<String> permissionCodes = adminPermissionService.getPermissionCodesByUserId(adminUserId);
         return Result.success(permissionCodes);
+    }
+
+    /**
+     * 获取指定用户的权限详情（角色+权限编码+菜单树）
+     * <p>
+     * 用于授权管理页面，查看用户拥有的角色和权限全貌
+     * </p>
+     *
+     * @param id 用户ID
+     * @return 权限详情
+     */
+    @RequirePermission("system:admin:query")
+    @Operation(summary = "获取用户权限详情")
+    @GetMapping("/{id}/permission-detail")
+    public Result<AdminUserPermissionVo> getUserPermissionDetail(@PathVariable Long id) {
+        AdminUserEntity adminUser = adminUserService.getById(id);
+        if (adminUser == null) {
+            return Result.error(ResultCodeEnum.USER_NOT_EXIST, "管理员不存在");
+        }
+        AdminUserPermissionVo vo = new AdminUserPermissionVo();
+        vo.setUserId(id);
+        vo.setUsername(adminUser.getUsername());
+        vo.setRoles(adminRoleService.getRolesByUserId(id));
+        vo.setPermissionCodes(adminPermissionService.getPermissionCodesByUserId(id));
+        vo.setMenus(adminPermissionService.getMenuTreeByUserId(id));
+        return Result.success(vo);
     }
 
 }

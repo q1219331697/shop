@@ -60,4 +60,15 @@ public interface AdminPermissionService extends IService<AdminPermissionEntity> 
      * @return 菜单树形列表
      */
     List<AdminPermissionEntity> getMenuTreeByUserId(Long userId);
+
+    /**
+     * 清除指定用户的权限缓存
+     * @param userId 用户ID
+     */
+    void clearPermissionCache(Long userId);
+
+    /**
+     * 清除所有用户的权限缓存
+     */
+    void clearAllPermissionCache();
 }
