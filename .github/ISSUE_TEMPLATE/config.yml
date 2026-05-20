@@ -1,0 +1,9 @@
+
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 项目文档
+    url: https://github.com/<owner>/shop/tree/main/docs
+    about: 查看项目文档，包括 API 文档、部署指南等
+  - name: 💬 讨论区
+    url: https://github.com/<owner>/shop/discussions
+    about: 提问、分享想法或与其他开发者交流

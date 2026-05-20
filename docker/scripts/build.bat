@@ -91,11 +91,11 @@ echo [CHECK] 检查 Docker 磁盘空间...
 for /f "tokens=*" %%i in ('docker system df --format "{{.Size}}" 2^>nul') do echo [OK] Docker 磁盘使用: %%i
 
 echo [CHECK] 检查项目文件完整性...
-if not exist "pom.xml" (
-    echo [ERROR] 未找到 pom.xml，请确认在项目根目录运行
+if not exist "backend\pom.xml" (
+    echo [ERROR] 未找到 backend\pom.xml，请确认在项目根目录运行
     exit /b 1
 )
-echo [OK] pom.xml 存在
+echo [OK] backend\pom.xml 存在
 if not exist "docker\dockerfile.admin" (
     echo [ERROR] 未找到 docker\dockerfile.admin
     exit /b 1

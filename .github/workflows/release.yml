@@ -1,0 +1,229 @@
+
+# ============================================================
+# Release 工作流 - 自动发布
+# 触发条件: 手动触发或推送 release/* 分支
+# 执行内容: 构建产物 → 创建 GitHub Release → 构建Docker镜像
+# ============================================================
+
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '发布版本号 (例如: 1.0.0)'
+        required: true
+        type: string
+      prerelease:
+        description: '是否为预发布版本'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  REGISTRY: docker.io
+  IMAGE_PREFIX: ${{ secrets.DOCKER_USERNAME }}/shop
+
+jobs:
+  # ==================== 准备发布 ====================
+  prepare:
+    name: Prepare Release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ inputs.version }}
+      tag: v${{ inputs.version }}
+    steps:
+      - name: Validate version format
+        run: |
+          if [[ ! "${{ inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "错误: 版本号格式不正确，应为 X.Y.Z (例如: 1.0.0)"
+            exit 1
+          fi
+          echo "发布版本: ${{ inputs.version }}"
+
+  # ==================== 后端构建 ====================
+  build-backend:
+    name: Build Backend
+    runs-on: ubuntu-latest
+    needs: prepare
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build with Maven
+        working-directory: backend
+        run: mvn clean package -DskipTests -Dcheckstyle.skip=true -B
+
+      - name: Upload shop-admin JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: shop-admin-${{ needs.prepare.outputs.version }}
+          path: backend/shop-admin/target/shop-admin-*.jar
+          retention-days: 30
+
+      - name: Upload shop-api JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: shop-api-${{ needs.prepare.outputs.version }}
+          path: backend/shop-api/target/shop-api-*.jar
+          retention-days: 30
+
+  # ==================== 前端构建 ====================
+  build-frontend:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    needs: prepare
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/admin-ui/package-lock.json
+
+      - name: Install & Build
+        working-directory: frontend/admin-ui
+        run: |
+          npm ci
+          npm run build
+
+      - name: Upload frontend dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-ui-${{ needs.prepare.outputs.version }}
+          path: frontend/admin-ui/dist/
+          retention-days: 30
+
+  # ==================== 构建 Docker 镜像 ====================
+  docker-build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: [prepare, build-backend]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # ---------- shop-admin 镜像 ----------
+      - name: Build & Push shop-admin
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile.admin
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-admin:latest
+            ${{ env.IMAGE_PREFIX }}-admin:${{ needs.prepare.outputs.version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # ---------- shop-api 镜像 ----------
+      - name: Build & Push shop-api
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile.api
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-api:latest
+            ${{ env.IMAGE_PREFIX }}-api:${{ needs.prepare.outputs.version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ==================== 创建 GitHub Release ====================
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [prepare, build-backend, build-frontend, docker-build]
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # 获取上一个 tag
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+
+          if [ -z "$PREV_TAG" ]; then
+            COMMITS=$(git log --pretty=format:"- %s (%h)" HEAD)
+          else
+            COMMITS=$(git log --pretty=format:"- %s (%h)" ${PREV_TAG}..HEAD)
+          fi
+
+          # 按类型分类
+          FEAT=$(echo "$COMMITS" | grep -i "^- feat" || true)
+          FIX=$(echo "$COMMITS" | grep -i "^- fix" || true)
+          DOCS=$(echo "$COMMITS" | grep -i "^- docs" || true)
+          OTHER=$(echo "$COMMITS" | grep -viE "^- (feat|fix|docs)" || true)
+
+          # 生成 changelog
+          {
+            echo "## v${{ needs.prepare.outputs.version }} ($(date +%Y-%m-%d))"
+            echo ""
+            if [ -n "$FEAT" ]; then
+              echo "### ✨ 新功能"
+              echo "$FEAT"
+              echo ""
+            fi
+            if [ -n "$FIX" ]; then
+              echo "### 🐛 Bug 修复"
+              echo "$FIX"
+              echo ""
+            fi
+            if [ -n "$DOCS" ]; then
+              echo "### 📝 文档更新"
+              echo "$DOCS"
+              echo ""
+            fi
+            if [ -n "$OTHER" ]; then
+              echo "### 🔧 其他变更"
+              echo "$OTHER"
+              echo ""
+            fi
+            echo "### 🐳 Docker 镜像"
+            echo "- \`${{ env.IMAGE_PREFIX }}-admin:${{ needs.prepare.outputs.version }}\`"
+            echo "- \`${{ env.IMAGE_PREFIX }}-api:${{ needs.prepare.outputs.version }}\`"
+          } > CHANGELOG.md
+
+          echo "Changelog generated successfully"
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.prepare.outputs.version }}
+          name: Release v${{ needs.prepare.outputs.version }}
+          body_path: CHANGELOG.md
+          prerelease: ${{ inputs.prerelease }}
+          files: |
+            artifacts/shop-admin-*/*.jar
+            artifacts/shop-api-*/*.jar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

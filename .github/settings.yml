@@ -1,0 +1,97 @@
+
+# ============================================================
+# GitHub 仓库设置
+# 使用 repository-settings 插件自动配置
+# 文档: https://github.com/repository-settings/app
+# ============================================================
+
+repository:
+  name: shop
+  description: 商城系统 - Spring Boot + Vue3
+  homepage: 
+  private: false
+  has_issues: true
+  has_projects: true
+  has_wiki: false
+  default_branch: main
+  allow_squash_merge: true
+  allow_merge_commit: false
+  allow_rebase_merge: true
+  delete_branch_on_merge: true
+
+# 分支保护规则
+branches:
+  - name: main
+    protection:
+      required_pull_request_reviews:
+        required_approving_review_count: 1
+        dismiss_stale_reviews: true
+        require_code_owner_reviews: false
+      required_status_checks:
+        strict: true
+        contexts:
+          - "Backend CI"
+          - "Frontend CI"
+      enforce_admins: true
+      required_linear_history: false
+      restrictions: null
+
+  - name: develop
+    protection:
+      required_pull_request_reviews:
+        required_approving_review_count: 1
+        dismiss_stale_reviews: true
+        require_code_owner_reviews: false
+      required_status_checks:
+        strict: true
+        contexts:
+          - "Backend CI"
+          - "Frontend CI"
+      enforce_admins: false
+      required_linear_history: false
+      restrictions: null
+
+# 标签管理
+labels:
+  - name: "类型: 新功能"
+    color: "0E8A16"
+    description: 新功能需求
+  - name: "类型: Bug修复"
+    color: "B60205"
+    description: Bug 修复
+  - name: "类型: 重构"
+    color: "5319E7"
+    description: 代码重构
+  - name: "类型: 文档"
+    color: "0075CA"
+    description: 文档变更
+  - name: "类型: 性能优化"
+    color: "1D76DB"
+    description: 性能优化
+  - name: "模块: admin"
+    color: "FBCA04"
+    description: 后台管理模块
+  - name: "模块: api"
+    color: "D93F0B"
+    description: 前台API模块
+  - name: "模块: admin-ui"
+    color: "C5DEF5"
+    description: 管理后台前端
+  - name: "模块: mini-app"
+    color: "BFDADC"
+    description: 小程序端
+  - name: "模块: docker"
+    color: "F9D0C4"
+    description: Docker 相关
+  - name: "优先级: 紧急"
+    color: "B60205"
+    description: 紧急优先
+  - name: "优先级: 高"
+    color: "D93F0B"
+    description: 高优先级
+  - name: "优先级: 中"
+    color: "FBCA04"
+    description: 中优先级
+  - name: "优先级: 低"
+    color: "0E8A16"
+    description: 低优先级

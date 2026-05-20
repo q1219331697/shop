@@ -1,0 +1,80 @@
+
+name: Bug 报告
+description: 报告一个 Bug
+labels: ["类型: Bug修复"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Bug 报告
+        请填写以下信息，帮助我们快速定位和修复问题。
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug 描述
+      description: 清晰描述遇到的问题
+      placeholder: 例如：在商品列表页面点击删除按钮后，页面没有刷新
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      description: 描述如何复现该问题
+      placeholder: |
+        1. 打开商品列表页面
+        2. 点击某商品的删除按钮
+        3. 确认删除
+        4. 页面未刷新
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为
+      description: 描述你期望的正确行为
+      placeholder: 例如：删除成功后，列表应自动刷新并移除该商品
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为
+      description: 描述实际发生的行为
+      placeholder: 例如：删除成功后，列表未刷新，商品仍然显示
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: 受影响模块
+      options:
+        - backend/shop-admin
+        - backend/shop-api
+        - frontend/admin-ui
+        - frontend/mini-app
+        - docker
+        - other
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: 环境信息
+      description: 操作系统、浏览器、Java版本等
+      placeholder: |
+        - OS: Windows 11
+        - Browser: Chrome 120
+        - Java: 17
+        - Node: 20
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 相关日志
+      description: 粘贴相关的错误日志或截图
+      placeholder: 将日志粘贴在这里...

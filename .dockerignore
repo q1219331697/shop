@@ -1,0 +1,78 @@
+
+# ==================== 版本控制 ====================
+.git
+.gitignore
+.github
+
+# ==================== IDE 配置 ====================
+.idea
+*.iml
+*.ipr
+*.iws
+.vscode
+.settings
+.classpath
+.project
+.factorypath
+.mybatis
+*.code-workspace
+*.sublime-workspace
+*.sublime-project
+
+# ==================== 构建输出 ====================
+# 多阶段构建在容器内编译，本机 target 不需要
+**/target/
+**/build/
+**/out/
+
+# ==================== 前端 ====================
+# 后端镜像不需要前端代码
+frontend/
+
+# ==================== 日志文件 ====================
+logs/
+**/*.log
+
+# ==================== 系统文件 ====================
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
+Desktop.ini
+
+# ==================== Docker 相关 ====================
+# 排除 Docker 运行时配置和卷数据
+docker/docker-compose*.yml
+docker/.env
+docker/config/
+docker/scripts/
+docker/volumes/
+docker/shop-json-logs.conf
+docker/README.md
+# 注意：docker/maven/ 需要保留，多阶段构建 COPY settings.xml
+
+# ==================== 文档 ====================
+docs/
+*.md
+!docker/maven/*.md
+
+# ==================== Node.js ====================
+node_modules/
+
+# ==================== 敏感信息 ====================
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.jks
+
+# ==================== 其他 ====================
+.mvn
+.mvn/wrapper
+mvnw
+mvnw.cmd
+check_security.py
+sonar-project.properties
+code-quality/

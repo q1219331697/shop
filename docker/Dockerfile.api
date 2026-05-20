@@ -15,21 +15,21 @@ COPY docker/maven/settings.xml /root/.m2/settings.xml
 
 # 先复制 POM 文件，利用 Docker 缓存加速依赖下载
 # POM 不变时，依赖层可直接复用，无需重新下载
-COPY pom.xml ./
-COPY shop-common/pom.xml ./shop-common/
-COPY shop-mapper/pom.xml ./shop-mapper/
-COPY shop-service/pom.xml ./shop-service/
-COPY shop-api/pom.xml ./shop-api/
-COPY shop-admin/pom.xml ./shop-admin/
+COPY backend/pom.xml ./
+COPY backend/shop-common/pom.xml ./shop-common/
+COPY backend/shop-mapper/pom.xml ./shop-mapper/
+COPY backend/shop-service/pom.xml ./shop-service/
+COPY backend/shop-api/pom.xml ./shop-api/
+COPY backend/shop-admin/pom.xml ./shop-admin/
 
 # 下载依赖（POM 不变时此层被缓存）
 RUN --mount=type=cache,target=/root/.m2/repository     mvn dependency:go-offline -pl shop-api -am -B
 
 # 复制源代码
-COPY shop-common/ ./shop-common/
-COPY shop-mapper/ ./shop-mapper/
-COPY shop-service/ ./shop-service/
-COPY shop-api/ ./shop-api/
+COPY backend/shop-common/ ./shop-common/
+COPY backend/shop-mapper/ ./shop-mapper/
+COPY backend/shop-service/ ./shop-service/
+COPY backend/shop-api/ ./shop-api/
 
 # 构建 JAR（利用缓存，跳过 checkstyle 和测试）
 RUN --mount=type=cache,target=/root/.m2/repository     mvn clean package -DskipTests -Dcheckstyle.skip=true -pl shop-api -am -B
