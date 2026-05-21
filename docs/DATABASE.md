@@ -100,7 +100,7 @@
 | id | BIGINT | 管理用户ID | 主键，自增 |
 | username | VARCHAR(50) | 用户名 | |
 | password | VARCHAR(100) | 密码 | 加密存储 |
-| name | VARCHAR(50) | 姓名 | |
+| real_name | VARCHAR(50) | 姓名 | |
 | status | TINYINT | 状态 | 0-禁用，1-正常 |
 | deleted | TINYINT | 删除标记 | 0-未删除，1-已删除 |
 | create_time | DATETIME | 创建时间 | |

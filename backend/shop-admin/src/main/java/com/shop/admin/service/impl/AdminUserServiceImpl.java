@@ -239,24 +239,28 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
     }
 
     /**
-     * 分页查询管理员（支持关键词搜索和状态筛选）
+     * 分页查询管理员（支持用户名、姓名搜索和状态筛选）
      *
      * @param pageNum 当前页码
      * @param pageSize 每页条数
-     * @param keyword 搜索关键词（用户名/姓名）
+     * @param username 用户名搜索
+     * @param realName 姓名搜索
      * @param status 状态筛选
      * @return 管理员分页数据
      */
     @Override
-    public Result<IPage<AdminUserEntity>> pageAdminUser(Long pageNum, Long pageSize, String keyword, Integer status) {
+    public Result<IPage<AdminUserEntity>> pageAdminUser(Long pageNum, Long pageSize, String username, String realName, Integer status) {
         Page<AdminUserEntity> page = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<AdminUserEntity> wrapper = new LambdaQueryWrapper<>();
 
-        // 关键词搜索：用户名、姓名
-        if (StringUtils.hasText(keyword)) {
-            wrapper.and(w -> w
-                    .like(AdminUserEntity::getUsername, keyword)
-                    .or().like(AdminUserEntity::getName, keyword));
+        // 用户名搜索
+        if (StringUtils.hasText(username)) {
+            wrapper.like(AdminUserEntity::getUsername, username);
+        }
+
+        // 姓名搜索
+        if (StringUtils.hasText(realName)) {
+            wrapper.like(AdminUserEntity::getRealName, realName);
         }
 
         // 状态筛选

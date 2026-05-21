@@ -4,10 +4,10 @@
 -- 初始化管理员数据（密码: admin123）
 -- =====================================================
 -- changeset shop:1.0.0-insert-admin-user-data context:admin stripComments:false
-INSERT IGNORE INTO t_admin_user (username, password, name, status) VALUES
+INSERT IGNORE INTO t_admin_user (username, password, real_name, status) VALUES
 ('admin', 'admin123', '超级管理员', 1);
 
-INSERT IGNORE INTO t_admin_user (username, password, name, status) VALUES
+INSERT IGNORE INTO t_admin_user (username, password, real_name, status) VALUES
 ('manager', 'admin123', '运营管理员', 1);
 
 -- =====================================================

@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS t_admin_user (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '管理用户ID',
     username VARCHAR(50) NOT NULL COMMENT '用户名',
     password VARCHAR(100) NOT NULL COMMENT '密码',
-    name VARCHAR(50) COMMENT '姓名',
+    real_name VARCHAR(50) COMMENT '姓名',
     status TINYINT NOT NULL DEFAULT 1 COMMENT '状态：0-禁用，1-正常',
     deleted TINYINT NOT NULL DEFAULT 0 COMMENT '删除标记：0-未删除，1-已删除',
     create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',

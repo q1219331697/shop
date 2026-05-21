@@ -51,7 +51,8 @@ public class AdminUserController {
      *
      * @param pageNum 当前页码
      * @param pageSize 每页条数
-     * @param keyword 搜索关键词（用户名/姓名）
+     * @param username 用户名搜索
+     * @param realName 姓名搜索
      * @param status 状态筛选：0-禁用，1-正常
      * @return 管理员分页数据
      */
@@ -61,9 +62,10 @@ public class AdminUserController {
     public Result<IPage<AdminUserEntity>> list(
             @RequestParam(defaultValue = "1") Long pageNum,
             @RequestParam(defaultValue = "10") Long pageSize,
-            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) String realName,
             @RequestParam(required = false) Integer status) {
-        return adminUserService.pageAdminUser(pageNum, pageSize, keyword, status);
+        return adminUserService.pageAdminUser(pageNum, pageSize, username, realName, status);
     }
 
     /**

@@ -71,15 +71,16 @@ public interface AdminUserService extends IService<AdminUserEntity> {
     Result<List<Long>> getUserRoleIds(Long userId);
 
     /**
-     * 分页查询管理员（支持关键词搜索和状态筛选）
+     * 分页查询管理员（支持用户名、姓名搜索和状态筛选）
      *
      * @param pageNum 当前页码
      * @param pageSize 每页条数
-     * @param keyword 搜索关键词（用户名/姓名）
+     * @param username 用户名搜索
+     * @param realName 姓名搜索
      * @param status 状态筛选
      * @return 管理员分页数据
      */
-    Result<IPage<AdminUserEntity>> pageAdminUser(Long pageNum, Long pageSize, String keyword, Integer status);
+    Result<IPage<AdminUserEntity>> pageAdminUser(Long pageNum, Long pageSize, String username, String realName, Integer status);
 
     /**
      * 根据用户名查询管理员

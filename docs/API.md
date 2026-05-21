@@ -82,13 +82,16 @@
   ```
 
 #### 1.3 分页查询管理员列表
-- **接口路径**: `GET /admin-user/list`
+- **接口路径**: `GET /adminUser/list`
 - **是否需要认证**: 是
 - **请求参数**:
   | 参数 | 类型 | 必填 | 默认值 | 说明 |
   |------|------|------|--------|------|
-  | current | Long | 否 | 1 | 页码 |
-  | size | Long | 否 | 10 | 每页数量 |
+  | pageNum | Long | 否 | 1 | 页码 |
+  | pageSize | Long | 否 | 10 | 每页数量 |
+  | username | String | 否 | - | 用户名（模糊查询） |
+  | realName | String | 否 | - | 姓名（模糊查询） |
+  | status | Integer | 否 | - | 状态：0-禁用，1-正常 |
 - **返回结果**:
   ```json
   {
@@ -99,14 +102,8 @@
         {
           "id": 1,
           "username": "admin",
-          "nickname": "管理员",
-          "phone": "13800000000",
-          "email": "admin@shop.com",
-          "avatar": null,
-          "role": 1,
+          "realName": "超级管理员",
           "status": 1,
-          "lastLoginTime": "2024-01-01 12:00:00",
-          "lastLoginIp": "127.0.0.1",
           "createTime": "2024-01-01 00:00:00",
           "updateTime": "2024-01-01 12:00:00"
         }
@@ -120,7 +117,7 @@
   ```
 
 #### 1.4 获取管理员详情
-- **接口路径**: `GET /admin-user/{id}`
+- **接口路径**: `GET /adminUser/{id}`
 - **是否需要认证**: 是
 - **路径参数**:
   | 参数 | 类型 | 说明 |
@@ -134,27 +131,23 @@
     "data": {
       "id": 1,
       "username": "admin",
-      "nickname": "管理员",
-      "phone": "13800000000",
-      "email": "admin@shop.com",
-      "role": 1,
-      "status": 1
+      "realName": "超级管理员",
+      "status": 1,
+      "createTime": "2024-01-01 00:00:00",
+      "updateTime": "2024-01-01 12:00:00"
     }
   }
   ```
 
 #### 1.5 创建管理员
-- **接口路径**: `POST /admin-user/create`
+- **接口路径**: `POST /adminUser/create`
 - **是否需要认证**: 是
 - **请求参数**:
   ```json
   {
     "username": "newadmin",
     "password": "123456",
-    "nickname": "新管理员",
-    "phone": "13800000001",
-    "email": "newadmin@shop.com",
-    "role": 2,
+    "realName": "新管理员",
     "status": 1
   }
   ```
@@ -162,29 +155,23 @@
   |------|------|------|
   | username | String | 用户名 |
   | password | String | 密码 |
-  | nickname | String | 昵称 |
-  | phone | String | 手机号 |
-  | email | String | 邮箱 |
-  | role | Integer | 角色：1-超级管理员，2-普通管理员 |
+  | realName | String | 姓名 |
   | status | Integer | 状态：0-禁用，1-正常 |
 
 #### 1.6 更新管理员信息
-- **接口路径**: `PUT /admin-user/update`
+- **接口路径**: `PUT /adminUser/update`
 - **是否需要认证**: 是
 - **请求参数**:
   ```json
   {
     "id": 2,
-    "nickname": "更新昵称",
-    "phone": "13800000002",
-    "email": "update@shop.com",
-    "role": 2,
+    "realName": "更新姓名",
     "status": 1
   }
   ```
 
 #### 1.7 删除管理员
-- **接口路径**: `DELETE /admin-user/{id}`
+- **接口路径**: `DELETE /adminUser/{id}`
 - **是否需要认证**: 是
 - **路径参数**:
   | 参数 | 类型 | 说明 |

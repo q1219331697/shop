@@ -51,7 +51,7 @@ public class AdminUserEntity implements Serializable {
      * 姓名
      */
     @Schema(description = "姓名")
-    private String name;
+    private String realName;
 
     /**
      * 状态：0-禁用，1-正常
