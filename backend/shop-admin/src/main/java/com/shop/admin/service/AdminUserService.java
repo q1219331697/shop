@@ -97,4 +97,12 @@ public interface AdminUserService extends IService<AdminUserEntity> {
      * @return 删除结果
      */
     Result<Void> deleteAdminUser(Long id);
+
+    /**
+     * 批量删除管理员（同时清除角色关联和权限缓存）
+     *
+     * @param ids 管理员ID列表
+     * @return 删除结果
+     */
+    Result<Void> batchDeleteAdminUser(List<Long> ids);
 }

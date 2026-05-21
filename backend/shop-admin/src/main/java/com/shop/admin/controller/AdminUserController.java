@@ -121,6 +121,19 @@ public class AdminUserController {
     }
 
     /**
+     * 批量删除管理员
+     *
+     * @param ids 管理员ID列表
+     * @return 删除结果
+     */
+    @RequirePermission("system:admin:delete")
+    @Operation(summary = "批量删除管理员")
+    @DeleteMapping("/batch")
+    public Result<Void> batchDelete(@RequestBody List<Long> ids) {
+        return adminUserService.batchDeleteAdminUser(ids);
+    }
+
+    /**
      * 为用户分配角色
      *
      * @param userId 用户ID

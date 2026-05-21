@@ -336,4 +336,30 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
         }
         return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "删除管理员失败");
     }
+
+    /**
+     * 批量删除管理员（同时清除角色关联和权限缓存）
+     *
+     * @param ids 管理员ID列表
+     * @return 删除结果
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Void> batchDeleteAdminUser(List<Long> ids) {
+        log.info("批量删除管理员请求, ids: {}", ids);
+        if (ids == null || ids.isEmpty()) {
+            return Result.error(ResultCodeEnum.PARAM_ERROR, "请选择要删除的管理员");
+        }
+
+        for (Long id : ids) {
+            Result<Void> result = deleteAdminUser(id);
+            if (result.getCode() != 200) {
+                log.warn("批量删除管理员中断, 失败的adminUserId: {}", id);
+                return result;
+            }
+        }
+
+        log.info("批量删除管理员成功, 共删除{}条", ids.size());
+        return Result.success();
+    }
 }

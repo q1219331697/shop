@@ -1,0 +1,54 @@
+@use './reset.scss';
+
+/* 全局通用样式 */
+.flex {
+  display: flex;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.page-container {
+  padding: 20px;
+  background: #fff;
+  border-radius: 10px;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 6px;
+
+  &:hover {
+    background: #94a3b8;
+  }
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* 全局禁止点击遮罩关闭 Dialog */
+.el-dialog__overlay {
+  pointer-events: none;
+}
