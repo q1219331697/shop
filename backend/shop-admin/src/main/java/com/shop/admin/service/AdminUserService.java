@@ -1,5 +1,6 @@
 package com.shop.admin.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.shop.admin.entity.AdminUserEntity;
 import com.shop.common.Result;
@@ -68,6 +69,17 @@ public interface AdminUserService extends IService<AdminUserEntity> {
      * @return 角色ID列表
      */
     Result<List<Long>> getUserRoleIds(Long userId);
+
+    /**
+     * 分页查询管理员（支持关键词搜索和状态筛选）
+     *
+     * @param pageNum 当前页码
+     * @param pageSize 每页条数
+     * @param keyword 搜索关键词（用户名/姓名）
+     * @param status 状态筛选
+     * @return 管理员分页数据
+     */
+    Result<IPage<AdminUserEntity>> pageAdminUser(Long pageNum, Long pageSize, String keyword, Integer status);
 
     /**
      * 根据用户名查询管理员

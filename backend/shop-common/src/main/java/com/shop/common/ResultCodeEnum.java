@@ -61,6 +61,8 @@ public enum ResultCodeEnum {
     ORDER_ITEM_NOT_EXIST("0503", "订单详情不存在"),
 
     // ========== 权限 06 ==========
+    /** 未登录或登录已过期 */
+    UNAUTHORIZED("0600", "未登录或登录已过期"),
     /** 无权限访问 */
     FORBIDDEN("0601", "无权限访问");
 

@@ -198,9 +198,48 @@
   }
   ```
 
+### 2. 登录日志管理
+
+#### 2.1 分页查询登录日志
+- **接口路径**: `GET /adminLoginLog/list`
+- **是否需要认证**: 是
+- **请求参数**:
+  | 参数 | 类型 | 必填 | 默认值 | 说明 |
+  |------|------|------|--------|------|
+  | pageNum | Long | 否 | 1 | 页码 |
+  | pageSize | Long | 否 | 10 | 每页数量 |
+  | username | String | 否 | - | 用户名（模糊查询） |
+  | status | Integer | 否 | - | 状态：0-失败，1-成功 |
+  | startTime | String | 否 | - | 开始时间，格式：yyyy-MM-dd HH:mm:ss |
+  | endTime | String | 否 | - | 结束时间，格式：yyyy-MM-dd HH:mm:ss |
+- **返回结果**:
+  ```json
+  {
+    "code": 200,
+    "message": "操作成功",
+    "data": {
+      "records": [
+        {
+          "id": 1,
+          "userId": 1,
+          "username": "admin",
+          "loginTime": "2024-01-01 12:00:00",
+          "status": 1,
+          "message": "登录成功",
+          "createTime": "2024-01-01 12:00:00"
+        }
+      ],
+      "total": 1,
+      "size": 10,
+      "current": 1,
+      "pages": 1
+    }
+  }
+  ```
+
 ---
 
-### 2. 商品管理（后台）
+### 3. 商品管理（后台）
 
 #### 2.1 分页查询商品列表
 - **接口路径**: `GET /admin/product/list`

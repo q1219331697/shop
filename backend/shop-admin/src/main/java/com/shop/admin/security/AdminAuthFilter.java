@@ -8,7 +8,6 @@ import com.shop.common.Result;
 import com.shop.common.ResultCodeEnum;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -253,7 +252,7 @@ public class AdminAuthFilter extends OncePerRequestFilter {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        Result<Void> result = Result.error(ResultCodeEnum.OPERATION_FAILED, "未登录或登录已过期");
+        Result<Void> result = Result.error(ResultCodeEnum.UNAUTHORIZED, "未登录或登录已过期");
         response.getWriter().write(objectMapper.writeValueAsString(result));
     }
 }

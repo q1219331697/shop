@@ -2,7 +2,6 @@
 package com.shop.admin.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.shop.admin.entity.AdminPermissionEntity;
 
 import com.shop.admin.entity.AdminUserEntity;
@@ -50,18 +49,21 @@ public class AdminUserController {
     /**
      * 分页查询管理员列表
      *
-     * @param current 当前页码
-     * @param size 每页条数
+     * @param pageNum 当前页码
+     * @param pageSize 每页条数
+     * @param keyword 搜索关键词（用户名/姓名）
+     * @param status 状态筛选：0-禁用，1-正常
      * @return 管理员分页数据
      */
     @RequirePermission("system:admin:query")
     @Operation(summary = "分页查询管理员列表")
     @GetMapping("/list")
     public Result<IPage<AdminUserEntity>> list(
-            @RequestParam(defaultValue = "1") Long current,
-            @RequestParam(defaultValue = "10") Long size) {
-        return Result.success(adminUserService.page(
-                new Page<>(current, size)));
+            @RequestParam(defaultValue = "1") Long pageNum,
+            @RequestParam(defaultValue = "10") Long pageSize,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Integer status) {
+        return adminUserService.pageAdminUser(pageNum, pageSize, keyword, status);
     }
 
     /**

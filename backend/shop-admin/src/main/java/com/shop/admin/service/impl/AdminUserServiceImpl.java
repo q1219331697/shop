@@ -1,12 +1,15 @@
 package com.shop.admin.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.shop.admin.entity.AdminUserEntity;
 import com.shop.admin.entity.AdminUserRoleEntity;
 import com.shop.admin.mapper.AdminUserMapper;
 import com.shop.admin.mapper.AdminUserRoleMapper;
 import com.shop.admin.security.AdminTokenService;
+import com.shop.admin.service.AdminLoginLogService;
 import com.shop.admin.service.AdminPermissionService;
 import com.shop.admin.service.AdminUserService;
 import com.shop.common.Result;
@@ -14,8 +17,8 @@ import com.shop.common.ResultCodeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,12 +33,15 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
     private final AdminTokenService adminTokenService;
     private final AdminUserRoleMapper userRoleMapper;
     private final AdminPermissionService adminPermissionService;
+    private final AdminLoginLogService adminLoginLogService;
 
     public AdminUserServiceImpl(AdminTokenService adminTokenService, AdminUserRoleMapper userRoleMapper,
-                                AdminPermissionService adminPermissionService) {
+                                AdminPermissionService adminPermissionService,
+                                AdminLoginLogService adminLoginLogService) {
         this.adminTokenService = adminTokenService;
         this.userRoleMapper = userRoleMapper;
         this.adminPermissionService = adminPermissionService;
+        this.adminLoginLogService = adminLoginLogService;
     }
 
     /**
@@ -53,27 +59,26 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
         AdminUserEntity dbUser = getByUsername(username);
         if (dbUser == null) {
             log.warn("管理员登录失败, 用户不存在, username: {}", username);
+            adminLoginLogService.recordLoginLog(null, username, 0, "管理员不存在");
             return Result.error(ResultCodeEnum.USER_NOT_EXIST, "管理员不存在");
         }
 
         if (!adminUser.getPassword().equals(dbUser.getPassword())) {
             log.warn("管理员登录失败, 密码错误, username: {}", username);
+            adminLoginLogService.recordLoginLog(dbUser.getId(), username, 0, "密码错误");
             return Result.error(ResultCodeEnum.PASSWORD_ERROR, "密码错误");
         }
 
         if (dbUser.getStatus() == 0) {
             log.warn("管理员登录失败, 用户已被禁用, username: {}", username);
+            adminLoginLogService.recordLoginLog(dbUser.getId(), username, 0, "管理员已被禁用");
             return Result.error(ResultCodeEnum.USER_DISABLED, "管理员已被禁用");
         }
-
-        // 更新登录信息
-        dbUser.setLastLoginTime(LocalDateTime.now());
-        dbUser.setLastLoginIp(ip);
-        this.updateById(dbUser);
 
         // 生成Token并存入Redis
         String token = adminTokenService.createToken(dbUser.getId(), dbUser.getUsername());
         log.info("管理员登录成功, adminUserId: {}, username: {}", dbUser.getId(), username);
+        adminLoginLogService.recordLoginLog(dbUser.getId(), username, 1, "登录成功");
         return Result.success(token);
     }
 
@@ -231,6 +236,42 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
                 .map(AdminUserRoleEntity::getRoleId)
                 .collect(Collectors.toList());
         return Result.success(roleIds);
+    }
+
+    /**
+     * 分页查询管理员（支持关键词搜索和状态筛选）
+     *
+     * @param pageNum 当前页码
+     * @param pageSize 每页条数
+     * @param keyword 搜索关键词（用户名/姓名）
+     * @param status 状态筛选
+     * @return 管理员分页数据
+     */
+    @Override
+    public Result<IPage<AdminUserEntity>> pageAdminUser(Long pageNum, Long pageSize, String keyword, Integer status) {
+        Page<AdminUserEntity> page = new Page<>(pageNum, pageSize);
+        LambdaQueryWrapper<AdminUserEntity> wrapper = new LambdaQueryWrapper<>();
+
+        // 关键词搜索：用户名、姓名
+        if (StringUtils.hasText(keyword)) {
+            wrapper.and(w -> w
+                    .like(AdminUserEntity::getUsername, keyword)
+                    .or().like(AdminUserEntity::getName, keyword));
+        }
+
+        // 状态筛选
+        if (status != null) {
+            wrapper.eq(AdminUserEntity::getStatus, status);
+        }
+
+        wrapper.orderByDesc(AdminUserEntity::getCreateTime);
+
+        IPage<AdminUserEntity> result = this.page(page, wrapper);
+
+        // 清除密码字段
+        result.getRecords().forEach(u -> u.setPassword(null));
+
+        return Result.success(result);
     }
 
     /**

@@ -93,6 +93,82 @@
 | total_price | DECIMAL(10,2) | 小计金额 | |
 | deleted | TINYINT | 删除标记 | 0-未删除，1-已删除 |
 
+### 7. 后台管理用户表 (t_admin_user)
+
+| 字段名 | 类型 | 说明 | 备注 |
+|--------|------|------|------|
+| id | BIGINT | 管理用户ID | 主键，自增 |
+| username | VARCHAR(50) | 用户名 | |
+| password | VARCHAR(100) | 密码 | 加密存储 |
+| name | VARCHAR(50) | 姓名 | |
+| status | TINYINT | 状态 | 0-禁用，1-正常 |
+| deleted | TINYINT | 删除标记 | 0-未删除，1-已删除 |
+| create_time | DATETIME | 创建时间 | |
+| update_time | DATETIME | 更新时间 | |
+
+### 8. 后台登录日志表 (t_admin_login_log)
+
+| 字段名 | 类型 | 说明 | 备注 |
+|--------|------|------|------|
+| id | BIGINT | 日志ID | 主键，自增 |
+| user_id | BIGINT | 管理用户ID | 索引 |
+| username | VARCHAR(50) | 用户名 | 索引 |
+| login_time | DATETIME | 登录时间 | 索引 |
+| status | TINYINT | 状态 | 0-失败，1-成功，索引 |
+| message | VARCHAR(255) | 提示信息 | |
+| create_time | DATETIME | 创建时间 | |
+
+### 9. 后台角色表 (t_admin_role)
+
+| 字段名 | 类型 | 说明 | 备注 |
+|--------|------|------|------|
+| id | BIGINT | 角色ID | 主键，自增 |
+| role_name | VARCHAR(50) | 角色名称 | |
+| role_code | VARCHAR(50) | 角色编码 | 索引 |
+| description | VARCHAR(200) | 角色描述 | |
+| sort_order | INT | 排序 | |
+| status | TINYINT | 状态 | 0-禁用，1-正常，索引 |
+| deleted | TINYINT | 删除标记 | 0-未删除，1-已删除 |
+| create_time | DATETIME | 创建时间 | |
+| update_time | DATETIME | 更新时间 | |
+
+### 10. 后台权限表 (t_admin_permission)
+
+| 字段名 | 类型 | 说明 | 备注 |
+|--------|------|------|------|
+| id | BIGINT | 权限ID | 主键，自增 |
+| parent_id | BIGINT | 父权限ID | 0为顶级，索引 |
+| permission_name | VARCHAR(50) | 权限名称 | |
+| permission_code | VARCHAR(100) | 权限编码 | 索引 |
+| permission_type | TINYINT | 类型 | 1-菜单，2-按钮，索引 |
+| path | VARCHAR(255) | 菜单路径/路由 | |
+| icon | VARCHAR(100) | 菜单图标 | |
+| component | VARCHAR(255) | 前端组件路径 | |
+| sort_order | INT | 排序 | |
+| visible | TINYINT | 是否可见 | 0-隐藏，1-显示 |
+| status | TINYINT | 状态 | 0-禁用，1-正常，索引 |
+| deleted | TINYINT | 删除标记 | 0-未删除，1-已删除 |
+| create_time | DATETIME | 创建时间 | |
+| update_time | DATETIME | 更新时间 | |
+
+### 11. 后台用户角色关联表 (t_admin_user_role)
+
+| 字段名 | 类型 | 说明 | 备注 |
+|--------|------|------|------|
+| id | BIGINT | ID | 主键，自增 |
+| user_id | BIGINT | 用户ID | 索引 |
+| role_id | BIGINT | 角色ID | 索引 |
+| create_time | DATETIME | 创建时间 | |
+
+### 12. 后台角色权限关联表 (t_admin_role_permission)
+
+| 字段名 | 类型 | 说明 | 备注 |
+|--------|------|------|------|
+| id | BIGINT | ID | 主键，自增 |
+| role_id | BIGINT | 角色ID | 索引 |
+| permission_id | BIGINT | 权限ID | 索引 |
+| create_time | DATETIME | 创建时间 | |
+
 ## 索引说明
 
 ### t_user 表
@@ -125,3 +201,36 @@
 - PRIMARY KEY (id)
 - KEY idx_order_id (order_id)
 - KEY idx_product_id (product_id)
+
+### t_admin_user 表
+- PRIMARY KEY (id)
+- KEY idx_status (status)
+
+### t_admin_login_log 表
+- PRIMARY KEY (id)
+- KEY idx_user_id (user_id)
+- KEY idx_username (username)
+- KEY idx_login_time (login_time)
+- KEY idx_status (status)
+
+### t_admin_role 表
+- PRIMARY KEY (id)
+- KEY idx_role_code (role_code)
+- KEY idx_status (status)
+
+### t_admin_permission 表
+- PRIMARY KEY (id)
+- KEY idx_parent_id (parent_id)
+- KEY idx_permission_code (permission_code)
+- KEY idx_permission_type (permission_type)
+- KEY idx_status (status)
+
+### t_admin_user_role 表
+- PRIMARY KEY (id)
+- KEY idx_user_id (user_id)
+- KEY idx_role_id (role_id)
+
+### t_admin_role_permission 表
+- PRIMARY KEY (id)
+- KEY idx_role_id (role_id)
+- KEY idx_permission_id (permission_id)

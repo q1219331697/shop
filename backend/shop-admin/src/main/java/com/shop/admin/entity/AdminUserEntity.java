@@ -48,46 +48,16 @@ public class AdminUserEntity implements Serializable {
     private String password;
 
     /**
-     * 昵称
+     * 姓名
      */
-    @Schema(description = "昵称")
-    private String nickname;
-
-    /**
-     * 手机号
-     */
-    @Schema(description = "手机号")
-    private String phone;
-
-    /**
-     * 邮箱
-     */
-    @Schema(description = "邮箱")
-    private String email;
-
-    /**
-     * 头像URL
-     */
-    @Schema(description = "头像")
-    private String avatar;
+    @Schema(description = "姓名")
+    private String name;
 
     /**
      * 状态：0-禁用，1-正常
      */
     @Schema(description = "状态：0-禁用，1-正常")
     private Integer status;
-
-    /**
-     * 最后登录时间
-     */
-    @Schema(description = "最后登录时间")
-    private LocalDateTime lastLoginTime;
-
-    /**
-     * 最后登录IP地址
-     */
-    @Schema(description = "最后登录IP")
-    private String lastLoginIp;
 
     /**
      * 删除标记：0-未删除，1-已删除（逻辑删除）
