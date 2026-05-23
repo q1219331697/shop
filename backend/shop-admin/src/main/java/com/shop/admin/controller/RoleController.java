@@ -16,10 +16,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 角色管理控制器
@@ -30,24 +30,26 @@ import java.util.List;
 @RequestMapping("/role")
 public class RoleController {
 
+    private static final Long DEFAULT_PAGE_SIZE = 10L;
+
     @Autowired
     private AdminRoleService adminRoleService;
 
     /**
      * 分页查询角色列表
      *
-     * @param current 当前页码
-     * @param size 每页条数
+     * @param params 查询参数：pageNum, pageSize
      * @return 角色分页数据
      */
     @RequirePermission("system:role:query")
     @Operation(summary = "分页查询角色列表")
-    @GetMapping("/list")
-    public Result<IPage<AdminRoleEntity>> list(
-            @RequestParam(defaultValue = "1") Long current,
-            @RequestParam(defaultValue = "10") Long size) {
+    @GetMapping
+    public Result<IPage<AdminRoleEntity>> list(@RequestBody Map<String, Object> params) {
+        Long pageNum = params.get("pageNum") != null ? Long.valueOf(params.get("pageNum").toString()) : 1L;
+        Long pageSize = params.get("pageSize") != null
+                ? Long.valueOf(params.get("pageSize").toString()) : DEFAULT_PAGE_SIZE;
         return Result.success(adminRoleService.page(
-                new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(current, size)));
+                new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(pageNum, pageSize)));
     }
 
     /**
@@ -83,7 +85,7 @@ public class RoleController {
      */
     @RequirePermission("system:role:create")
     @Operation(summary = "创建角色")
-    @PostMapping("/create")
+    @PostMapping
     public Result<Void> create(@RequestBody AdminRoleEntity role) {
         return adminRoleService.createRole(role);
     }
@@ -91,13 +93,15 @@ public class RoleController {
     /**
      * 更新角色
      *
+     * @param id 角色ID
      * @param role 角色信息
      * @return 更新结果
      */
     @RequirePermission("system:role:update")
     @Operation(summary = "更新角色")
-    @PutMapping("/update")
-    public Result<Void> update(@RequestBody AdminRoleEntity role) {
+    @PutMapping("/{id}")
+    public Result<Void> update(@PathVariable Long id, @RequestBody AdminRoleEntity role) {
+        role.setId(id);
         return adminRoleService.updateRole(role);
     }
 
@@ -118,15 +122,15 @@ public class RoleController {
      * 为角色分配权限
      *
      * @param roleId 角色ID
-     * @param permissionIds 权限ID列表
+     * @param params 包含permissionIds列表
      * @return 分配结果
      */
     @RequirePermission("system:role:assign")
     @Operation(summary = "为角色分配权限")
     @PostMapping("/{id}/permissions")
     public Result<Void> assignPermissions(@PathVariable("id") Long roleId,
-                                          @RequestBody List<Long> permissionIds) {
-        return adminRoleService.assignPermissions(roleId, permissionIds);
+                                          @RequestBody Map<String, List<Long>> params) {
+        return adminRoleService.assignPermissions(roleId, params.get("permissionIds"));
     }
 
     /**

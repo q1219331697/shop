@@ -64,7 +64,7 @@ public class PermissionController {
      */
     @RequirePermission("system:permission:create")
     @Operation(summary = "创建权限")
-    @PostMapping("/create")
+    @PostMapping
     public Result<Void> create(@RequestBody AdminPermissionEntity permission) {
         return adminPermissionService.createPermission(permission);
     }
@@ -72,13 +72,15 @@ public class PermissionController {
     /**
      * 更新权限
      *
+     * @param id 权限ID
      * @param permission 权限信息
      * @return 更新结果
      */
     @RequirePermission("system:permission:update")
     @Operation(summary = "更新权限")
-    @PutMapping("/update")
-    public Result<Void> update(@RequestBody AdminPermissionEntity permission) {
+    @PutMapping("/{id}")
+    public Result<Void> update(@PathVariable Long id, @RequestBody AdminPermissionEntity permission) {
+        permission.setId(id);
         return adminPermissionService.updatePermission(permission);
     }
 

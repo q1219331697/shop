@@ -63,6 +63,32 @@
         <module name="RedundantImport"/>
         <module name="UnusedImports"/>
 
+        <!-- MyBatis相关规则 -->
+        <!-- 禁止使用MyBatis的@Select注解 -->
+        <module name="Regexp">
+            <property name="format" value="@Select\s*\("/>
+            <property name="message" value="禁止在Java代码中使用@Select注解，请将SQL语句写在XML映射文件中"/>
+            <property name="illegalPattern" value="true"/>
+        </module>
+        <!-- 禁止使用MyBatis的@Update注解 -->
+        <module name="Regexp">
+            <property name="format" value="@Update\s*\("/>
+            <property name="message" value="禁止在Java代码中使用@Update注解，请将SQL语句写在XML映射文件中"/>
+            <property name="illegalPattern" value="true"/>
+        </module>
+        <!-- 禁止使用MyBatis的@Insert注解 -->
+        <module name="Regexp">
+            <property name="format" value="@Insert\s*\("/>
+            <property name="message" value="禁止在Java代码中使用@Insert注解，请将SQL语句写在XML映射文件中"/>
+            <property name="illegalPattern" value="true"/>
+        </module>
+        <!-- 禁止使用MyBatis的@Delete注解 -->
+        <module name="Regexp">
+            <property name="format" value="@Delete\s*\("/>
+            <property name="message" value="禁止在Java代码中使用@Delete注解，请将SQL语句写在XML映射文件中"/>
+            <property name="illegalPattern" value="true"/>
+        </module>
+
         <!-- 检查大小写 -->
         <module name="UpperEll"/>
 

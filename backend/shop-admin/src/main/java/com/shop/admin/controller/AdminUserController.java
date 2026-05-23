@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 管理员管理控制器
@@ -49,23 +50,25 @@ public class AdminUserController {
     /**
      * 分页查询管理员列表
      *
-     * @param pageNum 当前页码
+     * @param pageNum 页码
      * @param pageSize 每页条数
-     * @param username 用户名搜索
-     * @param realName 姓名搜索
-     * @param status 状态筛选：0-禁用，1-正常
+     * @param username 用户名
+     * @param realName 真实姓名
+     * @param status 状态
+     * @param deleted 是否删除
      * @return 管理员分页数据
      */
     @RequirePermission("system:admin:query")
     @Operation(summary = "分页查询管理员列表")
-    @GetMapping("/list")
+    @GetMapping
     public Result<IPage<AdminUserEntity>> list(
             @RequestParam(defaultValue = "1") Long pageNum,
             @RequestParam(defaultValue = "10") Long pageSize,
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String realName,
-            @RequestParam(required = false) Integer status) {
-        return adminUserService.pageAdminUser(pageNum, pageSize, username, realName, status);
+            @RequestParam(required = false) Integer status,
+            @RequestParam(required = false) Integer deleted) {
+        return adminUserService.pageAdminUser(pageNum, pageSize, username, realName, status, deleted);
     }
 
     /**
@@ -89,7 +92,7 @@ public class AdminUserController {
      */
     @RequirePermission("system:admin:create")
     @Operation(summary = "创建管理员")
-    @PostMapping("/create")
+    @PostMapping
     public Result<Void> create(@RequestBody AdminUserEntity adminUser) {
         return adminUserService.createAdminUser(adminUser);
     }
@@ -97,13 +100,15 @@ public class AdminUserController {
     /**
      * 更新管理员信息
      *
+     * @param id 管理员ID
      * @param adminUser 管理员信息
      * @return 更新结果
      */
     @RequirePermission("system:admin:update")
     @Operation(summary = "更新管理员信息")
-    @PutMapping("/update")
-    public Result<Void> update(@RequestBody AdminUserEntity adminUser) {
+    @PutMapping("/{id}")
+    public Result<Void> update(@PathVariable Long id, @RequestBody AdminUserEntity adminUser) {
+        adminUser.setId(id);
         return adminUserService.updateAdminUser(adminUser);
     }
 
@@ -123,29 +128,29 @@ public class AdminUserController {
     /**
      * 批量删除管理员
      *
-     * @param ids 管理员ID列表
+     * @param params 包含ids列表
      * @return 删除结果
      */
     @RequirePermission("system:admin:delete")
     @Operation(summary = "批量删除管理员")
     @DeleteMapping("/batch")
-    public Result<Void> batchDelete(@RequestBody List<Long> ids) {
-        return adminUserService.batchDeleteAdminUser(ids);
+    public Result<Void> batchDelete(@RequestBody Map<String, List<Long>> params) {
+        return adminUserService.batchDeleteAdminUser(params.get("ids"));
     }
 
     /**
      * 为用户分配角色
      *
      * @param userId 用户ID
-     * @param roleIds 角色ID列表
+     * @param params 包含roleIds列表
      * @return 分配结果
      */
     @RequirePermission("system:admin:update")
     @Operation(summary = "为用户分配角色")
     @PostMapping("/{id}/roles")
     public Result<Void> assignRoles(@PathVariable("id") Long userId,
-                                    @RequestBody List<Long> roleIds) {
-        return adminUserService.assignRoles(userId, roleIds);
+                                    @RequestBody Map<String, List<Long>> params) {
+        return adminUserService.assignRoles(userId, params.get("roleIds"));
     }
 
     /**
@@ -159,6 +164,84 @@ public class AdminUserController {
     @GetMapping("/{id}/roles")
     public Result<List<Long>> getUserRoleIds(@PathVariable("id") Long userId) {
         return adminUserService.getUserRoleIds(userId);
+    }
+
+    /**
+     * 禁用管理员
+     *
+     * @param id 管理员ID
+     * @return 禁用结果
+     */
+    @RequirePermission("system:admin:update")
+    @Operation(summary = "禁用管理员")
+    @PutMapping("/{id}/disable")
+    public Result<Void> disable(@PathVariable Long id) {
+        return adminUserService.disableAdminUser(id);
+    }
+
+    /**
+     * 启用管理员
+     *
+     * @param id 管理员ID
+     * @return 启用结果
+     */
+    @RequirePermission("system:admin:update")
+    @Operation(summary = "启用管理员")
+    @PutMapping("/{id}/enable")
+    public Result<Void> enable(@PathVariable Long id) {
+        return adminUserService.enableAdminUser(id);
+    }
+
+    /**
+     * 恢复已删除的管理员
+     *
+     * @param id 管理员ID
+     * @return 恢复结果
+     */
+    @RequirePermission("system:admin:update")
+    @Operation(summary = "恢复已删除的管理员")
+    @PutMapping("/{id}/restore")
+    public Result<Void> restore(@PathVariable Long id) {
+        return adminUserService.restoreAdminUser(id);
+    }
+
+    /**
+     * 批量禁用管理员
+     *
+     * @param params 包含ids列表
+     * @return 禁用结果
+     */
+    @RequirePermission("system:admin:update")
+    @Operation(summary = "批量禁用管理员")
+    @PutMapping("/batch-disable")
+    public Result<Void> batchDisable(@RequestBody Map<String, List<Long>> params) {
+        return adminUserService.batchDisableAdminUser(params.get("ids"));
+    }
+
+    /**
+     * 批量启用管理员
+     *
+     * @param params 包含ids列表
+     * @return 启用结果
+     */
+    @RequirePermission("system:admin:update")
+    @Operation(summary = "批量启用管理员")
+    @PutMapping("/batch-enable")
+    public Result<Void> batchEnable(@RequestBody Map<String, List<Long>> params) {
+        return adminUserService.batchEnableAdminUser(params.get("ids"));
+    }
+
+    /**
+     * 批量恢复已删除的管理员
+     *
+     * @param params 包含ids列表
+     * @return 恢复结果
+     */
+    @RequirePermission("system:admin:update")
+    @Operation(summary = "批量恢复已删除的管理员")
+    @PutMapping("/batch-restore")
+    public Result<Void> batchRestore(@RequestBody Map<String, List<Long>> params) {
+        return adminUserService.batchRestoreAdminUser(params.get("ids"));
     }
 
     /**

@@ -36,8 +36,9 @@ export function setupGuards(router: Router) {
 
           hasAddedRoutes = true
 
-          // 重新导航以确保动态路由生效
-          next({ ...to, replace: true })
+          // 使用 fullPath 重新导航，确保动态路由注册后重新匹配
+          // 避免刷新时 to 已匹配 404 通配路由导致重复跳转 404
+          next({ path: to.fullPath, replace: true })
         } else {
           next()
         }

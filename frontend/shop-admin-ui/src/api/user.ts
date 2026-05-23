@@ -18,7 +18,7 @@ export interface UserItem {
 
 /** 用户列表 */
 export function getUserList(params: PageParams & { keyword?: string; status?: number }) {
-  return get<PageResult<UserItem>>('/user/list', params)
+  return get<PageResult<UserItem>>('/user', params)
 }
 
 /** 用户详情 */
@@ -50,6 +50,7 @@ export interface AdminUserItem {
   password?: string
   realName: string
   status: number
+  deleted: boolean
   createTime: string
   updateTime: string
 }
@@ -68,11 +69,12 @@ export interface AdminUserPageParams extends PageParams {
   username?: string
   realName?: string
   status?: number
+  deleted?: number // 删除状态筛选：0-未删除，1-已删除，undefined-全部
 }
 
 /** 管理员用户列表 */
 export async function getAdminUserList(params: AdminUserPageParams) {
-  const ipage = await get<IPageResult<AdminUserItem>>('/adminUser/list', params)
+  const ipage = await get<IPageResult<AdminUserItem>>('/adminUser', params)
   return convertIPage(ipage)
 }
 
@@ -83,12 +85,12 @@ export function getAdminUserDetail(id: number) {
 
 /** 新增管理员用户 */
 export function createAdminUser(data: Partial<AdminUserItem> & { password: string }) {
-  return post('/adminUser/create', data)
+  return post('/adminUser', data)
 }
 
 /** 编辑管理员用户 */
-export function updateAdminUser(data: Partial<AdminUserItem>) {
-  return put('/adminUser/update', data)
+export function updateAdminUser(id: number, data: Partial<AdminUserItem>) {
+  return put(`/adminUser/${id}`, data)
 }
 
 /** 删除管理员用户 */
@@ -98,7 +100,7 @@ export function deleteAdminUser(id: number) {
 
 /** 批量删除管理员用户 */
 export function batchDeleteAdminUser(ids: number[]) {
-  return del('/adminUser/batch', ids)
+  return del('/adminUser/batch', { ids })
 }
 
 /** 禁用管理员用户 */
@@ -116,9 +118,24 @@ export function restoreAdminUser(id: number) {
   return put(`/adminUser/${id}/restore`)
 }
 
+/** 批量禁用管理员用户 */
+export function batchDisableAdminUser(ids: number[]) {
+  return put('/adminUser/batch-disable', { ids })
+}
+
+/** 批量启用管理员用户 */
+export function batchEnableAdminUser(ids: number[]) {
+  return put('/adminUser/batch-enable', { ids })
+}
+
+/** 批量恢复管理员用户 */
+export function batchRestoreAdminUser(ids: number[]) {
+  return put('/adminUser/batch-restore', { ids })
+}
+
 /** 为管理员分配角色 */
 export function assignAdminRoles(userId: number, roleIds: number[]) {
-  return post(`/adminUser/${userId}/roles`, roleIds)
+  return post(`/adminUser/${userId}/roles`, { roleIds })
 }
 
 /** 获取管理员的角色ID列表 */

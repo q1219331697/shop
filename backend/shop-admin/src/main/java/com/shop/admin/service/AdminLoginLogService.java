@@ -34,5 +34,7 @@ public interface AdminLoginLogService extends IService<AdminLoginLogEntity> {
      * @param endTime 结束时间（可选）
      * @return 登录日志分页数据
      */
-    Result<IPage<AdminLoginLogEntity>> pageLoginLog(Long pageNum, Long pageSize, String username, Integer status, String startTime, String endTime);
+    Result<IPage<AdminLoginLogEntity>> pageLoginLog(Long pageNum, Long pageSize,
+                                                       String username, Integer status,
+                                                       String startTime, String endTime);
 }

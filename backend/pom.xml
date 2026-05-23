@@ -145,8 +145,8 @@
                     <suppressionsLocation>code-quality/checkstyle/suppressions.xml</suppressionsLocation>
                     <!-- 在控制台输出检查结果 -->
                     <consoleOutput>true</consoleOutput>
-                    <!-- Checkstyle 检查失败时不中断构建 -->
-                    <failsOnError>false</failsOnError>
+                    <!-- Checkstyle 检查失败时中断构建 -->
+                    <failsOnError>true</failsOnError>
                 </configuration>
                 <executions>
                     <execution>

@@ -71,16 +71,19 @@ public interface AdminUserService extends IService<AdminUserEntity> {
     Result<List<Long>> getUserRoleIds(Long userId);
 
     /**
-     * 分页查询管理员（支持用户名、姓名搜索和状态筛选）
+     * 分页查询管理员（支持用户名、姓名搜索、状态筛选和删除状态筛选）
      *
      * @param pageNum 当前页码
      * @param pageSize 每页条数
      * @param username 用户名搜索
      * @param realName 姓名搜索
      * @param status 状态筛选
+     * @param deleted 删除状态筛选（0-未删除，1-已删除，null-全部）
      * @return 管理员分页数据
      */
-    Result<IPage<AdminUserEntity>> pageAdminUser(Long pageNum, Long pageSize, String username, String realName, Integer status);
+    Result<IPage<AdminUserEntity>> pageAdminUser(Long pageNum, Long pageSize,
+                                                   String username, String realName,
+                                                   Integer status, Integer deleted);
 
     /**
      * 根据用户名查询管理员
@@ -105,4 +108,52 @@ public interface AdminUserService extends IService<AdminUserEntity> {
      * @return 删除结果
      */
     Result<Void> batchDeleteAdminUser(List<Long> ids);
+
+    /**
+     * 禁用管理员
+     *
+     * @param id 管理员ID
+     * @return 禁用结果
+     */
+    Result<Void> disableAdminUser(Long id);
+
+    /**
+     * 启用管理员
+     *
+     * @param id 管理员ID
+     * @return 启用结果
+     */
+    Result<Void> enableAdminUser(Long id);
+
+    /**
+     * 恢复已删除的管理员
+     *
+     * @param id 管理员ID
+     * @return 恢复结果
+     */
+    Result<Void> restoreAdminUser(Long id);
+
+    /**
+     * 批量禁用管理员
+     *
+     * @param ids 管理员ID列表
+     * @return 禁用结果
+     */
+    Result<Void> batchDisableAdminUser(List<Long> ids);
+
+    /**
+     * 批量启用管理员
+     *
+     * @param ids 管理员ID列表
+     * @return 启用结果
+     */
+    Result<Void> batchEnableAdminUser(List<Long> ids);
+
+    /**
+     * 批量恢复已删除的管理员
+     *
+     * @param ids 管理员ID列表
+     * @return 恢复结果
+     */
+    Result<Void> batchRestoreAdminUser(List<Long> ids);
 }

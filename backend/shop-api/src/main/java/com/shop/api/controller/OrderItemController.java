@@ -34,7 +34,7 @@ public class OrderItemController {
      * @return 订单详情列表
      */
     @Operation(summary = "获取订单详情列表")
-    @GetMapping("/list/{orderId}")
+    @GetMapping("/order/{orderId}")
     public Result<List<OrderItemEntity>> list(@PathVariable Long orderId) {
         return orderItemService.getOrderItems(orderId);
     }
@@ -46,7 +46,7 @@ public class OrderItemController {
      * @return 操作结果
      */
     @Operation(summary = "添加订单详情")
-    @PostMapping("/add")
+    @PostMapping
     public Result<Void> add(@RequestBody OrderItemEntity orderItem) {
         return orderItemService.addOrderItem(orderItem);
     }

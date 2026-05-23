@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shop.admin.mapper.AdminUserMapper">
+
+    <!-- 恢复已删除的管理员（绕过逻辑删除） -->
+    <update id="restoreById">
+        UPDATE t_admin_user SET deleted = 0 WHERE id = #{id} AND deleted = 1
+    </update>
+
+    <!-- 根据ID查询记录（包含已删除的，绕过逻辑删除） -->
+    <select id="selectByIdIgnoreDeleted" resultType="com.shop.admin.entity.AdminUserEntity">
+        SELECT * FROM t_admin_user WHERE id = #{id}
+    </select>
+
+    <!-- 分页查询管理员（包含已删除的，绕过逻辑删除） -->
+    <select id="selectPageIgnoreDeleted" resultType="com.shop.admin.entity.AdminUserEntity">
+        SELECT * FROM t_admin_user
+        <where>
+            <if test="username != null and username != ''">
+                AND username LIKE CONCAT('%', #{username}, '%')
+            </if>
+            <if test="realName != null and realName != ''">
+                AND real_name LIKE CONCAT('%', #{realName}, '%')
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="deleted != null">
+                AND deleted = #{deleted}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+</mapper>

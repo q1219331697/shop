@@ -31,9 +31,13 @@ export interface CategoryItem {
 
 /** 商品列表 */
 export function getProductList(
-  params: PageParams & { keyword?: string; categoryId?: number; status?: number },
+  params: PageParams & {
+    keyword?: string
+    categoryId?: number
+    status?: number
+  },
 ) {
-  return get<PageResult<ProductItem>>('/product/list', params)
+  return get<PageResult<ProductItem>>('/product', params)
 }
 
 /** 商品详情 */

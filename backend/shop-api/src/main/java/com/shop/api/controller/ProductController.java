@@ -11,11 +11,12 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
 
 /**
  * 商品控制器
@@ -26,26 +27,29 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/product")
 public class ProductController {
 
+    private static final Long DEFAULT_PAGE_SIZE = 10L;
+
     @Autowired
     private ProductService productService;
 
     /**
      * 分页查询商品列表
      *
-     * @param current 当前页码
-     * @param size 每页数量
-     * @param categoryId 分类ID
-     * @param keyword 搜索关键词
+     * @param params 查询参数：pageNum, pageSize, categoryId, keyword
      * @return 商品分页列表
      */
     @Operation(summary = "分页查询商品列表")
-    @GetMapping("/list")
-    public Result<IPage<ProductEntity>> list(
-            @RequestParam(defaultValue = "1") Long current,
-            @RequestParam(defaultValue = "10") Long size,
-            @RequestParam(required = false) Long categoryId,
-            @RequestParam(required = false) String keyword) {
-        return productService.listProducts(current, size, categoryId, keyword);
+    @GetMapping
+    public Result<IPage<ProductEntity>> list(@RequestBody Map<String, Object> params) {
+        Long pageNum = params.get("pageNum") != null
+                ? Long.valueOf(params.get("pageNum").toString()) : 1L;
+        Long pageSize = params.get("pageSize") != null
+                ? Long.valueOf(params.get("pageSize").toString()) : DEFAULT_PAGE_SIZE;
+        Long categoryId = params.get("categoryId") != null
+                ? Long.valueOf(params.get("categoryId").toString()) : null;
+        String keyword = params.get("keyword") != null
+                ? params.get("keyword").toString() : null;
+        return productService.listProducts(pageNum, pageSize, categoryId, keyword);
     }
 
     /**
@@ -67,7 +71,7 @@ public class ProductController {
      * @return 操作结果
      */
     @Operation(summary = "添加商品")
-    @PostMapping("/add")
+    @PostMapping
     public Result<Void> add(@RequestBody ProductEntity product) {
         return productService.addProduct(product);
     }
@@ -75,12 +79,14 @@ public class ProductController {
     /**
      * 更新商品
      *
+     * @param id 商品ID
      * @param product 商品信息
      * @return 操作结果
      */
     @Operation(summary = "更新商品")
-    @PutMapping("/update")
-    public Result<Void> update(@RequestBody ProductEntity product) {
+    @PutMapping("/{id}")
+    public Result<Void> update(@PathVariable Long id, @RequestBody ProductEntity product) {
+        product.setId(id);
         return productService.updateProduct(product);
     }
 

@@ -48,6 +48,121 @@
   background: transparent;
 }
 
+/* 按钮默认使用深色填充配色 */
+.el-button--primary {
+  background-color: var(--el-color-primary) !important;
+  border-color: var(--el-color-primary) !important;
+  color: #fff !important;
+
+  &:hover,
+  &:focus {
+    background-color: var(--el-color-primary-light-3) !important;
+    border-color: var(--el-color-primary-light-3) !important;
+    color: #fff !important;
+  }
+
+  &:active {
+    background-color: var(--el-color-primary-dark-2) !important;
+    border-color: var(--el-color-primary-dark-2) !important;
+    color: #fff !important;
+  }
+}
+
+.el-button--success {
+  background-color: var(--el-color-success) !important;
+  border-color: var(--el-color-success) !important;
+  color: #fff !important;
+
+  &:hover,
+  &:focus {
+    background-color: var(--el-color-success-light-3) !important;
+    border-color: var(--el-color-success-light-3) !important;
+    color: #fff !important;
+  }
+
+  &:active {
+    background-color: var(--el-color-success-dark-2) !important;
+    border-color: var(--el-color-success-dark-2) !important;
+    color: #fff !important;
+  }
+}
+
+.el-button--warning {
+  background-color: var(--el-color-warning) !important;
+  border-color: var(--el-color-warning) !important;
+  color: #fff !important;
+
+  &:hover,
+  &:focus {
+    background-color: var(--el-color-warning-light-3) !important;
+    border-color: var(--el-color-warning-light-3) !important;
+    color: #fff !important;
+  }
+
+  &:active {
+    background-color: var(--el-color-warning-dark-2) !important;
+    border-color: var(--el-color-warning-dark-2) !important;
+    color: #fff !important;
+  }
+}
+
+.el-button--danger {
+  background-color: var(--el-color-danger) !important;
+  border-color: var(--el-color-danger) !important;
+  color: #fff !important;
+
+  &:hover,
+  &:focus {
+    background-color: var(--el-color-danger-light-3) !important;
+    border-color: var(--el-color-danger-light-3) !important;
+    color: #fff !important;
+  }
+
+  &:active {
+    background-color: var(--el-color-danger-dark-2) !important;
+    border-color: var(--el-color-danger-dark-2) !important;
+    color: #fff !important;
+  }
+}
+
+.el-button--info {
+  background-color: var(--el-color-info) !important;
+  border-color: var(--el-color-info) !important;
+  color: #fff !important;
+
+  &:hover,
+  &:focus {
+    background-color: var(--el-color-info-light-3) !important;
+    border-color: var(--el-color-info-light-3) !important;
+    color: #fff !important;
+  }
+
+  &:active {
+    background-color: var(--el-color-info-dark-2) !important;
+    border-color: var(--el-color-info-dark-2) !important;
+    color: #fff !important;
+  }
+}
+
+.el-button--default {
+  background-color: var(--el-color-info) !important;
+  border-color: var(--el-color-info) !important;
+  color: #fff !important;
+
+  &:hover,
+  &:focus {
+    background-color: var(--el-color-info-light-3) !important;
+    border-color: var(--el-color-info-light-3) !important;
+    color: #fff !important;
+  }
+
+  &:active {
+    background-color: var(--el-color-info-dark-2) !important;
+    border-color: var(--el-color-info-dark-2) !important;
+    color: #fff !important;
+  }
+}
+
 /* 全局禁止点击遮罩关闭 Dialog */
 .el-dialog__overlay {
   pointer-events: none;

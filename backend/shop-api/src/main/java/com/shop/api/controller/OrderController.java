@@ -10,11 +10,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
 
 /**
  * 订单控制器
@@ -24,6 +25,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/order")
 public class OrderController {
+
+    private static final Long DEFAULT_PAGE_SIZE = 10L;
 
     @Autowired
     private OrderService orderService;
@@ -35,7 +38,7 @@ public class OrderController {
      * @return 创建的订单
      */
     @Operation(summary = "创建订单")
-    @PostMapping("/create")
+    @PostMapping
     public Result<OrderEntity> create(@RequestBody OrderEntity order) {
         return orderService.createOrder(order);
     }
@@ -56,17 +59,19 @@ public class OrderController {
      * 获取用户订单列表
      *
      * @param userId 用户ID
-     * @param current 当前页码
-     * @param size 每页数量
+     * @param params 查询参数：pageNum, pageSize
      * @return 订单分页列表
      */
     @Operation(summary = "获取用户订单列表")
-    @GetMapping("/list/{userId}")
+    @GetMapping("/user/{userId}")
     public Result<IPage<OrderEntity>> list(
             @PathVariable Long userId,
-            @RequestParam(defaultValue = "1") Long current,
-            @RequestParam(defaultValue = "10") Long size) {
-        return orderService.getUserOrders(userId, current, size);
+            @RequestBody Map<String, Object> params) {
+        Long pageNum = params.get("pageNum") != null
+                ? Long.valueOf(params.get("pageNum").toString()) : 1L;
+        Long pageSize = params.get("pageSize") != null
+                ? Long.valueOf(params.get("pageSize").toString()) : DEFAULT_PAGE_SIZE;
+        return orderService.getUserOrders(userId, pageNum, pageSize);
     }
 
     /**
@@ -76,7 +81,7 @@ public class OrderController {
      * @return 操作结果
      */
     @Operation(summary = "取消订单")
-    @PutMapping("/cancel/{id}")
+    @PutMapping("/{id}/cancel")
     public Result<Void> cancel(@PathVariable Long id) {
         return orderService.cancelOrder(id);
     }
@@ -85,12 +90,13 @@ public class OrderController {
      * 更新订单状态
      *
      * @param id 订单ID
-     * @param status 订单状态
+     * @param params 包含status字段
      * @return 操作结果
      */
     @Operation(summary = "更新订单状态")
-    @PutMapping("/status/{id}")
-    public Result<Void> updateStatus(@PathVariable Long id, @RequestParam Integer status) {
-        return orderService.updateOrderStatus(id, status);
+    @PutMapping("/{id}/status")
+    public Result<Void> updateStatus(@PathVariable Long id,
+                                     @RequestBody Map<String, Integer> params) {
+        return orderService.updateOrderStatus(id, params.get("status"));
     }
 }

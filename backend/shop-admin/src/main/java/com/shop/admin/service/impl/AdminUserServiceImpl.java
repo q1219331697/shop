@@ -17,7 +17,6 @@ import com.shop.common.ResultCodeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -239,38 +238,25 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
     }
 
     /**
-     * 分页查询管理员（支持用户名、姓名搜索和状态筛选）
+     * 分页查询管理员（支持用户名、姓名搜索、状态筛选和删除状态筛选）
      *
      * @param pageNum 当前页码
      * @param pageSize 每页条数
      * @param username 用户名搜索
      * @param realName 姓名搜索
      * @param status 状态筛选
+     * @param deleted 删除状态筛选（0-未删除，1-已删除，null-全部）
      * @return 管理员分页数据
      */
     @Override
-    public Result<IPage<AdminUserEntity>> pageAdminUser(Long pageNum, Long pageSize, String username, String realName, Integer status) {
+    public Result<IPage<AdminUserEntity>> pageAdminUser(Long pageNum, Long pageSize,
+                                                         String username, String realName,
+                                                         Integer status, Integer deleted) {
         Page<AdminUserEntity> page = new Page<>(pageNum, pageSize);
-        LambdaQueryWrapper<AdminUserEntity> wrapper = new LambdaQueryWrapper<>();
 
-        // 用户名搜索
-        if (StringUtils.hasText(username)) {
-            wrapper.like(AdminUserEntity::getUsername, username);
-        }
-
-        // 姓名搜索
-        if (StringUtils.hasText(realName)) {
-            wrapper.like(AdminUserEntity::getRealName, realName);
-        }
-
-        // 状态筛选
-        if (status != null) {
-            wrapper.eq(AdminUserEntity::getStatus, status);
-        }
-
-        wrapper.orderByDesc(AdminUserEntity::getCreateTime);
-
-        IPage<AdminUserEntity> result = this.page(page, wrapper);
+        // 始终使用自定义查询（绕过逻辑删除），deleted为null时返回全部数据
+        IPage<AdminUserEntity> result = baseMapper.selectPageIgnoreDeleted(
+                page, username, realName, status, deleted);
 
         // 清除密码字段
         result.getRecords().forEach(u -> u.setPassword(null));
@@ -353,13 +339,178 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
 
         for (Long id : ids) {
             Result<Void> result = deleteAdminUser(id);
-            if (result.getCode() != 200) {
+            if (!result.isSuccess()) {
                 log.warn("批量删除管理员中断, 失败的adminUserId: {}", id);
                 return result;
             }
         }
 
         log.info("批量删除管理员成功, 共删除{}条", ids.size());
+        return Result.success();
+    }
+
+    /**
+     * 禁用管理员
+     *
+     * @param id 管理员ID
+     * @return 禁用结果
+     */
+    @Override
+    public Result<Void> disableAdminUser(Long id) {
+        log.info("禁用管理员请求, adminUserId: {}", id);
+        AdminUserEntity existUser = this.getById(id);
+        if (existUser == null) {
+            log.warn("禁用管理员失败, 管理员不存在, adminUserId: {}", id);
+            return Result.error(ResultCodeEnum.USER_NOT_EXIST, "管理员不存在");
+        }
+        if (existUser.getStatus() == 0) {
+            log.warn("禁用管理员失败, 管理员已被禁用, adminUserId: {}", id);
+            return Result.error(ResultCodeEnum.OPERATION_FAILED, "管理员已被禁用");
+        }
+        AdminUserEntity update = new AdminUserEntity();
+        update.setId(id);
+        update.setStatus(0);
+        boolean success = this.updateById(update);
+        if (success) {
+            log.info("禁用管理员成功, adminUserId: {}", id);
+            adminPermissionService.clearPermissionCache(id);
+        } else {
+            log.error("禁用管理员失败, adminUserId: {}", id);
+        }
+        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "禁用管理员失败");
+    }
+
+    /**
+     * 启用管理员
+     *
+     * @param id 管理员ID
+     * @return 启用结果
+     */
+    @Override
+    public Result<Void> enableAdminUser(Long id) {
+        log.info("启用管理员请求, adminUserId: {}", id);
+        AdminUserEntity existUser = this.getById(id);
+        if (existUser == null) {
+            log.warn("启用管理员失败, 管理员不存在, adminUserId: {}", id);
+            return Result.error(ResultCodeEnum.USER_NOT_EXIST, "管理员不存在");
+        }
+        if (existUser.getStatus() == 1) {
+            log.warn("启用管理员失败, 管理员已是启用状态, adminUserId: {}", id);
+            return Result.error(ResultCodeEnum.OPERATION_FAILED, "管理员已是启用状态");
+        }
+        AdminUserEntity update = new AdminUserEntity();
+        update.setId(id);
+        update.setStatus(1);
+        boolean success = this.updateById(update);
+        if (success) {
+            log.info("启用管理员成功, adminUserId: {}", id);
+            adminPermissionService.clearPermissionCache(id);
+        } else {
+            log.error("启用管理员失败, adminUserId: {}", id);
+        }
+        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "启用管理员失败");
+    }
+
+    /**
+     * 恢复已删除的管理员
+     *
+     * @param id 管理员ID
+     * @return 恢复结果
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Void> restoreAdminUser(Long id) {
+        log.info("恢复管理员请求, adminUserId: {}", id);
+        // 使用绕过逻辑删除的查询
+        AdminUserEntity existUser = baseMapper.selectByIdIgnoreDeleted(id);
+        if (existUser == null) {
+            log.warn("恢复管理员失败, 管理员不存在, adminUserId: {}", id);
+            return Result.error(ResultCodeEnum.USER_NOT_EXIST, "管理员不存在");
+        }
+        if (existUser.getDeleted() == 0) {
+            log.warn("恢复管理员失败, 管理员未被删除, adminUserId: {}", id);
+            return Result.error(ResultCodeEnum.OPERATION_FAILED, "管理员未被删除");
+        }
+        int rows = baseMapper.restoreById(id);
+        if (rows > 0) {
+            log.info("恢复管理员成功, adminUserId: {}", id);
+            adminPermissionService.clearPermissionCache(id);
+            return Result.success();
+        } else {
+            log.error("恢复管理员失败, adminUserId: {}", id);
+            return Result.error(ResultCodeEnum.OPERATION_FAILED, "恢复管理员失败");
+        }
+    }
+
+    /**
+     * 批量禁用管理员
+     *
+     * @param ids 管理员ID列表
+     * @return 禁用结果
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Void> batchDisableAdminUser(List<Long> ids) {
+        log.info("批量禁用管理员请求, ids: {}", ids);
+        if (ids == null || ids.isEmpty()) {
+            return Result.error(ResultCodeEnum.PARAM_ERROR, "请选择要禁用的管理员");
+        }
+        for (Long id : ids) {
+            Result<Void> result = disableAdminUser(id);
+            if (!result.isSuccess()) {
+                log.warn("批量禁用管理员中断, 失败的adminUserId: {}", id);
+                return result;
+            }
+        }
+        log.info("批量禁用管理员成功, 共禁用{}条", ids.size());
+        return Result.success();
+    }
+
+    /**
+     * 批量启用管理员
+     *
+     * @param ids 管理员ID列表
+     * @return 启用结果
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Void> batchEnableAdminUser(List<Long> ids) {
+        log.info("批量启用管理员请求, ids: {}", ids);
+        if (ids == null || ids.isEmpty()) {
+            return Result.error(ResultCodeEnum.PARAM_ERROR, "请选择要启用的管理员");
+        }
+        for (Long id : ids) {
+            Result<Void> result = enableAdminUser(id);
+            if (!result.isSuccess()) {
+                log.warn("批量启用管理员中断, 失败的adminUserId: {}", id);
+                return result;
+            }
+        }
+        log.info("批量启用管理员成功, 共启用{}条", ids.size());
+        return Result.success();
+    }
+
+    /**
+     * 批量恢复已删除的管理员
+     *
+     * @param ids 管理员ID列表
+     * @return 恢复结果
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Void> batchRestoreAdminUser(List<Long> ids) {
+        log.info("批量恢复管理员请求, ids: {}", ids);
+        if (ids == null || ids.isEmpty()) {
+            return Result.error(ResultCodeEnum.PARAM_ERROR, "请选择要恢复的管理员");
+        }
+        for (Long id : ids) {
+            Result<Void> result = restoreAdminUser(id);
+            if (!result.isSuccess()) {
+                log.warn("批量恢复管理员中断, 失败的adminUserId: {}", id);
+                return result;
+            }
+        }
+        log.info("批量恢复管理员成功, 共恢复{}条", ids.size());
         return Result.success();
     }
 }

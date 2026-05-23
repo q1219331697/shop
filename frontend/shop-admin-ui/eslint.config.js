@@ -4,6 +4,7 @@ import pluginVue from 'eslint-plugin-vue'
 import prettierConfig from 'eslint-config-prettier'
 import prettierPlugin from 'eslint-plugin-prettier'
 import pluginUnicorn from 'eslint-plugin-unicorn'
+import requireDialogCloseOnClickModal from './eslint-rules/require-dialog-close-on-click-modal.js'
 
 export default tseslint.config(
   // 全局忽略
@@ -45,9 +46,15 @@ export default tseslint.config(
   // Prettier 配置（必须放最后，覆盖前面的格式化规则）
   prettierConfig,
 
-  // 自定义规则
+  // 自定义规则（仅 Vue 文件）
   {
+    files: ['**/*.vue'],
     plugins: {
+      'custom-rules': {
+        rules: {
+          'require-dialog-close-on-click-modal': requireDialogCloseOnClickModal,
+        },
+      },
       prettier: prettierPlugin,
       unicorn: pluginUnicorn,
     },
@@ -55,13 +62,12 @@ export default tseslint.config(
       // TypeScript（strict 已覆盖核心规则，此处补充 argsIgnorePattern）
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
 
-      // 文件命名规则：.ts/.js 使用 kebab-case，.vue 组件允许 PascalCase
+      // 文件命名规则：.ts/.js 使用 kebab-case，.vue 组件使用 PascalCase
       'unicorn/filename-case': [
         'error',
         {
           cases: {
             kebabCase: true,
-            pascalCase: true,
           },
           ignore: [/^[A-Z][a-zA-Z]+\.vue$/],
         },
@@ -72,6 +78,9 @@ export default tseslint.config(
       'vue/no-v-html': 'off',
       'vue/require-default-prop': 'off',
       'vue/attribute-hyphenation': ['error', 'always'],
+
+      // 自定义规则：el-dialog 必须设置 :close-on-click-modal="false"
+      'custom-rules/require-dialog-close-on-click-modal': 'error',
 
       // Prettier
       'prettier/prettier': [

@@ -27,6 +27,17 @@
             <el-option label="禁用" :value="0" />
           </el-select>
         </el-form-item>
+        <el-form-item label="删除状态">
+          <el-select
+            v-model="queryParams.deleted"
+            placeholder="全部"
+            clearable
+            style="width: 120px"
+          >
+            <el-option label="未删除" :value="0" />
+            <el-option label="已删除" :value="1" />
+          </el-select>
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleSearch">
             <el-icon><Search /></el-icon>搜索
@@ -43,7 +54,7 @@
       <el-button type="primary" @click="openCreate">
         <el-icon><Plus /></el-icon>新增
       </el-button>
-      <el-button type="primary" :disabled="selectedIds.length !== 1" @click="handleBatchEdit">
+      <el-button type="warning" :disabled="selectedIds.length !== 1" @click="handleBatchEdit">
         <el-icon><Edit /></el-icon>编辑
       </el-button>
       <el-button type="info" :disabled="selectedIds.length !== 1" @click="handleBatchDetail">
@@ -58,14 +69,23 @@
       <el-button type="success" :disabled="selectedIds.length === 0" @click="handleBatchEnable">
         <el-icon><Unlock /></el-icon>启用
       </el-button>
-      <el-button :disabled="selectedIds.length === 0" @click="handleBatchRestore">
+      <el-button type="success" :disabled="selectedIds.length === 0" @click="handleBatchRestore">
         <el-icon><RefreshRight /></el-icon>恢复
       </el-button>
     </div>
 
     <!-- 数据表格 -->
     <div class="table-wrapper">
-      <el-table v-loading="loading" :data="tableData" border stripe :height="tableHeight" @selection-change="handleSelectionChange">
+      <el-table
+        ref="tableRef"
+        v-loading="loading"
+        :data="tableData"
+        border
+        stripe
+        :height="tableHeight"
+        @selection-change="handleSelectionChange"
+        @row-click="handleRowClick"
+      >
         <el-table-column type="selection" width="50" align="center" />
         <el-table-column prop="id" label="ID" width="70" align="center" />
         <el-table-column prop="username" label="用户名" width="130" show-overflow-tooltip />
@@ -88,26 +108,26 @@
         <el-table-column prop="createTime" label="创建时间" width="170" align="center" />
         <el-table-column label="操作" width="320" align="center" fixed="right">
           <template #default="{ row }">
-            <el-button type="primary" link size="small" @click="openEdit(row)">
+            <el-button link class="action-link" @click="openEdit(row)">
               <el-icon><Edit /></el-icon>编辑
             </el-button>
-            <el-button type="info" link size="small" @click="openDetail(row)">
+            <el-button link class="action-link" @click="openDetail(row)">
               <el-icon><View /></el-icon>详情
             </el-button>
             <el-popconfirm title="确定删除该管理员吗？" @confirm="handleDelete(row.id)">
               <template #reference>
-                <el-button type="danger" link size="small">
+                <el-button link class="action-link action-link--danger">
                   <el-icon><Delete /></el-icon>删除
                 </el-button>
               </template>
             </el-popconfirm>
-            <el-button type="warning" link size="small" @click="handleDisable(row)">
+            <el-button v-if="row.status === 1" link class="action-link" @click="handleDisable(row)">
               <el-icon><Lock /></el-icon>禁用
             </el-button>
-            <el-button type="success" link size="small" @click="handleEnable(row)">
+            <el-button v-if="row.status === 0" link class="action-link" @click="handleEnable(row)">
               <el-icon><Unlock /></el-icon>启用
             </el-button>
-            <el-button link size="small" @click="handleRestore(row)">
+            <el-button v-if="row.deleted" link class="action-link" @click="handleRestore(row)">
               <el-icon><RefreshRight /></el-icon>恢复
             </el-button>
           </template>
@@ -131,7 +151,7 @@
 
     <!-- 详情对话框 -->
     <el-dialog v-model="detailVisible" title="管理员详情" width="520px" destroy-on-close>
-      <el-descriptions :column="1" border v-loading="detailLoading">
+      <el-descriptions v-loading="detailLoading" :column="1" border>
         <el-descriptions-item label="ID">{{ detailData.id }}</el-descriptions-item>
         <el-descriptions-item label="用户名">{{ detailData.username }}</el-descriptions-item>
         <el-descriptions-item label="姓名">{{ detailData.realName || '-' }}</el-descriptions-item>
@@ -140,8 +160,12 @@
             {{ detailData.status === 1 ? '正常' : '禁用' }}
           </el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="创建时间">{{ detailData.createTime || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="更新时间">{{ detailData.updateTime || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="创建时间">{{
+          detailData.createTime || '-'
+        }}</el-descriptions-item>
+        <el-descriptions-item label="更新时间">{{
+          detailData.updateTime || '-'
+        }}</el-descriptions-item>
       </el-descriptions>
       <template #footer>
         <el-button @click="detailVisible = false">关 闭</el-button>
@@ -154,6 +178,7 @@
       :title="isEdit ? '编辑管理员' : '新增管理员'"
       width="520px"
       destroy-on-close
+      :close-on-click-modal="false"
       @closed="resetForm"
     >
       <el-form ref="formRef" :model="formData" :rules="formRules" label-width="80px">
@@ -193,7 +218,13 @@
     </el-dialog>
 
     <!-- 分配角色对话框 -->
-    <el-dialog v-model="roleDialogVisible" title="分配角色" width="480px" destroy-on-close>
+    <el-dialog
+      v-model="roleDialogVisible"
+      title="分配角色"
+      width="480px"
+      destroy-on-close
+      :close-on-click-modal="false"
+    >
       <div v-loading="roleLoading" class="role-assign-content">
         <p class="role-user-info">
           管理员：<strong>{{ currentUser?.username }}</strong>
@@ -224,7 +255,17 @@
 import { ref, reactive, onMounted, onUnmounted, nextTick } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Refresh, Plus, Edit, Delete, View, Lock, Unlock, RefreshRight } from '@element-plus/icons-vue'
+import {
+  Search,
+  Refresh,
+  Plus,
+  Edit,
+  Delete,
+  View,
+  Lock,
+  Unlock,
+  RefreshRight,
+} from '@element-plus/icons-vue'
 import {
   getAdminUserList,
   getAdminUserDetail,
@@ -235,6 +276,9 @@ import {
   disableAdminUser,
   enableAdminUser,
   restoreAdminUser,
+  batchDisableAdminUser,
+  batchEnableAdminUser,
+  batchRestoreAdminUser,
   assignAdminRoles,
   getAdminRoleIds,
   getAllRoles,
@@ -265,6 +309,7 @@ const queryParams = reactive({
   username: '',
   realName: '',
   status: undefined as number | undefined,
+  deleted: undefined as number | undefined,
 })
 
 /** 获取列表数据 */
@@ -293,6 +338,7 @@ function handleReset() {
   queryParams.username = ''
   queryParams.realName = ''
   queryParams.status = undefined
+  queryParams.deleted = undefined
   queryParams.pageNum = 1
   queryParams.pageSize = 10
   fetchData()
@@ -323,10 +369,18 @@ async function handleDelete(id: number) {
 }
 
 /** 多选 */
+const tableRef = ref<InstanceType<(typeof import('element-plus'))['ElTable']>>()
 const selectedIds = ref<number[]>([])
 
 function handleSelectionChange(rows: AdminUserItem[]) {
   selectedIds.value = rows.map((r) => r.id)
+}
+
+/** 点击行切换选中状态（排除操作列点击） */
+function handleRowClick(row: AdminUserItem, column: { property?: string; type?: string }) {
+  // 操作列没有property，点击操作按钮时不切换选中
+  if (column && column.property === undefined && column.type !== 'selection') return
+  tableRef.value?.toggleRowSelection(row)
 }
 
 /** 批量删除 */
@@ -378,7 +432,7 @@ async function handleBatchDisable() {
     return
   }
   try {
-    await Promise.all(selectedIds.value.map((id) => disableAdminUser(id)))
+    await batchDisableAdminUser(selectedIds.value)
     ElMessage.success('禁用成功')
     selectedIds.value = []
     fetchData()
@@ -400,7 +454,7 @@ async function handleBatchEnable() {
     return
   }
   try {
-    await Promise.all(selectedIds.value.map((id) => enableAdminUser(id)))
+    await batchEnableAdminUser(selectedIds.value)
     ElMessage.success('启用成功')
     selectedIds.value = []
     fetchData()
@@ -422,7 +476,7 @@ async function handleBatchRestore() {
     return
   }
   try {
-    await Promise.all(selectedIds.value.map((id) => restoreAdminUser(id)))
+    await batchRestoreAdminUser(selectedIds.value)
     ElMessage.success('恢复成功')
     selectedIds.value = []
     fetchData()
@@ -554,9 +608,8 @@ async function handleSubmit() {
   await formRef.value.validate()
   submitting.value = true
   try {
-    if (isEdit.value) {
-      await updateAdminUser({
-        id: formData.id,
+    if (isEdit.value && formData.id !== undefined) {
+      await updateAdminUser(formData.id, {
         realName: formData.realName,
         status: formData.status,
       })
@@ -587,7 +640,9 @@ const currentUser = ref<AdminUserItem | null>(null)
 const roleList = ref<RoleItem[]>([])
 const selectedRoleIds = ref<number[]>([])
 
-/** 打开分配角色对话框 */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/** 打开分配角色对话框（预留功能，后续接入角色分配按钮） */
+// @ts-expect-error 预留分配角色功能，待UI按钮接入后启用
 async function openAssignRole(row: AdminUserItem) {
   currentUser.value = row
   selectedRoleIds.value = []
@@ -604,6 +659,7 @@ async function openAssignRole(row: AdminUserItem) {
     roleLoading.value = false
   }
 }
+/* eslint-enable @typescript-eslint/no-unused-vars */
 
 /** 提交分配角色 */
 async function handleAssignRole() {
@@ -638,6 +694,35 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  color: #1f2937;
+
+  // 加深表格文字颜色
+  :deep(.el-table) {
+    color: #1f2937;
+
+    th.el-table__cell {
+      color: #111827;
+      font-weight: 600;
+    }
+  }
+
+  // 加深表单标签颜色
+  :deep(.el-form-item__label) {
+    color: #1f2937;
+    font-weight: 500;
+  }
+
+  // 加深分页器颜色
+  :deep(.el-pagination) {
+    --el-pagination-button-color: #1f2937;
+    --el-pagination-hover-color: #111827;
+  }
+
+  // 加深选择器文字
+  :deep(.el-input__inner),
+  :deep(.el-select .el-input__inner) {
+    color: #1f2937;
+  }
 }
 
 .table-wrapper {
@@ -682,5 +767,22 @@ onUnmounted(() => {
 .role-checkbox {
   display: block;
   margin-bottom: 12px;
+}
+
+.action-link {
+  font-size: 14px;
+  color: #5a9cf8;
+
+  &:hover {
+    color: #2d7de6;
+  }
+
+  &.action-link--danger {
+    color: #f56c6c;
+
+    &:hover {
+      color: #e04040;
+    }
+  }
 }
 </style>

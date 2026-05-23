@@ -32,9 +32,14 @@ export interface OrderProduct {
 
 /** 订单列表 */
 export function getOrderList(
-  params: PageParams & { orderNo?: string; status?: number; startTime?: string; endTime?: string },
+  params: PageParams & {
+    orderNo?: string
+    status?: number
+    startTime?: string
+    endTime?: string
+  },
 ) {
-  return get<PageResult<OrderItem>>('/order/list', params)
+  return get<PageResult<OrderItem>>('/order', params)
 }
 
 /** 订单详情 */

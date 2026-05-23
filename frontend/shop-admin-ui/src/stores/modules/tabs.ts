@@ -3,7 +3,7 @@
  * 记录用户访问的页面历史，便于快速切换
  */
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { RouteLocationNormalized } from 'vue-router'
 
 export interface TabItem {
@@ -20,21 +20,61 @@ export interface TabItem {
 }
 
 const MAX_TABS = 20
+const STORAGE_KEY = 'tabs-store'
+
+/** 默认固定标签 */
+const DEFAULT_TABS: TabItem[] = [
+  {
+    path: '/dashboard',
+    name: 'Dashboard',
+    title: '仪表盘',
+    query: {},
+    affix: true,
+  },
+]
+
+/** 从 localStorage 恢复状态 */
+function loadState(): { tabList: TabItem[]; activeTab: string } {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (raw) {
+      const data = JSON.parse(raw)
+      if (data.tabList?.length) {
+        return data
+      }
+    }
+  } catch {
+    // 解析失败则使用默认值
+  }
+  return { tabList: [...DEFAULT_TABS], activeTab: '/dashboard' }
+}
+
+/** 保存状态到 localStorage */
+function saveState(tabList: TabItem[], activeTab: string) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ tabList, activeTab }))
+  } catch {
+    // 存储失败忽略
+  }
+}
 
 export const useTabsStore = defineStore('tabs', () => {
+  const saved = loadState()
+
   /** 标签页列表 */
-  const tabList = ref<TabItem[]>([
-    {
-      path: '/dashboard',
-      name: 'Dashboard',
-      title: '仪表盘',
-      query: {},
-      affix: true,
-    },
-  ])
+  const tabList = ref<TabItem[]>(saved.tabList)
 
   /** 当前激活的标签路径 */
-  const activeTab = ref('/dashboard')
+  const activeTab = ref(saved.activeTab)
+
+  // 自动持久化到 localStorage
+  watch(
+    [tabList, activeTab],
+    () => {
+      saveState(tabList.value, activeTab.value)
+    },
+    { deep: true },
+  )
 
   /** 获取当前标签 */
   const currentTab = computed(() => tabList.value.find((tab) => tab.path === activeTab.value))
@@ -134,18 +174,11 @@ export const useTabsStore = defineStore('tabs', () => {
     activeTab.value = path
   }
 
-  /** 重置 */
+  /** 重置（登出时调用） */
   function resetTabs() {
-    tabList.value = [
-      {
-        path: '/dashboard',
-        name: 'Dashboard',
-        title: '仪表盘',
-        query: {},
-        affix: true,
-      },
-    ]
+    tabList.value = [...DEFAULT_TABS]
     activeTab.value = '/dashboard'
+    localStorage.removeItem(STORAGE_KEY)
   }
 
   return {

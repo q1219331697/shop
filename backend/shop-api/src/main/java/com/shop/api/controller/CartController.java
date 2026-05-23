@@ -36,7 +36,7 @@ public class CartController {
      * @return 购物车列表
      */
     @Operation(summary = "获取用户购物车列表")
-    @GetMapping("/list/{userId}")
+    @GetMapping("/user/{userId}")
     public Result<List<CartEntity>> list(@PathVariable Long userId) {
         return cartService.getUserCart(userId);
     }
@@ -48,7 +48,7 @@ public class CartController {
      * @return 操作结果
      */
     @Operation(summary = "添加商品到购物车")
-    @PostMapping("/add")
+    @PostMapping
     public Result<Void> add(@RequestBody CartEntity cart) {
         return cartService.addToCart(cart);
     }
@@ -56,12 +56,14 @@ public class CartController {
     /**
      * 更新购物车商品数量
      *
+     * @param id 购物车项ID
      * @param cart 购物车信息
      * @return 操作结果
      */
     @Operation(summary = "更新购物车商品数量")
-    @PutMapping("/update")
-    public Result<Void> update(@RequestBody CartEntity cart) {
+    @PutMapping("/{id}")
+    public Result<Void> update(@PathVariable Long id, @RequestBody CartEntity cart) {
+        cart.setId(id);
         return cartService.updateCartItem(cart);
     }
 
@@ -84,7 +86,7 @@ public class CartController {
      * @return 操作结果
      */
     @Operation(summary = "清空用户购物车")
-    @DeleteMapping("/clear/{userId}")
+    @DeleteMapping("/user/{userId}")
     public Result<Void> clear(@PathVariable Long userId) {
         return cartService.clearCart(userId);
     }

@@ -67,7 +67,7 @@ public class UserController {
      * @return 用户信息
      */
     @Operation(summary = "获取用户信息")
-    @GetMapping("/info/{id}")
+    @GetMapping("/{id}")
     public Result<UserEntity> getUserInfo(@PathVariable Long id) {
         return userService.getUserInfo(id);
     }
@@ -75,12 +75,14 @@ public class UserController {
     /**
      * 更新用户信息
      *
+     * @param id 用户ID
      * @param user 用户信息
      * @return 操作结果
      */
     @Operation(summary = "更新用户信息")
-    @PutMapping("/update")
-    public Result<Void> updateUser(@RequestBody UserEntity user) {
+    @PutMapping("/{id}")
+    public Result<Void> updateUser(@PathVariable Long id, @RequestBody UserEntity user) {
+        user.setId(id);
         return userService.updateUser(user);
     }
 }

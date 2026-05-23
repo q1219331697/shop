@@ -14,8 +14,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
 
 /**
  * 后台用户管理控制器
@@ -26,24 +27,26 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/user")
 public class UserController {
 
+    private static final Long DEFAULT_PAGE_SIZE = 10L;
+
     @Autowired
     private UserService userService;
 
     /**
      * 分页查询用户列表
      *
-     * @param current 当前页码
-     * @param size 每页条数
+     * @param params 查询参数：pageNum, pageSize
      * @return 用户分页数据
      */
     @RequirePermission("user:query")
     @Operation(summary = "分页查询用户列表")
-    @GetMapping("/list")
-    public Result<IPage<UserEntity>> list(
-            @RequestParam(defaultValue = "1") Long current,
-            @RequestParam(defaultValue = "10") Long size) {
+    @GetMapping
+    public Result<IPage<UserEntity>> list(@RequestBody Map<String, Object> params) {
+        Long pageNum = params.get("pageNum") != null ? Long.valueOf(params.get("pageNum").toString()) : 1L;
+        Long pageSize = params.get("pageSize") != null
+                ? Long.valueOf(params.get("pageSize").toString()) : DEFAULT_PAGE_SIZE;
         return Result.success(userService.page(
-                new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(current, size)));
+                new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(pageNum, pageSize)));
     }
 
     /**
@@ -62,13 +65,15 @@ public class UserController {
     /**
      * 更新用户信息
      *
+     * @param id 用户ID
      * @param user 用户信息
      * @return 更新结果
      */
     @RequirePermission("user:update")
     @Operation(summary = "更新用户信息")
-    @PutMapping("/update")
-    public Result<Void> update(@RequestBody UserEntity user) {
+    @PutMapping("/{id}")
+    public Result<Void> update(@PathVariable Long id, @RequestBody UserEntity user) {
+        user.setId(id);
         return userService.updateUser(user);
     }
 

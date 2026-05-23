@@ -45,8 +45,9 @@ public class AdminLoginLogServiceImpl
     }
 
     @Override
-    public Result<IPage<AdminLoginLogEntity>> pageLoginLog(Long pageNum, Long pageSize, String username, 
-                                                           Integer status, String startTime, String endTime) {
+    public Result<IPage<AdminLoginLogEntity>> pageLoginLog(Long pageNum, Long pageSize,
+                                                           String username, Integer status,
+                                                           String startTime, String endTime) {
         try {
             Page<AdminLoginLogEntity> page = new Page<>(pageNum, pageSize);
             LambdaQueryWrapper<AdminLoginLogEntity> queryWrapper = new LambdaQueryWrapper<>();

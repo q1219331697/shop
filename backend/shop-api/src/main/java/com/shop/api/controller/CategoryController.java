@@ -35,7 +35,7 @@ public class CategoryController {
      * @return 分类列表
      */
     @Operation(summary = "获取所有分类列表")
-    @GetMapping("/list")
+    @GetMapping
     public Result<List<CategoryEntity>> list() {
         return categoryService.getAllCategories();
     }
@@ -59,7 +59,7 @@ public class CategoryController {
      * @return 操作结果
      */
     @Operation(summary = "添加分类")
-    @PostMapping("/add")
+    @PostMapping
     public Result<Void> add(@RequestBody CategoryEntity category) {
         return categoryService.addCategory(category);
     }
@@ -67,12 +67,14 @@ public class CategoryController {
     /**
      * 更新分类
      *
+     * @param id 分类ID
      * @param category 分类信息
      * @return 操作结果
      */
     @Operation(summary = "更新分类")
-    @PutMapping("/update")
-    public Result<Void> update(@RequestBody CategoryEntity category) {
+    @PutMapping("/{id}")
+    public Result<Void> update(@PathVariable Long id, @RequestBody CategoryEntity category) {
+        category.setId(id);
         return categoryService.updateCategory(category);
     }
 

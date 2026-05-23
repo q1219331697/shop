@@ -22,11 +22,11 @@ export function useTable<T, P extends Record<string, unknown> = Record<string, u
   const tableData = ref<T[]>([]) as Ref<T[]>
   const total = ref(0)
 
-  const queryParams = reactive<P & PageParams>({
-    page: 1,
+  const queryParams = reactive<PageParams & P>({
+    pageNum: 1,
     pageSize: defaultPageSize,
     ...defaultParams,
-  } as P & PageParams)
+  } as PageParams & P)
 
   /** 获取列表数据 */
   async function fetchData() {
@@ -45,7 +45,7 @@ export function useTable<T, P extends Record<string, unknown> = Record<string, u
 
   /** 搜索 */
   function handleSearch() {
-    queryParams.page = 1
+    ;(queryParams as PageParams).pageNum = 1
     fetchData()
   }
 
@@ -61,14 +61,14 @@ export function useTable<T, P extends Record<string, unknown> = Record<string, u
 
   /** 分页变化 */
   function handlePageChange(page: number) {
-    queryParams.page = page
+    ;(queryParams as PageParams).pageNum = page
     fetchData()
   }
 
   /** 每页条数变化 */
   function handleSizeChange(size: number) {
-    queryParams.pageSize = size
-    queryParams.page = 1
+    ;(queryParams as PageParams).pageSize = size
+    ;(queryParams as PageParams).pageNum = 1
     fetchData()
   }
 

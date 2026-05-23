@@ -153,7 +153,9 @@ function handleCloseAll() {
 
 /** 重新加载当前页面 */
 function handleRefresh() {
-  router.replace({ path: '/redirect' + (contextMenuTab.value?.path || route.path) })
+  router.replace({
+    path: '/redirect' + (contextMenuTab.value?.path || route.path),
+  })
   closeContextMenu()
 }
 
