@@ -5,6 +5,7 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getToken, removeToken } from '@/utils/storage'
+import { SUCCESS, UNAUTHORIZED, FORBIDDEN } from '@/api/resultCode'
 import router from '@/router'
 
 const service: AxiosInstance = axios.create({
@@ -31,11 +32,11 @@ service.interceptors.request.use(
 service.interceptors.response.use(
   (response: AxiosResponse) => {
     const { code, message, data } = response.data
-    if (code === '0000') {
+    if (code === SUCCESS) {
       return data
     }
-    // Token 过期或无效
-    if (code === '0600') {
+    // 未登录或登录已过期
+    if (code === UNAUTHORIZED) {
       removeToken()
       router.push('/login')
       ElMessageBox.confirm('登录已过期，请重新登录', '提示', {
@@ -44,6 +45,11 @@ service.interceptors.response.use(
         type: 'warning',
       })
       return Promise.reject(new Error(message || '未授权'))
+    }
+    // 无权限访问
+    if (code === FORBIDDEN) {
+      ElMessage.error(message || '无权限访问')
+      return Promise.reject(new Error(message || '无权限访问'))
     }
     ElMessage.error(message || '请求失败')
     return Promise.reject(new Error(message || '请求失败'))
