@@ -4,6 +4,7 @@
 import type { Router } from 'vue-router'
 import NProgress from 'nprogress'
 import { hasTokenCookie } from '@/utils/storage'
+import { startAutoRefreshToken, stopAutoRefreshToken } from '@/utils/http'
 import { usePermissionStore } from '@/stores/modules/permission'
 import { useTabsStore } from '@/stores/modules/tabs'
 import { asyncRoutes } from '@/router/async-routes'
@@ -24,6 +25,8 @@ export function setupGuards(router: Router) {
       } else {
         // 登录后首次进入，加载动态路由
         if (!hasAddedRoutes) {
+          // 页面刷新后重新启动 Token 自动刷新
+          startAutoRefreshToken()
           const permissionStore = usePermissionStore()
 
           // 将动态路由注册到 router（作为 Layout 的子路由）
@@ -45,6 +48,8 @@ export function setupGuards(router: Router) {
       }
     } else {
       hasAddedRoutes = false
+      // 未登录，停止自动刷新
+      stopAutoRefreshToken()
       if (WHITE_LIST.includes(to.path)) {
         next()
       } else {

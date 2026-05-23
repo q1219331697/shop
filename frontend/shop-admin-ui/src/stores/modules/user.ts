@@ -5,6 +5,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { login as loginApi, logout as logoutApi } from '@/api/auth'
 import { setToken, removeToken } from '@/utils/storage'
+import { startAutoRefreshToken, stopAutoRefreshToken } from '@/utils/http'
 import type { LoginParams } from '@/api/types'
 
 export const useUserStore = defineStore('user', () => {
@@ -18,6 +19,8 @@ export const useUserStore = defineStore('user', () => {
     username.value = params.username
     // 将 Token 写入 Cookie，后续请求从 Cookie 读取并通过 Header 发送
     setToken(tokenStr)
+    // 启动 Token 自动刷新，确保 Token 永不过期
+    startAutoRefreshToken()
   }
 
   /** 退出登录 */
@@ -34,6 +37,8 @@ export const useUserStore = defineStore('user', () => {
     token.value = ''
     username.value = ''
     removeToken()
+    // 停止 Token 自动刷新
+    stopAutoRefreshToken()
   }
 
   return {

@@ -40,7 +40,11 @@ const permissionStore = usePermissionStore()
 async function handleCommand(command: string) {
   if (command === 'logout') {
     permissionStore.resetPermission()
-    await userStore.logout()
+    try {
+      await userStore.logout()
+    } catch {
+      // 后端异常不影响前端注销，本地状态已在 finally 中清除
+    }
     router.push('/login')
   }
 }

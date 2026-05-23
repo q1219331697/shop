@@ -13,3 +13,4 @@ export function login(data: LoginParams) {
 export function logout() {
   return post('/public/logout')
 }
+

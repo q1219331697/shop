@@ -7,7 +7,6 @@ import com.shop.common.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -28,7 +27,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/public")
 public class PublicController {
 
-    private static final String TOKEN_HEADER = "Token";
+    private static final String AUTHORIZATION_HEADER = "Authorization";
+    private static final String BEARER_PREFIX = "Bearer ";
 
     private final AdminUserService adminUserService;
 
@@ -44,21 +44,14 @@ public class PublicController {
      *
      * @param adminUser 管理员登录信息
      * @param request HTTP请求
-     * @param response HTTP响应
      * @return 登录结果（含Token）
      */
     @Operation(summary = "管理员登录")
     @PostMapping("/login")
     public Result<String> login(@RequestBody AdminUserEntity adminUser,
-                                HttpServletRequest request,
-                                HttpServletResponse response) {
-        String ip = request.getRemoteAddr();
-        Result<String> result = adminUserService.login(adminUser, ip);
-        // 登录成功，将Token写入响应头，方便前端获取
-        if (result.getData() != null) {
-            response.setHeader(TOKEN_HEADER, result.getData());
-        }
-        return result;
+                                HttpServletRequest request) {
+        String ip = getClientIp(request);
+        return adminUserService.login(adminUser, ip);
     }
 
     /**
@@ -67,12 +60,42 @@ public class PublicController {
      * 登出后从Redis中移除Token
      * </p>
      *
-     * @param token Token字符串
+     * @param authorization 标准Authorization请求头
      * @return 登出结果
      */
     @Operation(summary = "管理员登出")
     @PostMapping("/logout")
-    public Result<Void> logout(@RequestHeader(value = TOKEN_HEADER, required = false) String token) {
+    public Result<Void> logout(
+            @RequestHeader(value = AUTHORIZATION_HEADER, required = false) String authorization) {
+        String token = null;
+        if (authorization != null && authorization.startsWith(BEARER_PREFIX)) {
+            token = authorization.substring(BEARER_PREFIX.length()).trim();
+        }
         return adminUserService.logout(token);
+    }
+
+    /**
+     * 获取客户端真实IP地址
+     * <p>
+     * 前后端分离架构下，请求经过 Nginx/Vite 代理，
+     * request.getRemoteAddr() 获取的是代理服务器 IP，
+     * 需要从代理转发的请求头中获取真实客户端 IP。
+     * </p>
+     *
+     * @param request HTTP请求
+     * @return 客户端真实IP地址
+     */
+    private String getClientIp(HttpServletRequest request) {
+        // 优先级：X-Real-IP > X-Forwarded-For 第一个 > remoteAddr
+        String ip = request.getHeader("X-Real-IP");
+        if (ip != null && !ip.isEmpty() && !"unknown".equalsIgnoreCase(ip)) {
+            return ip;
+        }
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isEmpty() && !"unknown".equalsIgnoreCase(forwarded)) {
+            // X-Forwarded-For: client, proxy1, proxy2 — 取第一个
+            return forwarded.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 }

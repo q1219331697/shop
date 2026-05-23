@@ -35,7 +35,8 @@ import java.util.Base64;
 @Component
 public class AdminAuthFilter extends OncePerRequestFilter {
 
-    private static final String TOKEN_HEADER = "Token";
+    private static final String AUTHORIZATION_HEADER = "Authorization";
+    private static final String BEARER_PREFIX = "Bearer ";
     private static final String BASIC_PREFIX = "Basic ";
 
     private final AdminTokenService adminTokenService;
@@ -192,8 +193,6 @@ public class AdminAuthFilter extends OncePerRequestFilter {
         // 将管理员信息和权限放入请求属性
         setAdminRequestAttributes(request, adminUser.getId(), adminUser.getUsername());
 
-        // 在响应头中返回Token，方便前端/Swagger后续请求使用
-        response.setHeader(TOKEN_HEADER, token);
         return true;
     }
 
@@ -212,13 +211,22 @@ public class AdminAuthFilter extends OncePerRequestFilter {
 
     /**
      * 从请求头中提取Token
+     * <p>
+     * 从标准 Authorization: Bearer 头提取（RFC 6750）
+     * </p>
      *
      * @param request HTTP请求
      * @return Token字符串，无则返回null
      */
     private String extractToken(HttpServletRequest request) {
-        String token = request.getHeader(TOKEN_HEADER);
-        return StringUtils.hasText(token) ? token : null;
+        String authorization = request.getHeader(AUTHORIZATION_HEADER);
+        if (authorization != null && authorization.startsWith(BEARER_PREFIX)) {
+            String token = authorization.substring(BEARER_PREFIX.length()).trim();
+            if (StringUtils.hasText(token)) {
+                return token;
+            }
+        }
+        return null;
     }
 
     /**
