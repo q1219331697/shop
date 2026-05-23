@@ -46,4 +46,20 @@ public interface AdminUserMapper extends BaseMapper<AdminUserEntity> {
                                                     @Param("realName") String realName,
                                                     @Param("status") Integer status,
                                                     @Param("deleted") Integer deleted);
+
+    /**
+     * 根据ID更新记录（绕过逻辑删除）
+     *
+     * @param entity 管理员实体
+     * @return 影响行数
+     */
+    int updateByIdIgnoreDeleted(AdminUserEntity entity);
+
+    /**
+     * 根据ID逻辑删除记录（绕过逻辑删除查询）
+     *
+     * @param id 管理员ID
+     * @return 影响行数
+     */
+    int deleteByIdIgnoreDeleted(Long id);
 }

@@ -57,19 +57,19 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
 
         AdminUserEntity dbUser = getByUsername(username);
         if (dbUser == null) {
-            log.warn("管理员登录失败, 用户不存在, username: {}", username);
+            log.info("管理员登录失败, 用户不存在, username: {}", username);
             adminLoginLogService.recordLoginLog(null, username, 0, "管理员不存在");
             return Result.error(ResultCodeEnum.USER_NOT_EXIST, "管理员不存在");
         }
 
         if (!adminUser.getPassword().equals(dbUser.getPassword())) {
-            log.warn("管理员登录失败, 密码错误, username: {}", username);
+            log.info("管理员登录失败, 密码错误, username: {}", username);
             adminLoginLogService.recordLoginLog(dbUser.getId(), username, 0, "密码错误");
             return Result.error(ResultCodeEnum.PASSWORD_ERROR, "密码错误");
         }
 
         if (dbUser.getStatus() == 0) {
-            log.warn("管理员登录失败, 用户已被禁用, username: {}", username);
+            log.info("管理员登录失败, 用户已被禁用, username: {}", username);
             adminLoginLogService.recordLoginLog(dbUser.getId(), username, 0, "管理员已被禁用");
             return Result.error(ResultCodeEnum.USER_DISABLED, "管理员已被禁用");
         }
@@ -94,7 +94,7 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
             log.info("管理员登出成功");
             return Result.success();
         }
-        log.warn("管理员登出失败, token无效");
+        log.info("管理员登出失败, token无效");
         return Result.error(ResultCodeEnum.OPERATION_FAILED, "登出失败，token无效");
     }
 
@@ -110,7 +110,7 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
         log.info("创建管理员请求, username: {}", username);
 
         if (isUsernameExists(username)) {
-            log.warn("创建管理员失败, 用户名已存在, username: {}", username);
+            log.info("创建管理员失败, 用户名已存在, username: {}", username);
             return Result.error(ResultCodeEnum.USERNAME_EXIST, "管理员用户名已存在");
         }
 
@@ -138,19 +138,20 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
         Long id = adminUser.getId();
         log.info("更新管理员信息, adminUserId: {}", id);
 
-        AdminUserEntity existUser = this.getById(id);
+        AdminUserEntity existUser = baseMapper.selectByIdIgnoreDeleted(id);
         if (existUser == null) {
-            log.warn("更新管理员信息失败, 管理员不存在, adminUserId: {}", id);
+            log.info("更新管理员信息失败, 管理员不存在, adminUserId: {}", id);
             return Result.error(ResultCodeEnum.USER_NOT_EXIST, "管理员不存在");
         }
 
         String newUsername = adminUser.getUsername();
         if (newUsername != null && !newUsername.equals(existUser.getUsername()) && isUsernameExists(newUsername)) {
-            log.warn("更新管理员信息失败, 用户名已存在, username: {}", newUsername);
+            log.info("更新管理员信息失败, 用户名已存在, username: {}", newUsername);
             return Result.error(ResultCodeEnum.USERNAME_EXIST, "管理员用户名已存在");
         }
 
-        boolean success = this.updateById(adminUser);
+        int rows = baseMapper.updateByIdIgnoreDeleted(adminUser);
+        boolean success = rows > 0;
         if (success) {
             log.info("更新管理员信息成功, adminUserId: {}", id);
             // 用户状态变更时清除权限缓存
@@ -170,9 +171,10 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
     @Override
     public Result<AdminUserEntity> getAdminUserInfo(Long id) {
         log.info("获取管理员信息, adminUserId: {}", id);
-        AdminUserEntity adminUser = this.getById(id);
+        // 使用selectByIdIgnoreDeleted绕过逻辑删除，支持查询已删除用户的详情
+        AdminUserEntity adminUser = baseMapper.selectByIdIgnoreDeleted(id);
         if (adminUser == null) {
-            log.warn("获取管理员信息失败, 管理员不存在, adminUserId: {}", id);
+            log.info("获取管理员信息失败, 管理员不存在, adminUserId: {}", id);
             return Result.error(ResultCodeEnum.USER_NOT_EXIST, "管理员不存在");
         }
         adminUser.setPassword(null);
@@ -191,8 +193,8 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
     public Result<Void> assignRoles(Long userId, List<Long> roleIds) {
         log.info("为用户分配角色, userId: {}, roleIds: {}", userId, roleIds);
 
-        if (this.getById(userId) == null) {
-            log.warn("分配角色失败, 用户不存在, userId: {}", userId);
+        if (baseMapper.selectByIdIgnoreDeleted(userId) == null) {
+            log.info("分配角色失败, 用户不存在, userId: {}", userId);
             return Result.error(ResultCodeEnum.USER_NOT_EXIST, "管理员不存在");
         }
 
@@ -299,10 +301,15 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
     @Transactional(rollbackFor = Exception.class)
     public Result<Void> deleteAdminUser(Long id) {
         log.info("删除管理员请求, adminUserId: {}", id);
-        AdminUserEntity existUser = this.getById(id);
+        AdminUserEntity existUser = baseMapper.selectByIdIgnoreDeleted(id);
         if (existUser == null) {
-            log.warn("删除管理员失败, 管理员不存在, adminUserId: {}", id);
+            log.info("删除管理员失败, 管理员不存在, adminUserId: {}", id);
             return Result.error(ResultCodeEnum.USER_NOT_EXIST, "管理员不存在");
+        }
+
+        if (existUser.getDeleted() == 1) {
+            log.info("删除管理员失败, 管理员已被删除, adminUserId: {}", id);
+            return Result.error(ResultCodeEnum.OPERATION_FAILED, "管理员已被删除");
         }
 
         // 删除用户角色关联
@@ -313,8 +320,9 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
         // 清除权限缓存
         adminPermissionService.clearPermissionCache(id);
 
-        // 删除用户
-        boolean success = this.removeById(id);
+        // 删除用户（绕过逻辑删除）
+        int rows = baseMapper.deleteByIdIgnoreDeleted(id);
+        boolean success = rows > 0;
         if (success) {
             log.info("删除管理员成功, adminUserId: {}", id);
         } else {
@@ -340,7 +348,7 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
         for (Long id : ids) {
             Result<Void> result = deleteAdminUser(id);
             if (!result.isSuccess()) {
-                log.warn("批量删除管理员中断, 失败的adminUserId: {}", id);
+                log.info("批量删除管理员中断, 失败的adminUserId: {}", id);
                 return result;
             }
         }
@@ -358,19 +366,20 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
     @Override
     public Result<Void> disableAdminUser(Long id) {
         log.info("禁用管理员请求, adminUserId: {}", id);
-        AdminUserEntity existUser = this.getById(id);
+        AdminUserEntity existUser = baseMapper.selectByIdIgnoreDeleted(id);
         if (existUser == null) {
-            log.warn("禁用管理员失败, 管理员不存在, adminUserId: {}", id);
+            log.info("禁用管理员失败, 管理员不存在, adminUserId: {}", id);
             return Result.error(ResultCodeEnum.USER_NOT_EXIST, "管理员不存在");
         }
         if (existUser.getStatus() == 0) {
-            log.warn("禁用管理员失败, 管理员已被禁用, adminUserId: {}", id);
+            log.info("禁用管理员失败, 管理员已被禁用, adminUserId: {}", id);
             return Result.error(ResultCodeEnum.OPERATION_FAILED, "管理员已被禁用");
         }
         AdminUserEntity update = new AdminUserEntity();
         update.setId(id);
         update.setStatus(0);
-        boolean success = this.updateById(update);
+        int rows = baseMapper.updateByIdIgnoreDeleted(update);
+        boolean success = rows > 0;
         if (success) {
             log.info("禁用管理员成功, adminUserId: {}", id);
             adminPermissionService.clearPermissionCache(id);
@@ -389,19 +398,20 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
     @Override
     public Result<Void> enableAdminUser(Long id) {
         log.info("启用管理员请求, adminUserId: {}", id);
-        AdminUserEntity existUser = this.getById(id);
+        AdminUserEntity existUser = baseMapper.selectByIdIgnoreDeleted(id);
         if (existUser == null) {
-            log.warn("启用管理员失败, 管理员不存在, adminUserId: {}", id);
+            log.info("启用管理员失败, 管理员不存在, adminUserId: {}", id);
             return Result.error(ResultCodeEnum.USER_NOT_EXIST, "管理员不存在");
         }
         if (existUser.getStatus() == 1) {
-            log.warn("启用管理员失败, 管理员已是启用状态, adminUserId: {}", id);
+            log.info("启用管理员失败, 管理员已是启用状态, adminUserId: {}", id);
             return Result.error(ResultCodeEnum.OPERATION_FAILED, "管理员已是启用状态");
         }
         AdminUserEntity update = new AdminUserEntity();
         update.setId(id);
         update.setStatus(1);
-        boolean success = this.updateById(update);
+        int rows = baseMapper.updateByIdIgnoreDeleted(update);
+        boolean success = rows > 0;
         if (success) {
             log.info("启用管理员成功, adminUserId: {}", id);
             adminPermissionService.clearPermissionCache(id);
@@ -424,11 +434,11 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
         // 使用绕过逻辑删除的查询
         AdminUserEntity existUser = baseMapper.selectByIdIgnoreDeleted(id);
         if (existUser == null) {
-            log.warn("恢复管理员失败, 管理员不存在, adminUserId: {}", id);
+            log.info("恢复管理员失败, 管理员不存在, adminUserId: {}", id);
             return Result.error(ResultCodeEnum.USER_NOT_EXIST, "管理员不存在");
         }
         if (existUser.getDeleted() == 0) {
-            log.warn("恢复管理员失败, 管理员未被删除, adminUserId: {}", id);
+            log.info("恢复管理员失败, 管理员未被删除, adminUserId: {}", id);
             return Result.error(ResultCodeEnum.OPERATION_FAILED, "管理员未被删除");
         }
         int rows = baseMapper.restoreById(id);
@@ -458,7 +468,7 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
         for (Long id : ids) {
             Result<Void> result = disableAdminUser(id);
             if (!result.isSuccess()) {
-                log.warn("批量禁用管理员中断, 失败的adminUserId: {}", id);
+                log.info("批量禁用管理员中断, 失败的adminUserId: {}", id);
                 return result;
             }
         }
@@ -482,7 +492,7 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
         for (Long id : ids) {
             Result<Void> result = enableAdminUser(id);
             if (!result.isSuccess()) {
-                log.warn("批量启用管理员中断, 失败的adminUserId: {}", id);
+                log.info("批量启用管理员中断, 失败的adminUserId: {}", id);
                 return result;
             }
         }
@@ -506,7 +516,7 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
         for (Long id : ids) {
             Result<Void> result = restoreAdminUser(id);
             if (!result.isSuccess()) {
-                log.warn("批量恢复管理员中断, 失败的adminUserId: {}", id);
+                log.info("批量恢复管理员中断, 失败的adminUserId: {}", id);
                 return result;
             }
         }

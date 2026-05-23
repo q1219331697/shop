@@ -54,22 +54,22 @@
       <el-button type="primary" @click="openCreate">
         <el-icon><Plus /></el-icon>新增
       </el-button>
-      <el-button type="warning" :disabled="selectedIds.length !== 1" @click="handleBatchEdit">
+      <el-button type="warning" :disabled="!canBatchEdit" @click="handleBatchEdit">
         <el-icon><Edit /></el-icon>编辑
       </el-button>
       <el-button type="info" :disabled="selectedIds.length !== 1" @click="handleBatchDetail">
         <el-icon><View /></el-icon>详情
       </el-button>
-      <el-button type="danger" :disabled="selectedIds.length === 0" @click="handleBatchDelete">
+      <el-button type="danger" :disabled="!hasNotDeletedSelected" @click="handleBatchDelete">
         <el-icon><Delete /></el-icon>删除
       </el-button>
-      <el-button type="warning" :disabled="selectedIds.length === 0" @click="handleBatchDisable">
+      <el-button type="warning" :disabled="!hasNotDeletedSelected" @click="handleBatchDisable">
         <el-icon><Lock /></el-icon>禁用
       </el-button>
-      <el-button type="success" :disabled="selectedIds.length === 0" @click="handleBatchEnable">
+      <el-button type="success" :disabled="!hasNotDeletedSelected" @click="handleBatchEnable">
         <el-icon><Unlock /></el-icon>启用
       </el-button>
-      <el-button type="success" :disabled="selectedIds.length === 0" @click="handleBatchRestore">
+      <el-button type="success" :disabled="!hasDeletedSelected" @click="handleBatchRestore">
         <el-icon><RefreshRight /></el-icon>恢复
       </el-button>
     </div>
@@ -113,23 +113,23 @@
         </el-table-column>
         <el-table-column label="操作" width="320" align="center" fixed="right">
           <template #default="{ row }">
-            <el-button link class="action-link" @click="openEdit(row)">
+            <el-button v-if="!row.deleted" link class="action-link" @click="openEdit(row)">
               <el-icon><Edit /></el-icon>编辑
             </el-button>
             <el-button link class="action-link" @click="openDetail(row)">
               <el-icon><View /></el-icon>详情
             </el-button>
-            <el-popconfirm title="确定删除该管理员吗？" @confirm="handleDelete(row.id)">
+            <el-popconfirm v-if="!row.deleted" title="确定删除该管理员吗？" @confirm="handleDelete(row.id)">
               <template #reference>
                 <el-button link class="action-link action-link--danger">
                   <el-icon><Delete /></el-icon>删除
                 </el-button>
               </template>
             </el-popconfirm>
-            <el-button v-if="row.status === 1" link class="action-link" @click="handleDisable(row)">
+            <el-button v-if="!row.deleted && row.status === 1" link class="action-link" @click="handleDisable(row)">
               <el-icon><Lock /></el-icon>禁用
             </el-button>
-            <el-button v-if="row.status === 0" link class="action-link" @click="handleEnable(row)">
+            <el-button v-if="!row.deleted && row.status === 0" link class="action-link" @click="handleEnable(row)">
               <el-icon><Unlock /></el-icon>启用
             </el-button>
             <el-button v-if="row.deleted" link class="action-link" @click="handleRestore(row)">
@@ -196,7 +196,6 @@
           <el-input
             v-model="formData.username"
             placeholder="请输入用户名"
-            :disabled="isEdit"
             maxlength="20"
           />
         </el-form-item>
@@ -262,7 +261,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
@@ -382,10 +381,27 @@ async function handleDelete(id: number) {
 /** 多选 */
 const tableRef = ref<InstanceType<(typeof import('element-plus'))['ElTable']>>()
 const selectedIds = ref<number[]>([])
+const selectedRows = ref<AdminUserItem[]>([])
 
 function handleSelectionChange(rows: AdminUserItem[]) {
+  selectedRows.value = rows
   selectedIds.value = rows.map((r) => r.id)
 }
+
+/** 选中行中是否包含已删除用户 */
+const hasDeletedSelected = computed(() =>
+  selectedRows.value.some((r) => r.deleted),
+)
+
+/** 选中行中是否包含未删除用户 */
+const hasNotDeletedSelected = computed(() =>
+  selectedRows.value.some((r) => !r.deleted),
+)
+
+/** 是否可以批量编辑（仅选中1条未删除用户） */
+const canBatchEdit = computed(
+  () => selectedIds.value.length === 1 && !selectedRows.value[0]?.deleted,
+)
 
 /** 点击行切换选中状态（排除操作列点击） */
 function handleRowClick(row: AdminUserItem, column: { property?: string; type?: string }) {
@@ -394,11 +410,12 @@ function handleRowClick(row: AdminUserItem, column: { property?: string; type?: 
   tableRef.value?.toggleRowSelection(row)
 }
 
-/** 批量删除 */
+/** 批量删除（仅未删除用户） */
 async function handleBatchDelete() {
-  if (selectedIds.value.length === 0) return
+  const ids = selectedRows.value.filter((r) => !r.deleted).map((r) => r.id)
+  if (ids.length === 0) return
   try {
-    await ElMessageBox.confirm(`确定删除选中的 ${selectedIds.value.length} 个管理员吗？`, '删除', {
+    await ElMessageBox.confirm(`确定删除选中的 ${ids.length} 个管理员吗？`, '删除', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning',
@@ -407,7 +424,7 @@ async function handleBatchDelete() {
     return
   }
   try {
-    await batchDeleteAdminUser(selectedIds.value)
+    await batchDeleteAdminUser(ids)
     ElMessage.success('删除成功')
     selectedIds.value = []
     fetchData()
@@ -416,9 +433,9 @@ async function handleBatchDelete() {
   }
 }
 
-/** 批量编辑（选中单条） */
+/** 批量编辑（选中单条未删除用户） */
 function handleBatchEdit() {
-  if (selectedIds.value.length !== 1) return
+  if (!canBatchEdit.value) return
   const row = tableData.value.find((r) => r.id === selectedIds.value[0])
   if (row) openEdit(row)
 }
@@ -430,11 +447,12 @@ function handleBatchDetail() {
   if (row) openDetail(row)
 }
 
-/** 批量禁用 */
+/** 批量禁用（仅未删除用户） */
 async function handleBatchDisable() {
-  if (selectedIds.value.length === 0) return
+  const ids = selectedRows.value.filter((r) => !r.deleted).map((r) => r.id)
+  if (ids.length === 0) return
   try {
-    await ElMessageBox.confirm(`确定禁用选中的 ${selectedIds.value.length} 个管理员吗？`, '禁用', {
+    await ElMessageBox.confirm(`确定禁用选中的 ${ids.length} 个管理员吗？`, '禁用', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning',
@@ -443,7 +461,7 @@ async function handleBatchDisable() {
     return
   }
   try {
-    await batchDisableAdminUser(selectedIds.value)
+    await batchDisableAdminUser(ids)
     ElMessage.success('禁用成功')
     selectedIds.value = []
     fetchData()
@@ -452,11 +470,12 @@ async function handleBatchDisable() {
   }
 }
 
-/** 批量启用 */
+/** 批量启用（仅未删除用户） */
 async function handleBatchEnable() {
-  if (selectedIds.value.length === 0) return
+  const ids = selectedRows.value.filter((r) => !r.deleted).map((r) => r.id)
+  if (ids.length === 0) return
   try {
-    await ElMessageBox.confirm(`确定启用选中的 ${selectedIds.value.length} 个管理员吗？`, '启用', {
+    await ElMessageBox.confirm(`确定启用选中的 ${ids.length} 个管理员吗？`, '启用', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning',
@@ -465,7 +484,7 @@ async function handleBatchEnable() {
     return
   }
   try {
-    await batchEnableAdminUser(selectedIds.value)
+    await batchEnableAdminUser(ids)
     ElMessage.success('启用成功')
     selectedIds.value = []
     fetchData()
@@ -474,11 +493,12 @@ async function handleBatchEnable() {
   }
 }
 
-/** 批量恢复 */
+/** 批量恢复（仅已删除用户） */
 async function handleBatchRestore() {
-  if (selectedIds.value.length === 0) return
+  const ids = selectedRows.value.filter((r) => r.deleted).map((r) => r.id)
+  if (ids.length === 0) return
   try {
-    await ElMessageBox.confirm(`确定恢复选中的 ${selectedIds.value.length} 个管理员吗？`, '恢复', {
+    await ElMessageBox.confirm(`确定恢复选中的 ${ids.length} 个管理员吗？`, '恢复', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning',
@@ -487,7 +507,7 @@ async function handleBatchRestore() {
     return
   }
   try {
-    await batchRestoreAdminUser(selectedIds.value)
+    await batchRestoreAdminUser(ids)
     ElMessage.success('恢复成功')
     selectedIds.value = []
     fetchData()
@@ -621,6 +641,7 @@ async function handleSubmit() {
   try {
     if (isEdit.value && formData.id !== undefined) {
       await updateAdminUser(formData.id, {
+        username: formData.username,
         realName: formData.realName,
         status: formData.status,
       })

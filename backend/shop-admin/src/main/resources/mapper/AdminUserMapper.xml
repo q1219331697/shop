@@ -32,4 +32,23 @@
         ORDER BY create_time DESC
     </select>
 
+    <!-- 根据ID更新记录（绕过逻辑删除） -->
+    <update id="updateByIdIgnoreDeleted">
+        UPDATE t_admin_user
+        <set>
+            <if test="username != null">username = #{username},</if>
+            <if test="password != null">password = #{password},</if>
+            <if test="realName != null">real_name = #{realName},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="deleted != null">deleted = #{deleted},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID逻辑删除记录（绕过逻辑删除查询） -->
+    <update id="deleteByIdIgnoreDeleted">
+        UPDATE t_admin_user SET deleted = 1 WHERE id = #{id} AND deleted = 0
+    </update>
+
 </mapper>
