@@ -6,7 +6,7 @@ import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
 import { setupGuards } from './guards'
 
-/** 静态路由 */
+/** 静态路由（无需权限即可访问） */
 const constantRoutes: RouteRecordRaw[] = [
   {
     path: '/login',
@@ -32,14 +32,7 @@ const constantRoutes: RouteRecordRaw[] = [
     name: 'Layout',
     component: () => import('@/layouts/AdminLayout.vue'),
     redirect: '/dashboard',
-    children: [
-      {
-        path: 'dashboard',
-        name: 'Dashboard',
-        component: () => import('@/views/dashboard/index.vue'),
-        meta: { title: '仪表盘', icon: 'Odometer' },
-      },
-    ],
+    // 子路由由路由守卫根据后端菜单动态添加
   },
   {
     path: '/:pathMatch(.*)*',

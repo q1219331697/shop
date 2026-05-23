@@ -30,10 +30,10 @@
               <span>{{ child.meta?.title }}</span>
             </el-menu-item>
           </el-sub-menu>
-          <!-- 无子菜单 -->
+          <!-- 无子菜单（如仪表盘） -->
           <el-menu-item v-else :index="item.path">
             <el-icon><component :is="item.meta?.icon" /></el-icon>
-            <span>{{ item.meta?.title }}</span>
+            <template #title><span>{{ item.meta?.title }}</span></template>
           </el-menu-item>
         </template>
       </el-menu>

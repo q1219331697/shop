@@ -22,6 +22,11 @@ export interface PermissionItem {
   children?: PermissionItem[]
 }
 
+/** 获取当前用户菜单树（用于动态生成侧边栏菜单和路由） */
+export function getUserMenus() {
+  return get<PermissionItem[]>('/permission/menus')
+}
+
 /** 获取权限树形结构 */
 export function getPermissionTree() {
   return get<PermissionItem[]>('/permission/tree')

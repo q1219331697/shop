@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,6 +31,23 @@ public class PermissionController {
 
     @Autowired
     private AdminPermissionService adminPermissionService;
+
+    /**
+     * 获取当前登录用户的菜单树
+     * <p>
+     * 根据用户角色动态返回有权限的菜单列表，用于前端动态生成侧边栏菜单和路由
+     * </p>
+     *
+     * @param request HTTP请求（从请求属性中获取当前用户ID）
+     * @return 当前用户的菜单树形列表
+     */
+    @Operation(summary = "获取当前用户菜单树")
+    @GetMapping("/menus")
+    public Result<List<AdminPermissionEntity>> menus(HttpServletRequest request) {
+        Long adminUserId = (Long) request.getAttribute("adminUserId");
+        List<AdminPermissionEntity> menuTree = adminPermissionService.getMenuTreeByUserId(adminUserId);
+        return Result.success(menuTree);
+    }
 
     /**
      * 获取权限树形结构

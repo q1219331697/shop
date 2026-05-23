@@ -1,17 +1,18 @@
 /**
  * 权限判断组合式函数
- * TODO: 后端提供权限接口后补充实际逻辑
+ * 基于后端返回的用户菜单权限编码进行判断
  */
+import { usePermissionStore } from '@/stores/modules/permission'
 
-/** 判断是否拥有指定权限 */
-export function hasPermission(_permission: string): boolean {
-  // 后端暂无权限接口，默认放行
-  return true
+/** 判断是否拥有指定权限编码 */
+export function hasPermission(permissionCode: string): boolean {
+  const permissionStore = usePermissionStore()
+  return permissionStore.hasPermission(permissionCode)
 }
 
-/** 判断是否拥有指定角色 */
+/** 判断是否拥有指定角色（预留，后续可扩展） */
 export function hasRole(_role: string): boolean {
-  // 后端暂无角色接口，默认放行
+  // 角色判断暂未实现，默认放行
   return true
 }
 
@@ -21,3 +22,4 @@ export function usePermission() {
     hasRole,
   }
 }
+
