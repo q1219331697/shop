@@ -16,6 +16,7 @@ dist/
 # Auto generated
 src/auto-imports.d.ts
 src/components.d.ts
+*.tsbuildinfo
 
 # Env
 .env.local
