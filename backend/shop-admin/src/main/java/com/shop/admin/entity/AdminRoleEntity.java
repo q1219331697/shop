@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
  * </p>
  *
  * @author shop
- * @since 1.1.0
+ * @since 1.0.0
  */
 @Data
 @Schema(description = "后台角色实体")

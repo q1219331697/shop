@@ -24,7 +24,7 @@ import java.util.Optional;
  * 无注解的方法默认放行。
  * </p>
  *
- * @since 1.1.0
+ * @since 1.0.0
  */
 @Slf4j
 @Component

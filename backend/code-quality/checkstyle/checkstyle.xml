@@ -62,29 +62,48 @@
         <module name="IllegalImport"/>
         <module name="RedundantImport"/>
         <module name="UnusedImports"/>
+        <!-- 禁止使用全限定类名，应使用import语句 -->
+        <!-- 检测变量声明中的全限定类名：com.xxx.ClassName var = -->
+        <module name="Regexp">
+            <property name="format" value="\b[a-z]\w*(\.[a-z]\w*)+\.[A-Z]\w*\s+\w+\s*="/>
+            <property name="message" value="禁止使用全限定类名声明变量（如 com.xxx.ClassName var =），请使用import语句导入后使用简单类名"/>
+            <property name="illegalPattern" value="true"/>
+        </module>
+        <!-- 检测new实例化中的全限定类名：new com.xxx.ClassName() -->
+        <module name="Regexp">
+            <property name="format" value="new\s+[a-z]\w*(\.[a-z]\w*)+\.[A-Z]\w*(&lt;[^>]*&gt;)?\s*\("/>
+            <property name="message" value="禁止使用全限定类名实例化（如 new com.xxx.ClassName()），请使用import语句导入后使用简单类名"/>
+            <property name="illegalPattern" value="true"/>
+        </module>
+        <!-- 检测注解中的全限定类名：@com.xxx.Annotation -->
+        <module name="Regexp">
+            <property name="format" value="@[a-z]\w*(\.[a-z]\w*)+\.[A-Z]\w*"/>
+            <property name="message" value="禁止使用全限定类名注解（如 @com.xxx.Annotation），请使用import语句导入后使用简单类名"/>
+            <property name="illegalPattern" value="true"/>
+        </module>
 
         <!-- MyBatis相关规则 -->
         <!-- 禁止使用MyBatis的@Select注解 -->
         <module name="Regexp">
-            <property name="format" value="@Select\s*\("/>
+            <property name="format" value="@(\w+\.)*Select\s*\("/>
             <property name="message" value="禁止在Java代码中使用@Select注解，请将SQL语句写在XML映射文件中"/>
             <property name="illegalPattern" value="true"/>
         </module>
         <!-- 禁止使用MyBatis的@Update注解 -->
         <module name="Regexp">
-            <property name="format" value="@Update\s*\("/>
+            <property name="format" value="@(\w+\.)*Update\s*\("/>
             <property name="message" value="禁止在Java代码中使用@Update注解，请将SQL语句写在XML映射文件中"/>
             <property name="illegalPattern" value="true"/>
         </module>
         <!-- 禁止使用MyBatis的@Insert注解 -->
         <module name="Regexp">
-            <property name="format" value="@Insert\s*\("/>
+            <property name="format" value="@(\w+\.)*Insert\s*\("/>
             <property name="message" value="禁止在Java代码中使用@Insert注解，请将SQL语句写在XML映射文件中"/>
             <property name="illegalPattern" value="true"/>
         </module>
         <!-- 禁止使用MyBatis的@Delete注解 -->
         <module name="Regexp">
-            <property name="format" value="@Delete\s*\("/>
+            <property name="format" value="@(\w+\.)*Delete\s*\("/>
             <property name="message" value="禁止在Java代码中使用@Delete注解，请将SQL语句写在XML映射文件中"/>
             <property name="illegalPattern" value="true"/>
         </module>

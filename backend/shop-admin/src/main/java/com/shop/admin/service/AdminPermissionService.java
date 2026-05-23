@@ -9,7 +9,7 @@ import java.util.List;
 
 /**
  * 后台权限服务接口
- * @since 1.1.0
+ * @since 1.0.0
  */
 public interface AdminPermissionService extends IService<AdminPermissionEntity> {
 

@@ -15,7 +15,7 @@ import java.util.List;
  * 用于授权管理页面，展示用户的角色列表和权限编码列表
  * </p>
  *
- * @since 1.1.0
+ * @since 1.0.0
  */
 @Data
 @Schema(description = "用户权限详情")

@@ -12,7 +12,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * 排除公开路径和Swagger文档路径
  * </p>
  *
- * @since 1.1.0
+ * @since 1.0.0
  */
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {

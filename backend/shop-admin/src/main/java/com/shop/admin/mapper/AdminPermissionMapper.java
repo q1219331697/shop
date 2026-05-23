@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * 后台权限Mapper接口
- * @since 1.1.0
+ * @since 1.0.0
  */
 @Mapper
 public interface AdminPermissionMapper extends BaseMapper<AdminPermissionEntity> {

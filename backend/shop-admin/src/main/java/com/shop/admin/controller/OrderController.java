@@ -1,7 +1,9 @@
 package com.shop.admin.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.shop.admin.security.RequirePermission;
+import com.shop.admin.vo.PageQueryVo;
 import com.shop.common.Result;
 import com.shop.entity.OrderEntity;
 import com.shop.service.OrderService;
@@ -26,26 +28,21 @@ import java.util.Map;
 @RequestMapping("/order")
 public class OrderController {
 
-    private static final Long DEFAULT_PAGE_SIZE = 10L;
-
     @Autowired
     private OrderService orderService;
 
     /**
      * 分页查询所有订单
      *
-     * @param params 查询参数：pageNum, pageSize
+     * @param queryVo 查询参数
      * @return 订单分页数据
      */
     @RequirePermission("order:query")
     @Operation(summary = "分页查询所有订单")
     @GetMapping
-    public Result<IPage<OrderEntity>> list(@RequestBody Map<String, Object> params) {
-        Long pageNum = params.get("pageNum") != null ? Long.valueOf(params.get("pageNum").toString()) : 1L;
-        Long pageSize = params.get("pageSize") != null
-                ? Long.valueOf(params.get("pageSize").toString()) : DEFAULT_PAGE_SIZE;
-        return Result.success(orderService.page(
-                new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(pageNum, pageSize)));
+    public Result<IPage<OrderEntity>> list(PageQueryVo queryVo) {
+        Page<OrderEntity> page = new Page<>(queryVo.getPageNum(), queryVo.getPageSize());
+        return Result.success(orderService.page(page));
     }
 
     /**

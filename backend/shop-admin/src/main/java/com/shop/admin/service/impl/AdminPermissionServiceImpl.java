@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 
 /**
  * 后台权限服务实现类
- * @since 1.1.0
+ * @since 1.0.0
  */
 @Slf4j
 @Service

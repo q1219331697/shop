@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 确保任何已登录用户都能调用。
  * </p>
  *
- * @since 1.1.0
+ * @since 1.0.0
  */
 @Tag(name = "Token管理", description = "Token心跳续期接口")
 @RestController

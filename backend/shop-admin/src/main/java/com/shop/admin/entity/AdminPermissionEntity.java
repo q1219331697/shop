@@ -20,7 +20,7 @@ import java.util.List;
  * </p>
  *
  * @author shop
- * @since 1.1.0
+ * @since 1.0.0
  */
 @Data
 @Schema(description = "后台权限实体")

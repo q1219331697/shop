@@ -21,7 +21,7 @@ import java.util.List;
 
 /**
  * 权限管理控制器
- * @since 1.1.0
+ * @since 1.0.0
  */
 @Tag(name = "权限管理", description = "权限管理接口")
 @RestController

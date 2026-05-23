@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
  * RbacInterceptor会读取此注解，校验当前用户是否拥有对应权限。
  * </p>
  *
- * @since 1.1.0
+ * @since 1.0.0
  */
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)

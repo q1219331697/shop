@@ -9,7 +9,7 @@ import java.util.List;
 
 /**
  * 后台角色服务接口
- * @since 1.1.0
+ * @since 1.0.0
  */
 public interface AdminRoleService extends IService<AdminRoleEntity> {
 

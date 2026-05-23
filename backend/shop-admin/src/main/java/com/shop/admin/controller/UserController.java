@@ -1,7 +1,9 @@
 package com.shop.admin.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.shop.admin.security.RequirePermission;
+import com.shop.admin.vo.PageQueryVo;
 import com.shop.common.Result;
 import com.shop.entity.UserEntity;
 import com.shop.service.UserService;
@@ -16,8 +18,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
-
 /**
  * 后台用户管理控制器
  * @since 1.0.0
@@ -27,26 +27,21 @@ import java.util.Map;
 @RequestMapping("/user")
 public class UserController {
 
-    private static final Long DEFAULT_PAGE_SIZE = 10L;
-
     @Autowired
     private UserService userService;
 
     /**
      * 分页查询用户列表
      *
-     * @param params 查询参数：pageNum, pageSize
+     * @param queryVo 查询参数
      * @return 用户分页数据
      */
     @RequirePermission("user:query")
     @Operation(summary = "分页查询用户列表")
     @GetMapping
-    public Result<IPage<UserEntity>> list(@RequestBody Map<String, Object> params) {
-        Long pageNum = params.get("pageNum") != null ? Long.valueOf(params.get("pageNum").toString()) : 1L;
-        Long pageSize = params.get("pageSize") != null
-                ? Long.valueOf(params.get("pageSize").toString()) : DEFAULT_PAGE_SIZE;
-        return Result.success(userService.page(
-                new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(pageNum, pageSize)));
+    public Result<IPage<UserEntity>> list(PageQueryVo queryVo) {
+        Page<UserEntity> page = new Page<>(queryVo.getPageNum(), queryVo.getPageSize());
+        return Result.success(userService.page(page));
     }
 
     /**

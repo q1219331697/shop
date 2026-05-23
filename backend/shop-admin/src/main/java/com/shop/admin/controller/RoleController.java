@@ -1,7 +1,9 @@
 
 package com.shop.admin.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.shop.admin.entity.AdminRoleEntity;
 import com.shop.admin.security.RequirePermission;
 import com.shop.admin.service.AdminRoleService;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import com.shop.admin.vo.RolePageQueryVo;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -23,14 +26,12 @@ import java.util.Map;
 
 /**
  * 角色管理控制器
- * @since 1.1.0
+ * @since 1.0.0
  */
 @Tag(name = "角色管理", description = "角色管理接口")
 @RestController
 @RequestMapping("/role")
 public class RoleController {
-
-    private static final Long DEFAULT_PAGE_SIZE = 10L;
 
     @Autowired
     private AdminRoleService adminRoleService;
@@ -38,18 +39,26 @@ public class RoleController {
     /**
      * 分页查询角色列表
      *
-     * @param params 查询参数：pageNum, pageSize
+     * @param queryVo 查询参数
      * @return 角色分页数据
      */
     @RequirePermission("system:role:query")
     @Operation(summary = "分页查询角色列表")
     @GetMapping
-    public Result<IPage<AdminRoleEntity>> list(@RequestBody Map<String, Object> params) {
-        Long pageNum = params.get("pageNum") != null ? Long.valueOf(params.get("pageNum").toString()) : 1L;
-        Long pageSize = params.get("pageSize") != null
-                ? Long.valueOf(params.get("pageSize").toString()) : DEFAULT_PAGE_SIZE;
-        return Result.success(adminRoleService.page(
-                new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(pageNum, pageSize)));
+    public Result<IPage<AdminRoleEntity>> list(RolePageQueryVo queryVo) {
+        Page<AdminRoleEntity> page = new Page<>(queryVo.getPageNum(), queryVo.getPageSize());
+        LambdaQueryWrapper<AdminRoleEntity> wrapper = new LambdaQueryWrapper<>();
+        if (queryVo.getRoleName() != null && !queryVo.getRoleName().isEmpty()) {
+            wrapper.like(AdminRoleEntity::getRoleName, queryVo.getRoleName());
+        }
+        if (queryVo.getRoleCode() != null && !queryVo.getRoleCode().isEmpty()) {
+            wrapper.like(AdminRoleEntity::getRoleCode, queryVo.getRoleCode());
+        }
+        if (queryVo.getStatus() != null) {
+            wrapper.eq(AdminRoleEntity::getStatus, queryVo.getStatus());
+        }
+        wrapper.orderByAsc(AdminRoleEntity::getSortOrder);
+        return Result.success(adminRoleService.page(page, wrapper));
     }
 
     /**
