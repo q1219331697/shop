@@ -43,6 +43,14 @@ export default tseslint.config(
     },
   },
 
+  // 全局 TypeScript 规则补充
+  {
+    files: ['**/*.ts', '**/*.js', '**/*.vue'],
+    rules: {
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    },
+  },
+
   // Prettier 配置（必须放最后，覆盖前面的格式化规则）
   prettierConfig,
 
@@ -59,9 +67,6 @@ export default tseslint.config(
       unicorn: pluginUnicorn,
     },
     rules: {
-      // TypeScript（strict 已覆盖核心规则，此处补充 argsIgnorePattern）
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-
       // 文件命名规则：.ts/.js 使用 kebab-case，.vue 组件使用 PascalCase
       'unicorn/filename-case': [
         'error',

@@ -1,7 +1,7 @@
 /**
  * 认证相关接口
  */
-import { post } from '@/utils/request'
+import { post } from '@/utils/http'
 import type { LoginParams, LoginResult } from './types'
 
 /** 管理员登录 */

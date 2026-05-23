@@ -1,7 +1,7 @@
 /**
  * 订单管理接口
  */
-import { get, put } from '@/utils/request'
+import { get, put } from '@/utils/http'
 import type { PageParams, PageResult } from './types'
 
 /** 订单信息 */

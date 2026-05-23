@@ -1,7 +1,7 @@
 /**
  * 商品管理接口
  */
-import { get, post, put, del } from '@/utils/request'
+import { get, post, put, del } from '@/utils/http'
 import type { PageParams, PageResult } from './types'
 
 /** 商品信息 */

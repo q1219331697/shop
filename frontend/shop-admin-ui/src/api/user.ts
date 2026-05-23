@@ -1,7 +1,7 @@
 /**
  * 用户管理接口
  */
-import { get, post, put, del } from '@/utils/request'
+import { get, post, put, del } from '@/utils/http'
 import type { PageParams, PageResult, IPageResult } from './types'
 import { convertIPage } from './types'
 

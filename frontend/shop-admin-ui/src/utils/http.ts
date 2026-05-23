@@ -1,9 +1,10 @@
+
 /**
  * HTTP 请求封装
  */
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getToken, removeToken } from './storage'
+import { getToken, removeToken } from '@/utils/storage'
 import router from '@/router'
 
 const service: AxiosInstance = axios.create({
