@@ -27,12 +27,6 @@ public class RolePageQueryVo extends PageQueryVo {
     private String roleName;
 
     /**
-     * 角色编码（模糊查询）
-     */
-    @Schema(description = "角色编码（模糊查询）")
-    private String roleCode;
-
-    /**
      * 状态（0-禁用 1-启用）
      */
     @Schema(description = "状态（0-禁用 1-启用）")

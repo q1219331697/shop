@@ -43,7 +43,7 @@ public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRole
 
     @Override
     public Result<Void> createRole(AdminRoleEntity role) {
-        log.info("创建角色请求, roleName: {}, roleCode: {}", role.getRoleName(), role.getRoleCode());
+        log.info("创建角色请求, roleName: {}", role.getRoleName());
 
         // 校验角色名称唯一
         LambdaQueryWrapper<AdminRoleEntity> nameWrapper = new LambdaQueryWrapper<>();
@@ -51,14 +51,6 @@ public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRole
         if (this.count(nameWrapper) > 0) {
             log.warn("创建角色失败, 角色名称已存在, roleName: {}", role.getRoleName());
             return Result.error(ResultCodeEnum.PARAM_ERROR, "角色名称已存在");
-        }
-
-        // 校验角色编码唯一
-        LambdaQueryWrapper<AdminRoleEntity> codeWrapper = new LambdaQueryWrapper<>();
-        codeWrapper.eq(AdminRoleEntity::getRoleCode, role.getRoleCode());
-        if (this.count(codeWrapper) > 0) {
-            log.warn("创建角色失败, 角色编码已存在, roleCode: {}", role.getRoleCode());
-            return Result.error(ResultCodeEnum.PARAM_ERROR, "角色编码已存在");
         }
 
         if (role.getStatus() == null) {
@@ -95,9 +87,6 @@ public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRole
                 return Result.error(ResultCodeEnum.PARAM_ERROR, "角色名称已存在");
             }
         }
-
-        // 不允许修改角色编码
-        role.setRoleCode(null);
 
         boolean success = this.updateById(role);
         if (success) {
@@ -217,6 +206,92 @@ public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRole
             return Collections.emptyList();
         }
         return this.listByIds(roleIds);
+    }
+
+    @Override
+    public Result<Void> disableRole(Long id) {
+        log.info("禁用角色请求, roleId: {}", id);
+        AdminRoleEntity existRole = this.getById(id);
+        if (existRole == null) {
+            log.warn("禁用角色失败, 角色不存在, roleId: {}", id);
+            return Result.error(ResultCodeEnum.PARAM_ERROR, "角色不存在");
+        }
+        if (existRole.getStatus() == 0) {
+            log.warn("禁用角色失败, 角色已被禁用, roleId: {}", id);
+            return Result.error(ResultCodeEnum.OPERATION_FAILED, "角色已被禁用");
+        }
+        AdminRoleEntity update = new AdminRoleEntity();
+        update.setId(id);
+        update.setStatus(0);
+        boolean success = this.updateById(update);
+        if (success) {
+            log.info("禁用角色成功, roleId: {}", id);
+            clearPermissionCacheByRoleId(id);
+        } else {
+            log.error("禁用角色失败, roleId: {}", id);
+        }
+        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "禁用角色失败");
+    }
+
+    @Override
+    public Result<Void> enableRole(Long id) {
+        log.info("启用角色请求, roleId: {}", id);
+        AdminRoleEntity existRole = this.getById(id);
+        if (existRole == null) {
+            log.warn("启用角色失败, 角色不存在, roleId: {}", id);
+            return Result.error(ResultCodeEnum.PARAM_ERROR, "角色不存在");
+        }
+        if (existRole.getStatus() == 1) {
+            log.warn("启用角色失败, 角色已是启用状态, roleId: {}", id);
+            return Result.error(ResultCodeEnum.OPERATION_FAILED, "角色已是启用状态");
+        }
+        AdminRoleEntity update = new AdminRoleEntity();
+        update.setId(id);
+        update.setStatus(1);
+        boolean success = this.updateById(update);
+        if (success) {
+            log.info("启用角色成功, roleId: {}", id);
+            clearPermissionCacheByRoleId(id);
+        } else {
+            log.error("启用角色失败, roleId: {}", id);
+        }
+        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "启用角色失败");
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Void> batchDisableRole(List<Long> ids) {
+        log.info("批量禁用角色请求, ids: {}", ids);
+        if (ids == null || ids.isEmpty()) {
+            return Result.error(ResultCodeEnum.PARAM_ERROR, "请选择要禁用的角色");
+        }
+        for (Long id : ids) {
+            Result<Void> result = disableRole(id);
+            if (!result.isSuccess()) {
+                log.info("批量禁用角色中断, 失败的roleId: {}", id);
+                return result;
+            }
+        }
+        log.info("批量禁用角色成功, 共禁用{}条", ids.size());
+        return Result.success();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Void> batchEnableRole(List<Long> ids) {
+        log.info("批量启用角色请求, ids: {}", ids);
+        if (ids == null || ids.isEmpty()) {
+            return Result.error(ResultCodeEnum.PARAM_ERROR, "请选择要启用的角色");
+        }
+        for (Long id : ids) {
+            Result<Void> result = enableRole(id);
+            if (!result.isSuccess()) {
+                log.info("批量启用角色中断, 失败的roleId: {}", id);
+                return result;
+            }
+        }
+        log.info("批量启用角色成功, 共启用{}条", ids.size());
+        return Result.success();
     }
 
     /**

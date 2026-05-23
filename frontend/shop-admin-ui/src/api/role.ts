@@ -10,7 +10,6 @@ import { convertIPage } from './types'
 export interface RoleItem {
   id: number
   roleName: string
-  roleCode: string
   description: string
   sortOrder: number
   status: number // 0-禁用，1-正常
@@ -22,7 +21,6 @@ export interface RoleItem {
 /** 角色分页查询参数 */
 export interface RolePageParams extends PageParams {
   roleName?: string
-  roleCode?: string
   status?: number
 }
 
@@ -55,6 +53,26 @@ export function updateRole(id: number, data: Partial<RoleItem>) {
 /** 删除角色 */
 export function deleteRole(id: number) {
   return del(`/role/${id}`)
+}
+
+/** 禁用角色 */
+export function disableRole(id: number) {
+  return put(`/role/${id}/disable`)
+}
+
+/** 启用角色 */
+export function enableRole(id: number) {
+  return put(`/role/${id}/enable`)
+}
+
+/** 批量禁用角色 */
+export function batchDisableRole(ids: number[]) {
+  return put('/role/batch-disable', { ids })
+}
+
+/** 批量启用角色 */
+export function batchEnableRole(ids: number[]) {
+  return put('/role/batch-enable', { ids })
 }
 
 /** 为角色分配权限 */

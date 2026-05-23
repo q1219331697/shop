@@ -12,15 +12,7 @@
             @keyup.enter="handleSearch"
           />
         </el-form-item>
-        <el-form-item label="角色编码">
-          <el-input
-            v-model="queryParams.roleCode"
-            placeholder="请输入角色编码"
-            clearable
-            style="width: 180px"
-            @keyup.enter="handleSearch"
-          />
-        </el-form-item>
+
         <el-form-item label="状态">
           <el-select v-model="queryParams.status" placeholder="全部" clearable style="width: 120px">
             <el-option label="正常" :value="1" />
@@ -38,19 +30,40 @@
       </el-form>
     </div>
 
-    <!-- 操作区 -->
+    <!-- 按钮区 -->
     <div class="action-bar">
       <el-button type="primary" @click="openCreate">
         <el-icon><Plus /></el-icon>新增
+      </el-button>
+      <el-button type="warning" :disabled="selectedIds.length !== 1" @click="openEditSelected">
+        <el-icon><Edit /></el-icon>编辑
+      </el-button>
+      <el-button type="danger" :disabled="selectedIds.length === 0" @click="handleBatchDelete">
+        <el-icon><Delete /></el-icon>删除
+      </el-button>
+      <el-button type="warning" :disabled="!hasEnabledSelected" @click="handleBatchDisable">
+        <el-icon><Lock /></el-icon>禁用
+      </el-button>
+      <el-button type="success" :disabled="!hasDisabledSelected" @click="handleBatchEnable">
+        <el-icon><Unlock /></el-icon>启用
       </el-button>
     </div>
 
     <!-- 数据表格 -->
     <div class="table-wrapper">
-      <el-table v-loading="loading" :data="tableData" border stripe>
+      <el-table
+        ref="tableRef"
+        v-loading="loading"
+        :data="tableData"
+        border
+        stripe
+        @selection-change="handleSelectionChange"
+        @row-click="handleRowClick"
+      >
+        <el-table-column type="selection" width="50" align="center" />
         <el-table-column prop="id" label="ID" width="70" align="center" />
         <el-table-column prop="roleName" label="角色名称" width="160" show-overflow-tooltip />
-        <el-table-column prop="roleCode" label="角色编码" width="180" show-overflow-tooltip />
+
         <el-table-column prop="description" label="描述" min-width="200" show-overflow-tooltip />
         <el-table-column prop="sortOrder" label="排序" width="80" align="center" />
         <el-table-column prop="status" label="状态" width="90" align="center">
@@ -66,21 +79,11 @@
         <el-table-column prop="updateTime" label="更新时间" width="170" align="center">
           <template #default="{ row }">{{ formatDate(row.updateTime) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="240" align="center" fixed="right">
+        <el-table-column label="操作" width="120" align="center" fixed="right" class-name="table-action-col">
           <template #default="{ row }">
-            <el-button link class="action-link" @click="openEdit(row)">
-              <el-icon><Edit /></el-icon>编辑
-            </el-button>
             <el-button link class="action-link" @click="openAssignPermission(row)">
               <el-icon><Key /></el-icon>分配权限
             </el-button>
-            <el-popconfirm title="确定删除该角色吗？" @confirm="handleDelete(row.id)">
-              <template #reference>
-                <el-button link class="action-link action-link--danger">
-                  <el-icon><Delete /></el-icon>删除
-                </el-button>
-              </template>
-            </el-popconfirm>
           </template>
         </el-table-column>
       </el-table>
@@ -113,9 +116,7 @@
         <el-form-item label="角色名称" prop="roleName">
           <el-input v-model="formData.roleName" placeholder="请输入角色名称" maxlength="50" />
         </el-form-item>
-        <el-form-item v-if="!isEdit" label="角色编码" prop="roleCode">
-          <el-input v-model="formData.roleCode" placeholder="如：ROLE_EDITOR" maxlength="50" />
-        </el-form-item>
+
         <el-form-item label="描述">
           <el-input
             v-model="formData.description"
@@ -154,7 +155,6 @@
       <div v-loading="permLoading" class="perm-assign-content">
         <p class="perm-role-info">
           角色：<strong>{{ currentRole?.roleName }}</strong>
-          <span v-if="currentRole?.roleCode">（{{ currentRole.roleCode }}）</span>
         </p>
         <el-tree
           ref="permTreeRef"
@@ -178,15 +178,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
-import { ElMessage } from 'element-plus'
-import { Search, Refresh, Plus, Edit, Delete, Key } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Search, Refresh, Plus, Edit, Delete, Key, Lock, Unlock } from '@element-plus/icons-vue'
 import {
   getRoleList,
   createRole,
   updateRole,
   deleteRole,
+  disableRole,
+  enableRole,
   assignRolePermissions,
   getRolePermissionIds,
   type RoleItem,
@@ -198,12 +200,14 @@ import { formatDate } from '@/utils/date'
 const loading = ref(false)
 const tableData = ref<RoleItem[]>([])
 const total = ref(0)
+const tableRef = ref()
+const selectedIds = ref<number[]>([])
+const selectedRows = ref<RoleItem[]>([])
 
 const queryParams = reactive({
   pageNum: 1,
   pageSize: 10,
   roleName: '',
-  roleCode: '',
   status: undefined as number | undefined,
 })
 
@@ -231,7 +235,6 @@ function handleSearch() {
 /** 重置 */
 function handleReset() {
   queryParams.roleName = ''
-  queryParams.roleCode = ''
   queryParams.status = undefined
   queryParams.pageNum = 1
   queryParams.pageSize = 10
@@ -251,15 +254,91 @@ function handleSizeChange(size: number) {
   fetchData()
 }
 
-/** 删除 */
-async function handleDelete(id: number) {
-  try {
-    await deleteRole(id)
-    ElMessage.success('删除成功')
-    fetchData()
-  } catch {
-    // 请求工具已处理错误提示
-  }
+/** 选择变化 */
+function handleSelectionChange(rows: RoleItem[]) {
+  selectedRows.value = rows
+  selectedIds.value = rows.map((r) => r.id)
+}
+
+/** 点击行切换选中状态（排除操作列点击） */
+function handleRowClick(row: RoleItem, column: { property?: string; type?: string }) {
+  // 操作列没有property，点击操作按钮时不切换选中
+  if (column && column.property === undefined && column.type !== 'selection') return
+  tableRef.value?.toggleRowSelection(row)
+}
+
+/** 编辑选中行 */
+function openEditSelected() {
+  if (selectedRows.value.length !== 1) return
+  openEdit(selectedRows.value[0])
+}
+
+/** 选中行中是否包含启用状态的角色 */
+const hasEnabledSelected = computed(() => selectedRows.value.some((r) => r.status === 1))
+
+/** 选中行中是否包含禁用状态的角色 */
+const hasDisabledSelected = computed(() => selectedRows.value.some((r) => r.status === 0))
+
+/** 批量删除 */
+function handleBatchDelete() {
+  if (selectedIds.value.length === 0) return
+  ElMessageBox.confirm(
+    `确定删除选中的 ${selectedIds.value.length} 个角色吗？`,
+    '提示',
+    { type: 'warning' }
+  )
+    .then(async () => {
+      try {
+        await Promise.all(selectedIds.value.map((id) => deleteRole(id)))
+        ElMessage.success('删除成功')
+        fetchData()
+      } catch {
+        // 请求工具已处理错误提示
+      }
+    })
+    .catch(() => {})
+}
+
+/** 批量禁用 */
+function handleBatchDisable() {
+  const ids = selectedRows.value.filter((r) => r.status === 1).map((r) => r.id)
+  if (ids.length === 0) return
+  ElMessageBox.confirm(
+    `确定禁用选中的 ${ids.length} 个角色吗？`,
+    '禁用',
+    { type: 'warning' }
+  )
+    .then(async () => {
+      try {
+        await Promise.all(ids.map((id) => disableRole(id)))
+        ElMessage.success('禁用成功')
+        fetchData()
+      } catch {
+        // 请求工具已处理错误提示
+      }
+    })
+    .catch(() => {})
+}
+
+/** 批量启用 */
+function handleBatchEnable() {
+  const ids = selectedRows.value.filter((r) => r.status === 0).map((r) => r.id)
+  if (ids.length === 0) return
+  ElMessageBox.confirm(
+    `确定启用选中的 ${ids.length} 个角色吗？`,
+    '启用',
+    { type: 'warning' }
+  )
+    .then(async () => {
+      try {
+        await Promise.all(ids.map((id) => enableRole(id)))
+        ElMessage.success('启用成功')
+        fetchData()
+      } catch {
+        // 请求工具已处理错误提示
+      }
+    })
+    .catch(() => {})
 }
 
 // ==================== 表单相关 ====================
@@ -271,7 +350,6 @@ const currentEditId = ref<number | null>(null)
 
 const formData = reactive({
   roleName: '',
-  roleCode: '',
   description: '',
   sortOrder: 0,
   status: 1,
@@ -279,7 +357,6 @@ const formData = reactive({
 
 const formRules = reactive<FormRules>({
   roleName: [{ required: true, message: '请输入角色名称', trigger: 'blur' }],
-  roleCode: [{ required: true, message: '请输入角色编码', trigger: 'blur' }],
   status: [{ required: true, message: '请选择状态', trigger: 'change' }],
 })
 
@@ -288,7 +365,6 @@ function openCreate() {
   isEdit.value = false
   currentEditId.value = null
   formData.roleName = ''
-  formData.roleCode = ''
   formData.description = ''
   formData.sortOrder = 0
   formData.status = 1
@@ -300,7 +376,6 @@ function openEdit(row: RoleItem) {
   isEdit.value = true
   currentEditId.value = row.id
   formData.roleName = row.roleName
-  formData.roleCode = row.roleCode
   formData.description = row.description || ''
   formData.sortOrder = row.sortOrder
   formData.status = row.status

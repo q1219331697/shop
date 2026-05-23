@@ -57,6 +57,34 @@ public interface AdminRoleService extends IService<AdminRoleEntity> {
     Result<List<Long>> getRolePermissionIds(Long roleId);
 
     /**
+     * 禁用角色
+     * @param id 角色ID
+     * @return 禁用结果
+     */
+    Result<Void> disableRole(Long id);
+
+    /**
+     * 启用角色
+     * @param id 角色ID
+     * @return 启用结果
+     */
+    Result<Void> enableRole(Long id);
+
+    /**
+     * 批量禁用角色
+     * @param ids 角色ID列表
+     * @return 禁用结果
+     */
+    Result<Void> batchDisableRole(List<Long> ids);
+
+    /**
+     * 批量启用角色
+     * @param ids 角色ID列表
+     * @return 启用结果
+     */
+    Result<Void> batchEnableRole(List<Long> ids);
+
+    /**
      * 根据用户ID获取角色列表
      * @param userId 用户ID
      * @return 角色列表

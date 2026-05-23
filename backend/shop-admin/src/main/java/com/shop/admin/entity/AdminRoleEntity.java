@@ -42,12 +42,6 @@ public class AdminRoleEntity implements Serializable {
     private String roleName;
 
     /**
-     * 角色编码，唯一，如 ROLE_ADMIN
-     */
-    @Schema(description = "角色编码")
-    private String roleCode;
-
-    /**
      * 角色描述
      */
     @Schema(description = "角色描述")

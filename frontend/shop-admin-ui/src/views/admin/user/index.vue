@@ -49,7 +49,7 @@
       </el-form>
     </div>
 
-    <!-- 操作区 -->
+    <!-- 按钮区 -->
     <div class="action-bar">
       <el-button type="primary" @click="openCreate">
         <el-icon><Plus /></el-icon>新增
@@ -71,6 +71,9 @@
       </el-button>
       <el-button type="success" :disabled="!hasDeletedSelected" @click="handleBatchRestore">
         <el-icon><RefreshRight /></el-icon>恢复
+      </el-button>
+      <el-button type="primary" :disabled="!canBatchEdit" @click="handleBatchAssignRole">
+        <el-icon><Key /></el-icon>分配角色
       </el-button>
     </div>
 
@@ -254,7 +257,7 @@
             v-for="role in roleList"
             :key="role.id"
             :value="role.id"
-            :label="role.name"
+            :label="role.roleName"
             class="role-checkbox"
           />
         </el-checkbox-group>
@@ -284,6 +287,7 @@ import {
   Lock,
   Unlock,
   RefreshRight,
+  Key,
 } from '@element-plus/icons-vue'
 import {
   getAdminUserList,
@@ -678,9 +682,7 @@ const currentUser = ref<AdminUserItem | null>(null)
 const roleList = ref<RoleItem[]>([])
 const selectedRoleIds = ref<number[]>([])
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/** 打开分配角色对话框（预留功能，后续接入角色分配按钮） */
-// @ts-expect-error 预留分配角色功能，待UI按钮接入后启用
+/** 打开分配角色对话框 */
 async function openAssignRole(row: AdminUserItem) {
   currentUser.value = row
   selectedRoleIds.value = []
@@ -697,7 +699,13 @@ async function openAssignRole(row: AdminUserItem) {
     roleLoading.value = false
   }
 }
-/* eslint-enable @typescript-eslint/no-unused-vars */
+
+/** 批量分配角色（选中单条未删除用户） */
+function handleBatchAssignRole() {
+  if (!canBatchEdit.value) return
+  const row = tableData.value.find((r) => r.id === selectedIds.value[0])
+  if (row && !row.deleted) openAssignRole(row)
+}
 
 /** 提交分配角色 */
 async function handleAssignRole() {

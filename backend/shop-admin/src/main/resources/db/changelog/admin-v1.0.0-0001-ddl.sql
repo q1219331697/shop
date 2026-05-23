@@ -41,14 +41,12 @@ CREATE TABLE IF NOT EXISTS t_admin_login_log (
 CREATE TABLE IF NOT EXISTS t_admin_role (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '角色ID',
     role_name VARCHAR(50) NOT NULL COMMENT '角色名称',
-    role_code VARCHAR(50) NOT NULL COMMENT '角色编码',
     description VARCHAR(200) COMMENT '角色描述',
     sort_order INT NOT NULL DEFAULT 0 COMMENT '排序',
     status TINYINT NOT NULL DEFAULT 1 COMMENT '状态：0-禁用，1-正常',
     deleted TINYINT NOT NULL DEFAULT 0 COMMENT '删除标记：0-未删除，1-已删除',
     create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    KEY idx_role_code (role_code),
     KEY idx_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='后台角色表';
 

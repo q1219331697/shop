@@ -51,9 +51,6 @@ public class RoleController {
         if (queryVo.getRoleName() != null && !queryVo.getRoleName().isEmpty()) {
             wrapper.like(AdminRoleEntity::getRoleName, queryVo.getRoleName());
         }
-        if (queryVo.getRoleCode() != null && !queryVo.getRoleCode().isEmpty()) {
-            wrapper.like(AdminRoleEntity::getRoleCode, queryVo.getRoleCode());
-        }
         if (queryVo.getStatus() != null) {
             wrapper.eq(AdminRoleEntity::getStatus, queryVo.getStatus());
         }
@@ -125,6 +122,58 @@ public class RoleController {
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
         return adminRoleService.deleteRole(id);
+    }
+
+    /**
+     * 禁用角色
+     *
+     * @param id 角色ID
+     * @return 禁用结果
+     */
+    @RequirePermission("system:role:update")
+    @Operation(summary = "禁用角色")
+    @PutMapping("/{id}/disable")
+    public Result<Void> disable(@PathVariable Long id) {
+        return adminRoleService.disableRole(id);
+    }
+
+    /**
+     * 启用角色
+     *
+     * @param id 角色ID
+     * @return 启用结果
+     */
+    @RequirePermission("system:role:update")
+    @Operation(summary = "启用角色")
+    @PutMapping("/{id}/enable")
+    public Result<Void> enable(@PathVariable Long id) {
+        return adminRoleService.enableRole(id);
+    }
+
+    /**
+     * 批量禁用角色
+     *
+     * @param params 包含ids列表
+     * @return 禁用结果
+     */
+    @RequirePermission("system:role:update")
+    @Operation(summary = "批量禁用角色")
+    @PutMapping("/batch-disable")
+    public Result<Void> batchDisable(@RequestBody Map<String, List<Long>> params) {
+        return adminRoleService.batchDisableRole(params.get("ids"));
+    }
+
+    /**
+     * 批量启用角色
+     *
+     * @param params 包含ids列表
+     * @return 启用结果
+     */
+    @RequirePermission("system:role:update")
+    @Operation(summary = "批量启用角色")
+    @PutMapping("/batch-enable")
+    public Result<Void> batchEnable(@RequestBody Map<String, List<Long>> params) {
+        return adminRoleService.batchEnableRole(params.get("ids"));
     }
 
     /**

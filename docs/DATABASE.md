@@ -124,7 +124,6 @@
 |--------|------|------|------|
 | id | BIGINT | 角色ID | 主键，自增 |
 | role_name | VARCHAR(50) | 角色名称 | |
-| role_code | VARCHAR(50) | 角色编码 | 索引 |
 | description | VARCHAR(200) | 角色描述 | |
 | sort_order | INT | 排序 | |
 | status | TINYINT | 状态 | 0-禁用，1-正常，索引 |
@@ -215,7 +214,6 @@
 
 ### t_admin_role 表
 - PRIMARY KEY (id)
-- KEY idx_role_code (role_code)
 - KEY idx_status (status)
 
 ### t_admin_permission 表

@@ -1,6 +1,6 @@
 <template>
   <div ref="pageRef" class="admin-permission-page">
-    <!-- 操作区 -->
+    <!-- 按钮区 -->
     <div class="action-bar">
       <el-button type="primary" @click="openCreate(0)">
         <el-icon><Plus /></el-icon>新增顶级权限

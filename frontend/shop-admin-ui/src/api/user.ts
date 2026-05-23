@@ -58,8 +58,7 @@ export interface AdminUserItem {
 /** 管理员角色信息 */
 export interface RoleItem {
   id: number
-  name: string
-  code: string
+  roleName: string
   description: string
   status: number
 }

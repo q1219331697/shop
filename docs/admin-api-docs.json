@@ -1386,10 +1386,6 @@
             "type": "string",
             "description": "角色名称"
           },
-          "roleCode": {
-            "type": "string",
-            "description": "角色编码"
-          },
           "description": {
             "type": "string",
             "description": "角色描述"

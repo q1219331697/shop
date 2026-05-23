@@ -10,14 +10,17 @@ INSERT IGNORE INTO t_admin_user (username, password, real_name, status) VALUES
 INSERT IGNORE INTO t_admin_user (username, password, real_name, status) VALUES
 ('manager', 'admin123', '运营管理员', 1);
 
+INSERT IGNORE INTO t_admin_user (username, password, real_name, status) VALUES
+('service', 'admin123', '客服人员', 1);
+
 -- =====================================================
 -- 初始化角色数据
 -- =====================================================
 -- changeset shop:1.0.0-insert-role-data context:admin stripComments:false
-INSERT IGNORE INTO t_admin_role (id, role_name, role_code, description, sort_order, status) VALUES
-(1, '超级管理员', 'super_admin', '拥有系统所有权限', 1, 1),
-(2, '运营管理员', 'operator', '负责商品和订单运营管理', 2, 1),
-(3, '客服人员', 'customer_service', '负责订单和用户咨询处理', 3, 1);
+INSERT IGNORE INTO t_admin_role (id, role_name, description, sort_order, status) VALUES
+(1, '超级管理员', '拥有系统所有权限', 1, 1),
+(2, '运营管理员', '负责商品和订单运营管理', 2, 1),
+(3, '客服人员', '负责订单和用户咨询处理', 3, 1);
 
 -- =====================================================
 -- 初始化权限数据 - 菜单
@@ -114,4 +117,5 @@ INSERT IGNORE INTO t_admin_role_permission (role_id, permission_id) VALUES
 -- changeset shop:1.0.0-insert-user-role-data context:admin stripComments:false
 INSERT IGNORE INTO t_admin_user_role (user_id, role_id) VALUES
 (1, 1),
-(2, 2);
+(2, 2),
+(3, 3);
