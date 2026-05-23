@@ -42,7 +42,7 @@ export function setupGuards(router: Router) {
             // 使用 fullPath 重新导航，确保动态路由注册后重新匹配
             // 避免刷新时 to 已匹配 404 通配路由导致重复跳转 404
             next({ path: to.fullPath, replace: true })
-          } catch (error) {
+          } catch (_error) {
             // 获取菜单失败（如 Token 过期），清除状态跳转登录
             permissionStore.resetPermission()
             hasAddedRoutes = false

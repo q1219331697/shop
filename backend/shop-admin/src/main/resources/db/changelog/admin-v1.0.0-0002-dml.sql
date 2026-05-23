@@ -25,13 +25,13 @@ INSERT IGNORE INTO t_admin_role (id, role_name, description, sort_order, status)
 INSERT IGNORE INTO t_admin_permission (id, parent_id, permission_name, permission_code, permission_type, path, icon, component, sort_order, visible, status) VALUES
 -- 一级菜单
 (1,  0, '仪表盘',   'dashboard',       1, '/dashboard',      'Odometer',  'dashboard/index',    0, 1, 1),
-(2,  0, '系统管理', 'system',          1, '/admin',          'Setting',   NULL,                  1, 1, 1),
+(2,  0, '系统管理', 'system',          1, '/system',         'Setting',   NULL,                  1, 1, 1),
 (3,  0, '商品管理', 'product',         1, '/product',        'Goods',     NULL,                  2, 1, 1),
 (4,  0, '订单管理', 'order',           1, '/order',          'Document',  NULL,                  3, 1, 1),
 -- 二级菜单 - 系统管理
-(20, 2, '用户管理',   'system:admin',   1, 'user',            'User',      'admin/user/index',   1, 1, 1),
-(21, 2, '角色管理',   'system:role',    1, 'role',            'UserFilled', 'admin/role/index',  2, 1, 1),
-(22, 2, '权限管理',   'system:permission', 1, 'permission',   'Lock',      'admin/permission/index', 3, 1, 1),
+(20, 2, '用户管理',   'system:admin',   1, 'user',            'User',      'system/user/index',   1, 1, 1),
+(21, 2, '角色管理',   'system:role',    1, 'role',            'UserFilled', 'system/role/index',  2, 1, 1),
+(22, 2, '权限管理',   'system:permission', 1, 'permission',   'Lock',      'system/permission/index', 3, 1, 1),
 -- 二级菜单 - 商品管理
 (30, 3, '商品列表',   'product:list',   1, 'list',            'List',      'product/list/index',  1, 1, 1),
 (31, 3, '分类管理',   'product:category', 1, 'category',      'Menu',      'product/category/index', 2, 1, 1),

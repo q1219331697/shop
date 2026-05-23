@@ -47,7 +47,7 @@ export default tseslint.config(
   {
     files: ['**/*.ts', '**/*.js', '**/*.vue'],
     rules: {
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
     },
   },
 

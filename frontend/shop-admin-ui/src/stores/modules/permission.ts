@@ -10,7 +10,7 @@ import { getUserMenus, type PermissionItem } from '@/api/permission'
 /**
  * 后端菜单 component 字段到前端组件的映射
  * 后端存储格式如：system/AdminUser, product/ProductList
- * 前端实际路径如：@/views/admin/user/index.vue
+ * 前端实际路径如：@/views/system/user/index.vue
  */
 const componentModules = import.meta.glob('@/views/**/*.vue')
 
@@ -34,7 +34,8 @@ function resolveComponent(component: string | null | undefined) {
  */
 function transformMenusToRoutes(menus: PermissionItem[]): RouteRecordRaw[] {
   return menus.map((menu) => {
-    const route: RouteRecordRaw = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const route: Record<string, any> = {
       path: menu.path,
       name: menu.permissionCode,
       meta: {
@@ -53,11 +54,11 @@ function transformMenusToRoutes(menus: PermissionItem[]): RouteRecordRaw[] {
       // 叶子菜单：动态加载组件
       const component = resolveComponent(menu.component)
       if (component) {
-        (route as any).component = component
+        route.component = component
       }
     }
 
-    return route
+    return route as RouteRecordRaw
   })
 }
 

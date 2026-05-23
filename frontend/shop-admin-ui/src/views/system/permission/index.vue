@@ -137,10 +137,10 @@
           />
         </el-form-item>
         <el-form-item v-if="formData.permissionType === 1" label="路由路径">
-          <el-input v-model="formData.path" placeholder="如：/admin/permission" />
+          <el-input v-model="formData.path" placeholder="如：/system/permission" />
         </el-form-item>
         <el-form-item v-if="formData.permissionType === 1" label="组件路径">
-          <el-input v-model="formData.component" placeholder="如：views/admin/permission/index" />
+          <el-input v-model="formData.component" placeholder="如：views/system/permission/index" />
         </el-form-item>
         <el-form-item v-if="formData.permissionType === 1" label="图标">
           <IconSelect v-model="formData.icon" />

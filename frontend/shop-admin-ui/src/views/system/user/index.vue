@@ -1,5 +1,5 @@
 <template>
-  <div ref="pageRef" class="admin-user-page">
+  <div ref="pageRef" class="system-user-page">
     <!-- 搜索栏 -->
     <div class="search-bar">
       <el-form :model="queryParams" inline>
@@ -735,7 +735,7 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.admin-user-page {
+.system-user-page {
   height: 100%;
   display: flex;
   flex-direction: column;

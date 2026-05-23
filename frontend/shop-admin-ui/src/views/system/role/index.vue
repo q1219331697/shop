@@ -79,7 +79,13 @@
         <el-table-column prop="updateTime" label="更新时间" width="170" align="center">
           <template #default="{ row }">{{ formatDate(row.updateTime) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="120" align="center" fixed="right" class-name="table-action-col">
+        <el-table-column
+          label="操作"
+          width="120"
+          align="center"
+          fixed="right"
+          class-name="table-action-col"
+        >
           <template #default="{ row }">
             <el-button link class="action-link" @click="openAssignPermission(row)">
               <el-icon><Key /></el-icon>分配权限
@@ -282,11 +288,9 @@ const hasDisabledSelected = computed(() => selectedRows.value.some((r) => r.stat
 /** 批量删除 */
 function handleBatchDelete() {
   if (selectedIds.value.length === 0) return
-  ElMessageBox.confirm(
-    `确定删除选中的 ${selectedIds.value.length} 个角色吗？`,
-    '提示',
-    { type: 'warning' }
-  )
+  ElMessageBox.confirm(`确定删除选中的 ${selectedIds.value.length} 个角色吗？`, '提示', {
+    type: 'warning',
+  })
     .then(async () => {
       try {
         await Promise.all(selectedIds.value.map((id) => deleteRole(id)))
@@ -303,11 +307,7 @@ function handleBatchDelete() {
 function handleBatchDisable() {
   const ids = selectedRows.value.filter((r) => r.status === 1).map((r) => r.id)
   if (ids.length === 0) return
-  ElMessageBox.confirm(
-    `确定禁用选中的 ${ids.length} 个角色吗？`,
-    '禁用',
-    { type: 'warning' }
-  )
+  ElMessageBox.confirm(`确定禁用选中的 ${ids.length} 个角色吗？`, '禁用', { type: 'warning' })
     .then(async () => {
       try {
         await Promise.all(ids.map((id) => disableRole(id)))
@@ -324,11 +324,7 @@ function handleBatchDisable() {
 function handleBatchEnable() {
   const ids = selectedRows.value.filter((r) => r.status === 0).map((r) => r.id)
   if (ids.length === 0) return
-  ElMessageBox.confirm(
-    `确定启用选中的 ${ids.length} 个角色吗？`,
-    '启用',
-    { type: 'warning' }
-  )
+  ElMessageBox.confirm(`确定启用选中的 ${ids.length} 个角色吗？`, '启用', { type: 'warning' })
     .then(async () => {
       try {
         await Promise.all(ids.map((id) => enableRole(id)))

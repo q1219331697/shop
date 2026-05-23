@@ -33,7 +33,9 @@
           <!-- 无子菜单（如仪表盘） -->
           <el-menu-item v-else :index="item.path">
             <el-icon><component :is="item.meta?.icon" /></el-icon>
-            <template #title><span>{{ item.meta?.title }}</span></template>
+            <template #title
+              ><span>{{ item.meta?.title }}</span></template
+            >
           </el-menu-item>
         </template>
       </el-menu>
@@ -65,6 +67,8 @@ const menuList = computed(() => permissionStore.menuList)
   border-right: 1px solid #d3dae6;
   transition: width 0.3s ease;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 
   &.sidebar-collapsed {
     width: var(--sidebar-collapsed-width, 64px);
@@ -89,6 +93,8 @@ const menuList = computed(() => permissionStore.menuList)
 }
 
 :deep(.el-scrollbar) {
+  flex: 1;
+  overflow: hidden;
   background-color: #ffffff;
 }
 

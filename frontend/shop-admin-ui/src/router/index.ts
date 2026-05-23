@@ -32,6 +32,7 @@ const constantRoutes: RouteRecordRaw[] = [
     name: 'Layout',
     component: () => import('@/layouts/AdminLayout.vue'),
     redirect: '/dashboard',
+    children: [],
     // 子路由由路由守卫根据后端菜单动态添加
   },
   {

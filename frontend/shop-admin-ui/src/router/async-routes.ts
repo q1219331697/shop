@@ -6,11 +6,11 @@ import type { RouteRecordRaw } from 'vue-router'
 import dashboardRoutes from './modules/dashboard'
 import productRoutes from './modules/product'
 import orderRoutes from './modules/order'
-import userRoutes from './modules/user'
+import systemRoutes from './modules/system'
 
 export const asyncRoutes: RouteRecordRaw[] = [
   dashboardRoutes,
   productRoutes,
   orderRoutes,
-  userRoutes,
+  systemRoutes,
 ]
