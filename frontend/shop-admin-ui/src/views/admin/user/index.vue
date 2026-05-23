@@ -105,7 +105,12 @@
           </template>
         </el-table-column>
 
-        <el-table-column prop="createTime" label="创建时间" width="170" align="center" />
+        <el-table-column prop="createTime" label="创建时间" width="170" align="center">
+          <template #default="{ row }">{{ formatDate(row.createTime) }}</template>
+        </el-table-column>
+        <el-table-column prop="updateTime" label="更新时间" width="170" align="center">
+          <template #default="{ row }">{{ formatDate(row.updateTime) }}</template>
+        </el-table-column>
         <el-table-column label="操作" width="320" align="center" fixed="right">
           <template #default="{ row }">
             <el-button link class="action-link" @click="openEdit(row)">
@@ -160,11 +165,16 @@
             {{ detailData.status === 1 ? '正常' : '禁用' }}
           </el-tag>
         </el-descriptions-item>
+        <el-descriptions-item label="删除状态">
+          <el-tag :type="detailData.deleted ? 'danger' : 'info'" effect="plain">
+            {{ detailData.deleted ? '已删除' : '未删除' }}
+          </el-tag>
+        </el-descriptions-item>
         <el-descriptions-item label="创建时间">{{
-          detailData.createTime || '-'
+          formatDate(detailData.createTime)
         }}</el-descriptions-item>
         <el-descriptions-item label="更新时间">{{
-          detailData.updateTime || '-'
+          formatDate(detailData.updateTime)
         }}</el-descriptions-item>
       </el-descriptions>
       <template #footer>
@@ -285,6 +295,7 @@ import {
   type AdminUserItem,
   type RoleItem,
 } from '@/api/user'
+import { formatDate } from '@/utils/date'
 
 // ==================== 列表相关 ====================
 const loading = ref(false)
