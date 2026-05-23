@@ -43,7 +43,7 @@ function heartbeatRenew(): Promise<void> {
  * 处理 Token 过期（401）：直接跳转登录页
  * 由于后端采用滑动过期机制，收到 401 说明 Token 已在 Redis 中失效，无法续期
  */
-function handleTokenExpired(): Promise<any> {
+function handleTokenExpired(): Promise<void> {
   removeToken()
   router.push('/login')
   ElMessageBox.confirm('登录已过期，请重新登录', '提示', {

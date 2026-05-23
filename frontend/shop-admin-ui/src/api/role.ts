@@ -3,7 +3,7 @@
  * 角色管理接口
  */
 import { get, post, put, del } from '@/utils/http'
-import type { PageParams, PageResult, IPageResult } from './types'
+import type { PageParams, IPageResult } from './types'
 import { convertIPage } from './types'
 
 /** 角色信息 */

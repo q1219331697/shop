@@ -119,17 +119,31 @@
             <el-button link class="action-link" @click="openDetail(row)">
               <el-icon><View /></el-icon>详情
             </el-button>
-            <el-popconfirm v-if="!row.deleted" title="确定删除该管理员吗？" @confirm="handleDelete(row.id)">
+            <el-popconfirm
+              v-if="!row.deleted"
+              title="确定删除该管理员吗？"
+              @confirm="handleDelete(row.id)"
+            >
               <template #reference>
                 <el-button link class="action-link action-link--danger">
                   <el-icon><Delete /></el-icon>删除
                 </el-button>
               </template>
             </el-popconfirm>
-            <el-button v-if="!row.deleted && row.status === 1" link class="action-link" @click="handleDisable(row)">
+            <el-button
+              v-if="!row.deleted && row.status === 1"
+              link
+              class="action-link"
+              @click="handleDisable(row)"
+            >
               <el-icon><Lock /></el-icon>禁用
             </el-button>
-            <el-button v-if="!row.deleted && row.status === 0" link class="action-link" @click="handleEnable(row)">
+            <el-button
+              v-if="!row.deleted && row.status === 0"
+              link
+              class="action-link"
+              @click="handleEnable(row)"
+            >
               <el-icon><Unlock /></el-icon>启用
             </el-button>
             <el-button v-if="row.deleted" link class="action-link" @click="handleRestore(row)">
@@ -193,11 +207,7 @@
     >
       <el-form ref="formRef" :model="formData" :rules="formRules" label-width="80px">
         <el-form-item label="用户名" prop="username">
-          <el-input
-            v-model="formData.username"
-            placeholder="请输入用户名"
-            maxlength="20"
-          />
+          <el-input v-model="formData.username" placeholder="请输入用户名" maxlength="20" />
         </el-form-item>
         <el-form-item v-if="!isEdit" label="密码" prop="password">
           <el-input
@@ -389,14 +399,10 @@ function handleSelectionChange(rows: AdminUserItem[]) {
 }
 
 /** 选中行中是否包含已删除用户 */
-const hasDeletedSelected = computed(() =>
-  selectedRows.value.some((r) => r.deleted),
-)
+const hasDeletedSelected = computed(() => selectedRows.value.some((r) => r.deleted))
 
 /** 选中行中是否包含未删除用户 */
-const hasNotDeletedSelected = computed(() =>
-  selectedRows.value.some((r) => !r.deleted),
-)
+const hasNotDeletedSelected = computed(() => selectedRows.value.some((r) => !r.deleted))
 
 /** 是否可以批量编辑（仅选中1条未删除用户） */
 const canBatchEdit = computed(

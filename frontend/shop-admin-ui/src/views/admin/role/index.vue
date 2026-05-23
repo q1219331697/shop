@@ -1,4 +1,3 @@
-
 <template>
   <div ref="pageRef" class="admin-role-page">
     <!-- 搜索栏 -->
@@ -48,12 +47,7 @@
 
     <!-- 数据表格 -->
     <div class="table-wrapper">
-      <el-table
-        v-loading="loading"
-        :data="tableData"
-        border
-        stripe
-      >
+      <el-table v-loading="loading" :data="tableData" border stripe>
         <el-table-column prop="id" label="ID" width="70" align="center" />
         <el-table-column prop="roleName" label="角色名称" width="160" show-overflow-tooltip />
         <el-table-column prop="roleCode" label="角色编码" width="180" show-overflow-tooltip />
@@ -197,10 +191,7 @@ import {
   getRolePermissionIds,
   type RoleItem,
 } from '@/api/role'
-import {
-  getPermissionTree,
-  type PermissionItem,
-} from '@/api/permission'
+import { getPermissionTree, type PermissionItem } from '@/api/permission'
 import { formatDate } from '@/utils/date'
 
 // ==================== 列表相关 ====================
@@ -361,10 +352,7 @@ async function openAssignPermission(row: RoleItem) {
   permLoading.value = true
   try {
     // 并行加载权限树和角色已有权限
-    const [tree, ids] = await Promise.all([
-      getPermissionTree(),
-      getRolePermissionIds(row.id),
-    ])
+    const [tree, ids] = await Promise.all([getPermissionTree(), getRolePermissionIds(row.id)])
     permissionTree.value = tree || []
     // 只设置叶子节点为选中状态，避免父节点自动勾选问题
     checkedPermIds.value = getLeafIds(ids || [], tree || [])
