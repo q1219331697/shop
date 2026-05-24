@@ -20,6 +20,11 @@ export interface PermissionItem {
   createTime: string
   updateTime: string
   children?: PermissionItem[]
+  /** 前端扩展属性 */
+  _level?: number
+  _isLast?: boolean
+  _treeLines?: string[]
+  _hasChildren?: boolean
 }
 
 /** 获取当前用户菜单树（用于动态生成侧边栏菜单和路由） */

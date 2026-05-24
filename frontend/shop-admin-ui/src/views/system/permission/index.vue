@@ -36,17 +36,44 @@
       <el-table
         ref="tableRef"
         v-loading="loading"
-        :data="tableData"
+        :data="flatData"
         border
         row-key="id"
         fit
         height="100%"
         highlight-current-row
-        :default-expand-all="expandAll"
-        :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
         @row-click="handleRowClick"
       >
-        <el-table-column prop="permissionName" label="权限名称" width="200" />
+        <el-table-column width="55" align="center">
+          <template #header>
+            <el-checkbox disabled />
+          </template>
+          <template #default="{ row }">
+            <el-checkbox
+              :model-value="currentRow?.id === row.id"
+              @change="handleCheckChange(row)"
+              @click.stop
+            />
+          </template>
+        </el-table-column>
+        <el-table-column prop="permissionName" label="权限名称" min-width="260">
+          <template #default="{ row }">
+            <span
+              v-for="(item, idx) in row._level > 0 ? row._treeLines || [] : []"
+              :key="idx"
+              class="tree-line"
+              >{{ item }}</span
+            >
+            <span
+              v-if="row._hasChildren"
+              class="tree-expand-icon"
+              @click.stop="toggleExpand(row)"
+              >{{ expandedKeys.has(row.id) ? '▼' : '▶' }}</span
+            >
+            <span v-else class="tree-expand-indent" />
+            <span>{{ row.permissionName }}</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="permissionCode" label="权限编码" width="240" />
         <el-table-column prop="permissionType" label="类型" align="center">
           <template #default="{ row }">
@@ -55,20 +82,36 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="path" label="路由路径" width="160" />
-        <el-table-column prop="component" label="组件路径" width="200" />
+        <el-table-column prop="path" label="路由路径" width="160">
+          <template #default="{ row }">
+            <span v-if="row.permissionType === 1">{{ row.path || '-' }}</span>
+            <span v-else class="text-muted">-</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="component" label="组件路径" width="200">
+          <template #default="{ row }">
+            <span v-if="row.permissionType === 1">{{ row.component || '-' }}</span>
+            <span v-else class="text-muted">-</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="icon" label="图标" width="80" align="center">
           <template #default="{ row }">
-            <el-icon v-if="row.icon" :size="18"><component :is="row.icon" /></el-icon>
-            <span v-else>-</span>
+            <template v-if="row.permissionType === 1">
+              <el-icon v-if="row.icon" :size="18"><component :is="row.icon" /></el-icon>
+              <span v-else>-</span>
+            </template>
+            <span v-else class="text-muted">-</span>
           </template>
         </el-table-column>
         <el-table-column prop="sortOrder" label="排序" width="70" align="center" />
         <el-table-column prop="visible" label="可见" width="80" align="center">
           <template #default="{ row }">
-            <el-tag :type="row.visible === 1 ? 'success' : 'info'" effect="plain">
-              {{ row.visible === 1 ? '显示' : '隐藏' }}
-            </el-tag>
+            <template v-if="row.permissionType === 1">
+              <el-tag :type="row.visible === 1 ? 'success' : 'info'" effect="plain">
+                {{ row.visible === 1 ? '显示' : '隐藏' }}
+              </el-tag>
+            </template>
+            <span v-else class="text-muted">-</span>
           </template>
         </el-table-column>
         <el-table-column prop="status" label="状态" width="80" align="center">
@@ -114,6 +157,7 @@
             v-model="formData.parentId"
             :data="parentTreeOptions"
             :props="{ label: 'permissionName', children: 'children' }"
+            node-key="id"
             placeholder="顶级权限"
             clearable
             check-strictly
@@ -192,8 +236,26 @@ const tableData = ref<PermissionItem[]>([])
 const expandAll = ref(true)
 const tableRef = ref()
 const currentRow = ref<PermissionItem | null>(null)
-/** 行点击选中，再点取消 */
-function handleRowClick(row: PermissionItem) {
+const expandedKeys = ref<Set<number>>(new Set())
+
+/** 扁平化数据：根据展开状态将树形数据展开为一维列表，去掉children防止el-table自动生成展开箭头 */
+const flatData = computed(() => {
+  const result: PermissionItem[] = []
+  function walk(list: PermissionItem[]) {
+    list.forEach((item) => {
+      const { children, ...rest } = item
+      result.push(rest)
+      if (item._hasChildren && expandedKeys.value.has(item.id) && children) {
+        walk(children)
+      }
+    })
+  }
+  walk(tableData.value)
+  return result
+})
+
+/** checkbox 单选切换 */
+function handleCheckChange(row: PermissionItem) {
   if (currentRow.value?.id === row.id) {
     currentRow.value = null
     tableRef.value?.setCurrentRow()
@@ -203,12 +265,68 @@ function handleRowClick(row: PermissionItem) {
   }
 }
 
+/** 行点击：选中行，菜单行同时切换展开/折叠 */
+function handleRowClick(row: PermissionItem) {
+  // 选中逻辑
+  if (currentRow.value?.id === row.id) {
+    currentRow.value = null
+    tableRef.value?.setCurrentRow()
+  } else {
+    currentRow.value = row
+    tableRef.value?.setCurrentRow(row)
+  }
+  // 菜单行同时切换展开/折叠
+  if (row.permissionType === 1 && row._hasChildren) {
+    toggleExpand(row)
+  }
+}
+
+/** 给树数据添加 _level、_isLast、_treeLines、_hasChildren 属性 */
+function addLevelToTree(
+  list: PermissionItem[],
+  level = 0,
+  parentLines: string[] = [],
+): PermissionItem[] {
+  return list.map((item, index) => {
+    const isLast = index === list.length - 1
+    // 将当前层级的分支符号也放入 treeLines，统一用 tree-line 渲染，确保对齐
+    const treeLines = [...parentLines, isLast ? '└' : '├']
+    const hasChildren = !!(item.children && item.children.length)
+    const newItem = {
+      ...item,
+      _level: level,
+      _isLast: isLast,
+      _treeLines: treeLines,
+      _hasChildren: hasChildren,
+    }
+    if (hasChildren && item.children) {
+      // 子节点的 parentLines：在当前 treeLines 基础上，把最后一个(├/└)替换为│
+      const childLines = [...treeLines.slice(0, -1), '│']
+      newItem.children = addLevelToTree(item.children, level + 1, childLines)
+    }
+    return newItem
+  })
+}
+
+/** 切换展开/折叠 */
+function toggleExpand(row: PermissionItem) {
+  if (expandedKeys.value.has(row.id)) {
+    expandedKeys.value.delete(row.id)
+  } else {
+    expandedKeys.value.add(row.id)
+  }
+}
+
 /** 获取权限树数据 */
 async function fetchData() {
   loading.value = true
   try {
     const data = await getPermissionTree()
-    tableData.value = data || []
+    tableData.value = addLevelToTree(data || [])
+    // 默认展开全部
+    if (expandAll.value) {
+      collectAllParentKeys(tableData.value)
+    }
   } catch {
     tableData.value = []
   } finally {
@@ -216,20 +334,22 @@ async function fetchData() {
   }
 }
 
+/** 收集所有父节点key */
+function collectAllParentKeys(list: PermissionItem[]) {
+  list.forEach((item) => {
+    if (item._hasChildren) {
+      expandedKeys.value.add(item.id)
+      collectAllParentKeys(item.children || [])
+    }
+  })
+}
+
 /** 展开/折叠切换 */
 function handleExpandChange(val: string | number | boolean) {
-  const table = tableRef.value
-  if (!table) return
-  const data = tableData.value
-  function toggleExpand(rows: PermissionItem[]) {
-    rows.forEach((row) => {
-      table.toggleRowExpansion(row, val)
-      if (row.children && row.children.length) {
-        toggleExpand(row.children)
-      }
-    })
+  expandedKeys.value.clear()
+  if (val) {
+    collectAllParentKeys(tableData.value)
   }
-  toggleExpand(data)
 }
 
 // ==================== 表单相关 ====================
@@ -387,9 +507,130 @@ onMounted(() => {
   color: var(--el-color-danger-light-3);
 }
 
+.text-muted {
+  color: #c0c4cc;
+}
+
+/* 第一列checkbox居中 */
+:deep(.el-table td:first-child .cell),
+:deep(.el-table th:first-child .cell) {
+  text-align: center !important;
+  padding: 0 !important;
+}
+
+:deep(.el-table td:first-child .cell .el-checkbox),
+:deep(.el-table th:first-child .cell .el-checkbox) {
+  margin-right: 0 !important;
+  vertical-align: middle !important;
+}
+
+.tree-line {
+  display: inline-block;
+  width: 10px;
+  text-align: center;
+  vertical-align: middle;
+  font-size: 12px;
+  color: #c8cdd5;
+  line-height: 1;
+  font-family: monospace;
+}
+
+.tree-expand-icon {
+  cursor: pointer;
+  display: inline-block;
+  width: 10px;
+  text-align: center;
+  vertical-align: middle;
+  font-size: 12px;
+  color: #8a9099;
+  user-select: none;
+  line-height: 1;
+}
+
+.tree-expand-icon:hover {
+  color: var(--el-color-primary);
+}
+
+.tree-expand-indent {
+  display: inline-block;
+  width: 10px;
+}
+
 :deep(.el-table .el-table__cell) {
   padding-left: 4px;
   padding-right: 4px;
   white-space: nowrap;
+}
+
+/* 紧凑表格样式 - 使用CSS变量全局控制 */
+:deep(.el-table) {
+  --el-table-row-hover-bg-color: var(--el-fill-color-light);
+  --el-table-header-height: 40px;
+  --el-table-row-height: 38px;
+  --el-table-cell-padding: 0;
+}
+
+:deep(.el-table .el-table__body-wrapper .el-table__body tr),
+:deep(.el-table .el-table__body-wrapper .el-table__body tr.el-table__row),
+:deep(.el-table .el-table__body-wrapper .el-table__body tr.el-table__row--level-0),
+:deep(.el-table .el-table__body-wrapper .el-table__body tr.el-table__row--level-1),
+:deep(.el-table .el-table__body-wrapper .el-table__body tr.el-table__row--level-2),
+:deep(.el-table .el-table__body-wrapper .el-table__body tr.el-table__row--level-3) {
+  height: 38px !important;
+  max-height: 38px !important;
+}
+
+:deep(.el-table .el-table__body-wrapper .el-table__body td),
+:deep(.el-table .el-table__body-wrapper .el-table__body td.el-table__cell) {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  height: 38px !important;
+  max-height: 38px !important;
+}
+
+:deep(.el-table .el-table__header-wrapper .el-table__header th),
+:deep(.el-table .el-table__header-wrapper .el-table__header th.el-table__cell) {
+  height: 40px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+:deep(.el-table .el-table__body-wrapper .el-table__body td .cell),
+:deep(.el-table .el-table__body-wrapper .el-table__body td.el-table__cell .cell) {
+  line-height: 36px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  min-height: 36px !important;
+  max-height: 36px !important;
+}
+
+:deep(.el-table .el-table__header-wrapper .el-table__header th .cell),
+:deep(.el-table .el-table__header-wrapper .el-table__header th.el-table__cell .cell) {
+  line-height: 36px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  min-height: 36px !important;
+  max-height: 36px !important;
+}
+
+/* 紧凑表格内组件尺寸 */
+:deep(.el-table .el-table__body .el-tag) {
+  height: 20px !important;
+  padding: 0 6px !important;
+  line-height: 18px !important;
+  font-size: 12px !important;
+}
+
+:deep(.el-table .el-table__body .el-checkbox) {
+  height: 20px !important;
+}
+
+:deep(.el-table .el-table__body .el-checkbox__inner) {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+:deep(.el-table .el-table__body .el-icon) {
+  font-size: 16px !important;
 }
 </style>
