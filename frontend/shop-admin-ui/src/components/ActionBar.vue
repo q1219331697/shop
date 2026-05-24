@@ -63,11 +63,14 @@ const props = withDefaults(
   defineProps<{
     /** 操作按钮配置，不配置则使用默认4个按钮 */
     actions?: ActionItem[]
+    /** 追加到默认/自定义按钮后面的额外按钮 */
+    extraActions?: ActionItem[]
     /** 操作上下文 */
     context?: ActionContext
   }>(),
   {
     actions: undefined,
+    extraActions: undefined,
     context: () => ({
       selectedRows: [],
       selectedIds: [],
@@ -110,7 +113,8 @@ const defaultToolbar: ActionItem[] = [
 
 /** 解析后的工具栏按钮列表 */
 const resolvedToolbar = computed(() => {
-  const items = props.actions ?? defaultToolbar
+  const base = props.actions ?? defaultToolbar
+  const items = [...base, ...(props.extraActions ?? [])]
   return items.filter((item) => {
     if (typeof item.visible === 'function') {
       return item.visible(props.context)

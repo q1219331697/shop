@@ -86,7 +86,7 @@
  */
 import { computed } from 'vue'
 import { formatDate } from '@/utils/date'
-import type { DetailField } from './CrudPage/types'
+import type { DetailField, RowData } from './CrudPage/types'
 
 const props = withDefaults(
   defineProps<{
@@ -99,8 +99,7 @@ const props = withDefaults(
     /** 详情字段配置 */
     fields?: DetailField[]
     /** 详情数据 */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: Record<string, any>
+    data: RowData
     /** 是否加载中 */
     loading?: boolean
   }>(),

@@ -34,8 +34,7 @@ function resolveComponent(component: string | null | undefined) {
  */
 function transformMenusToRoutes(menus: PermissionItem[]): RouteRecordRaw[] {
   return menus.map((menu) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const route: Record<string, any> = {
+    const route: Partial<RouteRecordRaw> = {
       path: menu.path,
       name: menu.permissionCode,
       meta: {

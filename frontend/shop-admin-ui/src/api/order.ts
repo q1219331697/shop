@@ -3,6 +3,7 @@
  */
 import { get, put } from '@/utils/http'
 import type { PageParams, PageResult } from './types'
+import type { IdType } from '@/components/CrudPage/types'
 
 /** 订单信息 */
 export interface OrderItem {
@@ -43,16 +44,16 @@ export function getOrderList(
 }
 
 /** 订单详情 */
-export function getOrderDetail(id: number) {
+export function getOrderDetail(id: IdType) {
   return get<OrderItem>(`/order/${id}`)
 }
 
 /** 发货 */
-export function deliverOrder(id: number, data: { expressNo: string; expressCompany: string }) {
+export function deliverOrder(id: IdType, data: { expressNo: string; expressCompany: string }) {
   return put(`/order/${id}/deliver`, data)
 }
 
 /** 关闭订单 */
-export function closeOrder(id: number) {
+export function closeOrder(id: IdType) {
   return put(`/order/${id}/close`)
 }

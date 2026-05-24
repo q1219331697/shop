@@ -19,7 +19,8 @@
     <!-- 按钮区 -->
     <template #actions>
       <ActionBar
-        :actions="schema.actions?.toolbar"
+        :actions="schema.actions?.toolbar ?? undefined"
+        :extra-actions="schema.actions?.extraToolbar"
         :context="actionContext"
         @action="handleToolbarAction"
       >
@@ -123,11 +124,13 @@ import DataArea from './DataArea.vue'
 import CrudFormDialog from './CrudFormDialog.vue'
 import CrudDetailDialog from './CrudDetailDialog.vue'
 import { useCrud } from '@/composables/use-crud'
-import type { CrudSchema } from './CrudPage/types'
+import type { CrudSchema, RowData } from './CrudPage/types'
 
 const props = defineProps<{
   /** CRUD Schema 配置 */
-  schema: CrudSchema<any> // eslint-disable-line @typescript-eslint/no-explicit-any
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  schema: CrudSchema<any, any>
 }>()
 
 const emit = defineEmits<{
@@ -207,8 +210,7 @@ function handleToolbarAction(action: string) {
 }
 
 /** 处理行操作 */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function handleRowAction(action: string, row: any) {
+function handleRowAction(action: string, row: RowData) {
   const builtinActions = ['edit', 'detail', 'delete']
   if (builtinActions.includes(action)) {
     crudHandleRowAction(action, row)

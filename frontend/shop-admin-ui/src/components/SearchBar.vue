@@ -143,15 +143,14 @@
  */
 import { reactive, computed, onMounted, watch } from 'vue'
 import { Search, Refresh } from '@element-plus/icons-vue'
-import type { SearchField, SearchSelect, SearchDateRange } from './CrudPage/types'
+import type { SearchField, SearchSelect, SearchDateRange, RowData } from './CrudPage/types'
 
 const props = withDefaults(
   defineProps<{
     /** 搜索字段配置 */
     fields?: SearchField[]
     /** 查询参数对象（v-model） */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    queryParams: Record<string, any>
+    queryParams: RowData
     /** 是否显示搜索/重置按钮 */
     showButtons?: boolean
     /** 搜索按钮文本 */
@@ -169,13 +168,11 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   (e: 'search' | 'reset'): void
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (e: 'update:queryParams', params: Record<string, any>): void
+  (e: 'update:queryParams', params: RowData): void
 }>()
 
 /** 本地查询参数副本，避免直接修改 prop */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const localParams = reactive<Record<string, any>>({})
+const localParams = reactive<RowData>({})
 
 /** 同步 prop 到本地副本 */
 watch(
@@ -195,8 +192,7 @@ function syncParams() {
 }
 
 /** 日期范围的本地值（数组形式） */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const dateRangeValues = reactive<Record<string, any>>({})
+const dateRangeValues = reactive<Record<string, [string, string] | null>>({})
 
 /** 各字段的异步选项 */
 const asyncOptions = reactive<

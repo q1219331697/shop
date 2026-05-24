@@ -4,25 +4,26 @@
  * 封装列表/分页/选择/操作状态管理，
  * 供 CrudPage 和自由组装页面使用。
  */
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, shallowRef, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import type { ActionContext, SearchField, SearchDateRange } from '../components/CrudPage/types'
-
-type RowData = Record<string, unknown>
+import type { ActionContext, SearchField, SearchDateRange, RowData, IdType } from '../components/CrudPage/types'
 
 interface UseCrudOptions<T extends RowData = RowData> {
   /** 列表请求 */
-  listApi: (params: Record<string, unknown>) => Promise<{ list: T[]; total: number }>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  listApi: (params: any) => Promise<{ list: T[]; total: number }>
   /** 详情请求 */
-  detailApi?: (id: string | number) => Promise<T>
+  detailApi?: (id: IdType) => Promise<T>
   /** 新增请求 */
-  createApi?: (data: Record<string, unknown>) => Promise<unknown>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  createApi?: (data: any) => Promise<unknown>
   /** 编辑请求 */
-  updateApi?: (id: string | number, data: Record<string, unknown>) => Promise<unknown>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  updateApi?: (id: IdType, data: any) => Promise<unknown>
   /** 删除请求 */
-  deleteApi?: (id: string | number) => Promise<unknown>
+  deleteApi?: (id: IdType) => Promise<unknown>
   /** 批量删除请求 */
-  batchDeleteApi?: (ids: (string | number)[]) => Promise<unknown>
+  batchDeleteApi?: (ids: IdType[]) => Promise<unknown>
   /** 默认分页大小 */
   defaultPageSize?: number
   /** 默认查询参数 */
@@ -124,11 +125,11 @@ export function useCrud<T extends RowData = RowData>(options: UseCrudOptions<T>)
 
   // ==================== 选择相关 ====================
   const selectedRows = ref<T[]>([])
-  const selectedIds = ref<(string | number)[]>([])
+  const selectedIds = shallowRef<IdType[]>([])
 
   function handleSelectionChange(rows: T[]) {
     selectedRows.value = rows
-    selectedIds.value = rows.map((r) => r[rowKey] as string | number)
+    selectedIds.value = rows.map((r) => r[rowKey] as IdType)
   }
 
   /** 操作上下文 */
@@ -186,7 +187,7 @@ export function useCrud<T extends RowData = RowData>(options: UseCrudOptions<T>)
   async function handleSingleDelete(row: T) {
     if (!deleteApi) return
     try {
-      await deleteApi(row[rowKey] as string | number)
+      await deleteApi(row[rowKey] as IdType)
       ElMessage.success('删除成功')
       fetchData()
     } catch {
@@ -248,7 +249,7 @@ export function useCrud<T extends RowData = RowData>(options: UseCrudOptions<T>)
     submitting.value = true
     try {
       if (isEdit.value && updateApi) {
-        const id = data[rowKey] as string | number
+        const id = data[rowKey] as IdType
         await updateApi(id, data)
         ElMessage.success('更新成功')
       } else if (createApi) {
@@ -267,8 +268,7 @@ export function useCrud<T extends RowData = RowData>(options: UseCrudOptions<T>)
   // ==================== 详情对话框 ====================
   const detailDialogVisible = ref(false)
   const detailLoading = ref(false)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const detailData = ref<any>({})
+  const detailData = ref<RowData>({})
 
   /** 打开详情对话框 */
   async function openDetailDialog(row: T) {
@@ -276,7 +276,7 @@ export function useCrud<T extends RowData = RowData>(options: UseCrudOptions<T>)
     detailLoading.value = true
     try {
       if (detailApi) {
-        const data = await detailApi(row[rowKey] as string | number)
+        const data = await detailApi(row[rowKey] as IdType)
         detailData.value = data
       } else {
         detailData.value = { ...row }

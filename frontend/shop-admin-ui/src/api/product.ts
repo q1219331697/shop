@@ -3,6 +3,7 @@
  */
 import { get, post, put, del } from '@/utils/http'
 import type { PageParams, PageResult } from './types'
+import type { IdType } from '@/components/CrudPage/types'
 
 /** 商品信息 */
 export interface ProductItem {
@@ -41,7 +42,7 @@ export function getProductList(
 }
 
 /** 商品详情 */
-export function getProductDetail(id: number) {
+export function getProductDetail(id: IdType) {
   return get<ProductItem>(`/product/${id}`)
 }
 
@@ -51,12 +52,12 @@ export function createProduct(data: Partial<ProductItem>) {
 }
 
 /** 编辑商品 */
-export function updateProduct(id: number, data: Partial<ProductItem>) {
+export function updateProduct(id: IdType, data: Partial<ProductItem>) {
   return put(`/product/${id}`, data)
 }
 
 /** 删除商品 */
-export function deleteProduct(id: number) {
+export function deleteProduct(id: IdType) {
   return del(`/product/${id}`)
 }
 

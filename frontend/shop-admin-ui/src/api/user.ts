@@ -4,6 +4,7 @@
 import { get, post, put, del } from '@/utils/http'
 import type { PageParams, PageResult, IPageResult } from './types'
 import { convertIPage } from './types'
+import type { IdType } from '@/components/CrudPage/types'
 
 /** 用户信息 */
 export interface UserItem {
@@ -22,7 +23,7 @@ export function getUserList(params: PageParams & { keyword?: string; status?: nu
 }
 
 /** 用户详情 */
-export function getUserDetail(id: number) {
+export function getUserDetail(id: IdType) {
   return get<UserItem>(`/user/${id}`)
 }
 
@@ -32,12 +33,12 @@ export function createUser(data: Partial<UserItem> & { password: string }) {
 }
 
 /** 编辑用户 */
-export function updateUser(id: number, data: Partial<UserItem>) {
+export function updateUser(id: IdType, data: Partial<UserItem>) {
   return put(`/user/${id}`, data)
 }
 
 /** 删除用户 */
-export function deleteUser(id: number) {
+export function deleteUser(id: IdType) {
   return del(`/user/${id}`)
 }
 
@@ -78,7 +79,7 @@ export async function getAdminUserList(params: AdminUserPageParams) {
 }
 
 /** 管理员用户详情 */
-export function getAdminUserDetail(id: number) {
+export function getAdminUserDetail(id: IdType) {
   return get<AdminUserItem>(`/adminUser/${id}`)
 }
 
@@ -88,57 +89,57 @@ export function createAdminUser(data: Partial<AdminUserItem> & { password: strin
 }
 
 /** 编辑管理员用户 */
-export function updateAdminUser(id: number, data: Partial<AdminUserItem>) {
+export function updateAdminUser(id: IdType, data: Partial<AdminUserItem>) {
   return put(`/adminUser/${id}`, data)
 }
 
 /** 删除管理员用户 */
-export function deleteAdminUser(id: number) {
+export function deleteAdminUser(id: IdType) {
   return del(`/adminUser/${id}`)
 }
 
 /** 批量删除管理员用户 */
-export function batchDeleteAdminUser(ids: number[]) {
+export function batchDeleteAdminUser(ids: IdType[]) {
   return del('/adminUser/batch', { ids })
 }
 
 /** 禁用管理员用户 */
-export function disableAdminUser(id: number) {
+export function disableAdminUser(id: IdType) {
   return put(`/adminUser/${id}/disable`)
 }
 
 /** 启用管理员用户 */
-export function enableAdminUser(id: number) {
+export function enableAdminUser(id: IdType) {
   return put(`/adminUser/${id}/enable`)
 }
 
 /** 恢复管理员用户 */
-export function restoreAdminUser(id: number) {
+export function restoreAdminUser(id: IdType) {
   return put(`/adminUser/${id}/restore`)
 }
 
 /** 批量禁用管理员用户 */
-export function batchDisableAdminUser(ids: number[]) {
+export function batchDisableAdminUser(ids: IdType[]) {
   return put('/adminUser/batch-disable', { ids })
 }
 
 /** 批量启用管理员用户 */
-export function batchEnableAdminUser(ids: number[]) {
+export function batchEnableAdminUser(ids: IdType[]) {
   return put('/adminUser/batch-enable', { ids })
 }
 
 /** 批量恢复管理员用户 */
-export function batchRestoreAdminUser(ids: number[]) {
+export function batchRestoreAdminUser(ids: IdType[]) {
   return put('/adminUser/batch-restore', { ids })
 }
 
 /** 为管理员分配角色 */
-export function assignAdminRoles(userId: number, roleIds: number[]) {
+export function assignAdminRoles(userId: IdType, roleIds: number[]) {
   return post(`/adminUser/${userId}/roles`, { roleIds })
 }
 
 /** 获取管理员的角色ID列表 */
-export function getAdminRoleIds(userId: number) {
+export function getAdminRoleIds(userId: IdType) {
   return get<number[]>(`/adminUser/${userId}/roles`)
 }
 

@@ -4,6 +4,14 @@
 import type { Component } from 'vue'
 import type { FormRules } from 'element-plus'
 
+ 
+/** 行数据类型 - 动态键值对象，用于表格行、表单数据等场景 */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type RowData = Record<string, any>
+
+/** ID 类型 */
+export type IdType = string | number
+
 // ==================== 搜索区 ====================
 
 /** 搜索字段基础属性 */
@@ -91,7 +99,7 @@ export type SearchField =
 // ==================== 按钮区 ====================
 
 /** 操作按钮上下文 */
-export interface ActionContext<T = Record<string, unknown>> {
+export interface ActionContext<T = RowData> {
   /** 已选中的行数据 */
   selectedRows: T[]
   /** 已选中的 ID 列表 */
@@ -103,7 +111,7 @@ export interface ActionContext<T = Record<string, unknown>> {
 }
 
 /** 操作按钮配置 */
-export interface ActionItem<T = Record<string, unknown>> {
+export interface ActionItem<T = RowData> {
   /** 操作标识 */
   action: string
   /** 按钮文本 */
@@ -121,9 +129,11 @@ export interface ActionItem<T = Record<string, unknown>> {
 }
 
 /** ActionBar 完整配置 */
-export interface ActionsConfig<T = Record<string, unknown>> {
+export interface ActionsConfig<T = RowData> {
   /** 工具栏按钮（不配置则默认4个：新增/编辑/详情/删除） */
   toolbar?: ActionItem<T>[]
+  /** 追加到默认工具栏后面的额外按钮 */
+  extraToolbar?: ActionItem<T>[]
   /** 行操作按钮（不配置则默认3个：编辑/详情/删除） */
   rowActions?: ActionItem<T>[]
 }
@@ -146,7 +156,7 @@ export interface TagMap {
 }
 
 /** 表格列配置 */
-export interface TableColumn<T = Record<string, unknown>> {
+export interface TableColumn<T = RowData> {
   /** 字段属性名 */
   prop: string
   /** 列标题 */
@@ -274,7 +284,7 @@ export interface FormField {
 export type DetailFieldType = 'default' | 'tag' | 'date' | 'boolean' | 'money' | 'image' | 'slot'
 
 /** 详情字段配置 */
-export interface DetailField<T = Record<string, unknown>> {
+export interface DetailField<T = RowData> {
   /** 字段属性名 */
   prop: string
   /** 标签文本 */
@@ -307,7 +317,7 @@ export interface DetailField<T = Record<string, unknown>> {
 // ==================== Schema ====================
 
 /** CRUD Schema 完整配置 */
-export interface CrudSchema<T = Record<string, unknown>> {
+export interface CrudSchema<T extends RowData = RowData, Id extends IdType = IdType> {
   /** 模块名称（用于对话框标题等） */
   name: string
   /** 行唯一键，默认 'id' */
@@ -355,18 +365,15 @@ export interface CrudSchema<T = Record<string, unknown>> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   listApi: (params: any) => Promise<{ list: T[]; total: number }>
   /** 详情请求 */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  detailApi?: (id: any) => Promise<T>
+  detailApi?: (id: Id) => Promise<T>
   /** 新增请求 */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  createApi?: (data: any) => Promise<any>
+  createApi?: (data: any) => Promise<unknown>
   /** 编辑请求 */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  updateApi?: (id: any, data: any) => Promise<any>
+  updateApi?: (id: Id, data: any) => Promise<unknown>
   /** 删除请求 */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  deleteApi?: (id: any) => Promise<any>
+  deleteApi?: (id: Id) => Promise<unknown>
   /** 批量删除请求 */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  batchDeleteApi?: (ids: any[]) => Promise<any>
+  batchDeleteApi?: (ids: Id[]) => Promise<unknown>
 }

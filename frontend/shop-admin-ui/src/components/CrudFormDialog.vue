@@ -191,10 +191,9 @@
  */
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
-import type { FormField } from './CrudPage/types'
+import type { FormField, RowData } from './CrudPage/types'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type FormData = Record<string, any>
+type FormData = RowData
 
 const props = withDefaults(
   defineProps<{
@@ -207,8 +206,7 @@ const props = withDefaults(
     /** 表单字段配置 */
     fields?: FormField[]
     /** 表单数据 */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    formData: Record<string, any>
+    formData: RowData
     /** 校验规则 */
     rules?: FormRules
     /** 是否编辑模式 */
@@ -228,8 +226,7 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   (e: 'update:modelValue', val: boolean): void
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (e: 'submit', data: Record<string, any>): void
+  (e: 'submit', data: RowData): void
 }>()
 
 const formRef = ref<FormInstance>()

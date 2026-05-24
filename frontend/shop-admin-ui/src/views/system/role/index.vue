@@ -46,7 +46,7 @@
  */
 import { ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Key, Lock, Unlock } from '@element-plus/icons-vue'
+import { Key } from '@element-plus/icons-vue'
 import { CrudPage } from '@/components/CrudPage'
 import type { CrudSchema } from '@/components/CrudPage'
 import {
@@ -67,7 +67,7 @@ import { getPermissionTree, type PermissionItem } from '@/api/permission'
 const crudPageRef = ref<InstanceType<typeof CrudPage>>()
 
 /** Role CRUD Schema */
-const roleSchema: CrudSchema<RoleItem> = {
+const roleSchema: CrudSchema<RoleItem, string> = {
   name: '角色',
   rowKey: 'id',
 
@@ -87,34 +87,18 @@ const roleSchema: CrudSchema<RoleItem> = {
 
   // ---- 按钮区 ----
   actions: {
-    toolbar: [
-      { action: 'create', label: '新增', icon: 'Plus', type: 'primary' },
-      {
-        action: 'edit',
-        label: '编辑',
-        icon: 'Edit',
-        type: 'warning',
-        disabled: (ctx) => ctx.selectedCount !== 1,
-      },
-      {
-        action: 'delete',
-        label: '删除',
-        icon: 'Delete',
-        type: 'danger',
-        disabled: (ctx) => ctx.selectedCount === 0,
-        confirm: (ctx) => `确定删除选中的 ${ctx.selectedCount} 个角色吗？`,
-      },
+    extraToolbar: [
       {
         action: 'disable',
         label: '禁用',
-        icon: Lock,
+        icon: 'Lock',
         type: 'warning',
         disabled: (ctx) => !ctx.selectedRows.some((r: RoleItem) => r.status === 1),
       },
       {
         action: 'enable',
         label: '启用',
-        icon: Unlock,
+        icon: 'Unlock',
         type: 'success',
         disabled: (ctx) => !ctx.selectedRows.some((r: RoleItem) => r.status === 0),
       },

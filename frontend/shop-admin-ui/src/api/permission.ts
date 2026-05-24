@@ -2,6 +2,7 @@
  * 权限管理接口
  */
 import { get, post, put, del } from '@/utils/http'
+import type { IdType } from '@/components/CrudPage/types'
 
 /** 权限信息 */
 export interface PermissionItem {
@@ -38,7 +39,7 @@ export function getPermissionTree() {
 }
 
 /** 获取权限详情 */
-export function getPermissionDetail(id: number) {
+export function getPermissionDetail(id: IdType) {
   return get<PermissionItem>(`/permission/${id}`)
 }
 
@@ -48,11 +49,11 @@ export function createPermission(data: Partial<PermissionItem>) {
 }
 
 /** 更新权限 */
-export function updatePermission(id: number, data: Partial<PermissionItem>) {
+export function updatePermission(id: IdType, data: Partial<PermissionItem>) {
   return put(`/permission/${id}`, data)
 }
 
 /** 删除权限 */
-export function deletePermission(id: number) {
+export function deletePermission(id: IdType) {
   return del(`/permission/${id}`)
 }

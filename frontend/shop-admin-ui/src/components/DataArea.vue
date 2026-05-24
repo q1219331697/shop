@@ -211,15 +211,14 @@
 import { ref, computed } from 'vue'
 import { Edit, View, Delete } from '@element-plus/icons-vue'
 import { formatDate } from '@/utils/date'
-import type { TableColumn, ActionItem } from './CrudPage/types'
+import type { TableColumn, ActionItem, RowData } from './CrudPage/types'
 
 const props = withDefaults(
   defineProps<{
     /** 表格列配置 */
     columns: TableColumn[]
     /** 数据源 */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: Record<string, any>[]
+    data: RowData[]
     /** 行唯一键 */
     rowKey?: string | (() => string)
     /** 是否加载中 */
@@ -267,13 +266,10 @@ const props = withDefaults(
 )
 
 const emit = defineEmits<{
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (e: 'selection-change', rows: Record<string, any>[]): void
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (e: 'row-click', row: Record<string, any>, column: any): void
+  (e: 'selection-change', rows: RowData[]): void
+  (e: 'row-click', row: RowData, column: RowData): void
   (e: 'page-change' | 'size-change', value: number): void
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (e: 'action', action: string, row: Record<string, any>): void
+  (e: 'action', action: string, row: RowData): void
 }>()
 
 const tableRef = ref()
@@ -321,40 +317,38 @@ function formatMoney(value: unknown, prefix?: string, precision?: number): strin
 }
 
 /** 判断行操作按钮是否可见 */
-function isRowActionVisible(item: ActionItem, _row: Record<string, unknown>): boolean {
+function isRowActionVisible(item: ActionItem, _row: RowData): boolean {
   if (typeof item.visible === 'function') {
     return item.visible({
       selectedRows: [],
       selectedIds: [],
       selectedCount: 0,
       loading: false,
-    } as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+    })
   }
   return item.visible !== false
 }
 
 /** 获取行操作确认文本 */
-function getRowConfirmText(item: ActionItem, _row: Record<string, unknown>): string | undefined {
+function getRowConfirmText(item: ActionItem, _row: RowData): string | undefined {
   if (typeof item.confirm === 'function') {
     return item.confirm({
       selectedRows: [],
       selectedIds: [],
       selectedCount: 0,
       loading: false,
-    } as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+    })
   }
   return item.confirm
 }
 
 /** 多选变化 */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function handleSelectionChange(rows: Record<string, any>[]) {
+function handleSelectionChange(rows: RowData[]) {
   emit('selection-change', rows)
 }
 
 /** 行点击 */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function handleRowClick(row: Record<string, any>, column: any) {
+function handleRowClick(row: RowData, column: RowData) {
   emit('row-click', row, column)
   // 默认行为：点击行切换选中（排除操作列和选择列）
   if (props.selectable && column) {
@@ -374,18 +368,15 @@ function handleSizeChange(size: number) {
 }
 
 /** 行操作 */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function handleRowAction(action: string, row: Record<string, any>) {
+function handleRowAction(action: string, row: RowData) {
   emit('action', action, row)
 }
 
 /** 暴露 tableRef 供外部使用 */
 defineExpose({
   tableRef,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  toggleRowSelection: (row: any) => tableRef.value?.toggleRowSelection(row),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  setCurrentRow: (row: any) => tableRef.value?.setCurrentRow(row),
+  toggleRowSelection: (row: RowData) => tableRef.value?.toggleRowSelection(row),
+  setCurrentRow: (row: RowData) => tableRef.value?.setCurrentRow(row),
   clearSelection: () => tableRef.value?.clearSelection(),
 })
 </script>
