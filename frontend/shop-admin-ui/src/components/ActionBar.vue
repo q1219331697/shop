@@ -57,7 +57,7 @@
  */
 import { computed } from 'vue'
 import { Plus, Edit, View, Delete } from '@element-plus/icons-vue'
-import type { ActionItem, ActionContext } from './CrudPage/types'
+import type { ActionItem, ActionContext } from './CrudTable/types'
 
 const props = withDefaults(
   defineProps<{
@@ -76,6 +76,7 @@ const props = withDefaults(
       selectedIds: [],
       selectedCount: 0,
       loading: false,
+      refresh: () => {},
     }),
   },
 )
@@ -139,9 +140,16 @@ function getConfirmText(item: ActionItem): string | undefined {
   return item.confirm
 }
 
-/** 触发操作事件 */
+/** 触发操作事件：有 handler 直接调用，无 handler 走默认 emit 分发 */
 function handleAction(action: string) {
-  emit('action', action)
+  const item = resolvedToolbar.value.find((i) => i.action === action)
+  if (item?.handler) {
+    // 按钮配了自定义 handler，直接调用，传入 ActionContext
+    item.handler(props.context)
+  } else {
+    // 没配 handler，走默认行为，由 CrudTable 内置逻辑处理
+    emit('action', action)
+  }
 }
 </script>
 

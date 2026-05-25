@@ -1,10 +1,10 @@
 /**
- * CrudPage 类型定义
+ * CrudTable 类型定义
  */
 import type { Component } from 'vue'
 import type { FormRules } from 'element-plus'
 
- 
+
 /** 行数据类型 - 动态键值对象，用于表格行、表单数据等场景 */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type RowData = Record<string, any>
@@ -108,6 +108,8 @@ export interface ActionContext<T = RowData> {
   selectedCount: number
   /** 当前是否正在加载 */
   loading: boolean
+  /** 刷新列表数据 */
+  refresh: () => void
 }
 
 /** 操作按钮配置 */
@@ -126,6 +128,31 @@ export interface ActionItem<T = RowData> {
   disabled?: boolean | ((ctx: ActionContext<T>) => boolean)
   /** 确认提示文案，有值则点击弹出确认框 */
   confirm?: string | ((ctx: ActionContext<T>) => string)
+  /**
+   * 自定义处理函数，配置后直接调用，不再 emit action 事件
+   * - 工具栏按钮：接收 ActionContext
+   * - 行操作按钮：接收当前行数据
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  handler?: (ctx: any) => void
+}
+
+/** 操作 handler 映射，key 为 action 标识，value 为处理函数 */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type ActionHandlers = Record<string, (ctx: any) => void>
+
+/** CRUD 方法约定 - 使用方实现固定名称的方法，CrudTable 在对应时机自动调用 */
+export interface CrudMethods<T = RowData> {
+  /** 页面加载时自动调用 */
+  onList?: () => void
+  /** 新增操作，点击新增按钮时调用 */
+  onCreate?: () => void
+  /** 详情操作，点击详情按钮时调用 */
+  onDetail?: (row: T) => void
+  /** 编辑操作，点击编辑按钮时调用 */
+  onUpdate?: (row: T) => void
+  /** 删除操作，点击删除按钮时调用 */
+  onDelete?: (row: T) => void
 }
 
 /** ActionBar 完整配置 */
@@ -316,6 +343,26 @@ export interface DetailField<T = RowData> {
 
 // ==================== Schema ====================
 
+/** CRUD API 契约接口 - 遵循此契约的 API 模块可直接传给 schema.api */
+
+export interface CrudApi<T = RowData, Id = IdType> {
+  /** 列表请求 */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  list: (params: any) => Promise<{ list: T[]; total: number }>
+  /** 详情请求 */
+  detail?: (id: Id) => Promise<T>
+  /** 新增请求 */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  create?: (data: any) => Promise<unknown>
+  /** 编辑请求 */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  update?: (id: Id, data: any) => Promise<unknown>
+  /** 删除请求 */
+  delete?: (id: Id) => Promise<unknown>
+  /** 批量删除请求 */
+  batchDelete?: (ids: Id[]) => Promise<unknown>
+}
+
 /** CRUD Schema 完整配置 */
 export interface CrudSchema<T extends RowData = RowData, Id extends IdType = IdType> {
   /** 模块名称（用于对话框标题等） */
@@ -361,19 +408,21 @@ export interface CrudSchema<T extends RowData = RowData, Id extends IdType = IdT
   detailEnabled?: boolean
 
   // ---- API ----
-  /** 列表请求 */
+  /** API 模块，遵循 CrudApi 契约，组件自动识别 list/detail/create/update/delete/batchDelete */
+  api?: CrudApi<T>
+  /** 列表请求（优先级高于 api.list） */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  listApi: (params: any) => Promise<{ list: T[]; total: number }>
-  /** 详情请求 */
+  listApi?: (params: any) => Promise<{ list: T[]; total: number }>
+  /** 详情请求（优先级高于 api.detail） */
   detailApi?: (id: Id) => Promise<T>
-  /** 新增请求 */
+  /** 新增请求（优先级高于 api.create） */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   createApi?: (data: any) => Promise<unknown>
-  /** 编辑请求 */
+  /** 编辑请求（优先级高于 api.update） */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   updateApi?: (id: Id, data: any) => Promise<unknown>
-  /** 删除请求 */
+  /** 删除请求（优先级高于 api.delete） */
   deleteApi?: (id: Id) => Promise<unknown>
-  /** 批量删除请求 */
+  /** 批量删除请求（优先级高于 api.batchDelete） */
   batchDeleteApi?: (ids: Id[]) => Promise<unknown>
 }

@@ -3,7 +3,7 @@
  */
 import { get, put } from '@/utils/http'
 import type { PageParams, PageResult } from './types'
-import type { IdType } from '@/components/CrudPage/types'
+import type { IdType } from '@/components/CrudTable/types'
 
 /** 订单信息 */
 export interface OrderItem {

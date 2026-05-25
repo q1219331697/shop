@@ -1,7 +1,7 @@
 /**
- * CrudPage 组件导出
+ * CrudTable 组件导出
  */
-export { default as CrudPage } from '../CrudPage.vue'
+export { default as CrudTable } from '../CrudTable.vue'
 export { default as PageContainer } from '../PageContainer.vue'
 export { default as SearchBar } from '../SearchBar.vue'
 export { default as ActionBar } from '../ActionBar.vue'
@@ -19,6 +19,7 @@ export type {
   SearchSlot,
   ActionContext,
   ActionItem,
+  ActionHandlers,
   ActionsConfig,
   ColumnType,
   TagMap,
@@ -27,5 +28,7 @@ export type {
   FormField,
   DetailFieldType,
   DetailField,
+  CrudApi,
   CrudSchema,
+  CrudMethods,
 } from './types'

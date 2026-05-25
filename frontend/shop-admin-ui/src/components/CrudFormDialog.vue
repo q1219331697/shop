@@ -191,7 +191,7 @@
  */
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
-import type { FormField, RowData } from './CrudPage/types'
+import type { FormField, RowData } from './CrudTable/types'
 
 type FormData = RowData
 

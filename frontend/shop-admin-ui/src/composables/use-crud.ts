@@ -2,16 +2,16 @@
  * useCrud - CRUD 页面核心逻辑
  *
  * 封装列表/分页/选择/操作状态管理，
- * 供 CrudPage 和自由组装页面使用。
+ * 供 CrudTable 和自由组装页面使用。
  */
-import { ref, shallowRef, reactive, computed, onMounted } from 'vue'
+import { ref, shallowRef, reactive, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import type { ActionContext, SearchField, SearchDateRange, RowData, IdType } from '../components/CrudPage/types'
+import type { ActionContext, SearchField, SearchDateRange, RowData, IdType } from '../components/CrudTable/types'
 
 interface UseCrudOptions<T extends RowData = RowData> {
   /** 列表请求 */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  listApi: (params: any) => Promise<{ list: T[]; total: number }>
+  listApi?: (params: any) => Promise<{ list: T[]; total: number }>
   /** 详情请求 */
   detailApi?: (id: IdType) => Promise<T>
   /** 新增请求 */
@@ -77,6 +77,7 @@ export function useCrud<T extends RowData = RowData>(options: UseCrudOptions<T>)
 
   /** 获取列表数据 */
   async function fetchData() {
+    if (!listApi) return
     loading.value = true
     try {
       const result = await listApi(queryParams)
@@ -138,6 +139,7 @@ export function useCrud<T extends RowData = RowData>(options: UseCrudOptions<T>)
     selectedIds: selectedIds.value,
     selectedCount: selectedIds.value.length,
     loading: loading.value,
+    refresh: fetchData,
   }) as ActionContext<T>)
 
   // ==================== 操作处理 ====================
@@ -289,9 +291,7 @@ export function useCrud<T extends RowData = RowData>(options: UseCrudOptions<T>)
   }
 
   // ==================== 初始化 ====================
-  onMounted(() => {
-    fetchData()
-  })
+  // onMounted 不再自动 fetchData，由 CrudTable 统一控制挂载行为
 
   return {
     // 列表

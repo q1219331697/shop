@@ -2,7 +2,7 @@
  * 权限管理接口
  */
 import { get, post, put, del } from '@/utils/http'
-import type { IdType } from '@/components/CrudPage/types'
+import type { IdType } from '@/components/CrudTable/types'
 
 /** 权限信息 */
 export interface PermissionItem {

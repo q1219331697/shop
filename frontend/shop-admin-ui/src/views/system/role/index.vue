@@ -1,12 +1,12 @@
 <template>
-  <CrudPage ref="crudPageRef" :schema="roleSchema" @action="handleAction">
+  <CrudTable ref="crudTableRef" :schema="roleSchema" @action="handleAction">
     <!-- 行操作追加：分配权限 -->
     <template #row-actions-extra="{ row }">
       <el-button link class="action-link" @click="openAssignPermission(row)">
         <el-icon><Key /></el-icon>分配权限
       </el-button>
     </template>
-  </CrudPage>
+  </CrudTable>
 
   <!-- 分配权限对话框 -->
   <el-dialog
@@ -42,13 +42,13 @@
 
 <script setup lang="ts">
 /**
- * 角色管理 - 基于 CrudPage 的标准 CRUD 页面
+ * 角色管理 - 基于 CrudTable 的标准 CRUD 页面
  */
 import { ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Key } from '@element-plus/icons-vue'
-import { CrudPage } from '@/components/CrudPage'
-import type { CrudSchema } from '@/components/CrudPage'
+import { CrudTable } from '@/components/CrudTable'
+import type { CrudSchema } from '@/components/CrudTable'
 import {
   getRoleList,
   getRoleDetail,
@@ -63,8 +63,8 @@ import {
 } from '@/api/role'
 import { getPermissionTree, type PermissionItem } from '@/api/permission'
 
-// ==================== CrudPage ref ====================
-const crudPageRef = ref<InstanceType<typeof CrudPage>>()
+// ==================== CrudTable ref ====================
+const crudTableRef = ref<InstanceType<typeof CrudTable>>()
 
 /** Role CRUD Schema */
 const roleSchema: CrudSchema<RoleItem, string> = {
@@ -183,7 +183,7 @@ const roleSchema: CrudSchema<RoleItem, string> = {
 
 /** 处理自定义操作（禁用/启用） */
 async function handleAction(action: string, _data?: unknown) {
-  const crud = crudPageRef.value?.crud
+  const crud = crudTableRef.value?.crud
   if (!crud) return
 
   switch (action) {

@@ -3,7 +3,7 @@
  */
 import { get, post, put, del } from '@/utils/http'
 import type { PageParams, PageResult } from './types'
-import type { IdType } from '@/components/CrudPage/types'
+import type { IdType } from '@/components/CrudTable/types'
 
 /** 商品信息 */
 export interface ProductItem {

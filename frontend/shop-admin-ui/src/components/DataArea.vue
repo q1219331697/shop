@@ -211,7 +211,7 @@
 import { ref, computed } from 'vue'
 import { Edit, View, Delete } from '@element-plus/icons-vue'
 import { formatDate } from '@/utils/date'
-import type { TableColumn, ActionItem, RowData } from './CrudPage/types'
+import type { TableColumn, ActionItem, RowData } from './CrudTable/types'
 
 const props = withDefaults(
   defineProps<{
@@ -324,6 +324,7 @@ function isRowActionVisible(item: ActionItem, _row: RowData): boolean {
       selectedIds: [],
       selectedCount: 0,
       loading: false,
+      refresh: () => {},
     })
   }
   return item.visible !== false
@@ -337,6 +338,7 @@ function getRowConfirmText(item: ActionItem, _row: RowData): string | undefined 
       selectedIds: [],
       selectedCount: 0,
       loading: false,
+      refresh: () => {},
     })
   }
   return item.confirm
@@ -367,9 +369,16 @@ function handleSizeChange(size: number) {
   emit('size-change', size)
 }
 
-/** 行操作 */
+/** 行操作：有 handler 直接调用，无 handler 走默认 emit 分发 */
 function handleRowAction(action: string, row: RowData) {
-  emit('action', action, row)
+  const item = resolvedRowActions.value.find((i) => i.action === action)
+  if (item?.handler) {
+    // 按钮配了自定义 handler，直接调用，传入当前行数据
+    item.handler(row)
+  } else {
+    // 没配 handler，走默认行为，由 CrudTable 内置逻辑处理
+    emit('action', action, row)
+  }
 }
 
 /** 暴露 tableRef 供外部使用 */

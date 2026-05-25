@@ -86,7 +86,7 @@
  */
 import { computed } from 'vue'
 import { formatDate } from '@/utils/date'
-import type { DetailField, RowData } from './CrudPage/types'
+import type { DetailField, RowData } from './CrudTable/types'
 
 const props = withDefaults(
   defineProps<{

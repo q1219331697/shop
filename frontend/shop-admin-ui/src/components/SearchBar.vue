@@ -143,7 +143,7 @@
  */
 import { reactive, computed, onMounted, watch } from 'vue'
 import { Search, Refresh } from '@element-plus/icons-vue'
-import type { SearchField, SearchSelect, SearchDateRange, RowData } from './CrudPage/types'
+import type { SearchField, SearchSelect, SearchDateRange, RowData } from './CrudTable/types'
 
 const props = withDefaults(
   defineProps<{
