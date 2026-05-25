@@ -4,6 +4,7 @@ import pluginVue from 'eslint-plugin-vue'
 import prettierConfig from 'eslint-config-prettier'
 import prettierPlugin from 'eslint-plugin-prettier'
 import pluginUnicorn from 'eslint-plugin-unicorn'
+import pluginImportX from 'eslint-plugin-import-x'
 import requireDialogCloseOnClickModal from './eslint-rules/require-dialog-close-on-click-modal.js'
 
 export default tseslint.config(
@@ -40,6 +41,24 @@ export default tseslint.config(
         window: 'readonly',
         document: 'readonly',
       },
+    },
+  },
+
+  // Import 路径检查（大小写敏感，防止 Windows/Linux 不一致）
+  {
+    files: ['**/*.ts', '**/*.js', '**/*.vue'],
+    plugins: {
+      'import-x': pluginImportX,
+    },
+    settings: {
+      'import-x/resolver': {
+        typescript: {
+          alwaysTryTypes: true,
+        },
+      },
+    },
+    rules: {
+      'import-x/no-unresolved': 'error',
     },
   },
 
