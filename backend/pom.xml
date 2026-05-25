@@ -132,20 +132,19 @@
     <!-- ==================== 构建配置 ==================== -->
     <build>
         <plugins>
-            <!-- ==================== 代码质量检查 ==================== -->
-            <!-- Checkstyle 插件：代码风格检查 -->
+            <!--
+                Checkstyle 插件：代码风格检查（编译时强制执行，不通过则构建失败）
+                全量检查：mvn validate
+                单模块：  mvn validate -pl shop-admin
+            -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>3.3.0</version>
                 <configuration>
-                    <!-- Checkstyle 规则配置文件路径 -->
                     <configLocation>code-quality/checkstyle/checkstyle.xml</configLocation>
-                    <!-- Checkstyle 抑制规则配置文件路径 -->
                     <suppressionsLocation>code-quality/checkstyle/suppressions.xml</suppressionsLocation>
-                    <!-- 在控制台输出检查结果 -->
                     <consoleOutput>true</consoleOutput>
-                    <!-- Checkstyle 检查失败时中断构建 -->
                     <failsOnError>true</failsOnError>
                 </configuration>
                 <executions>
@@ -159,7 +158,12 @@
                 </executions>
             </plugin>
 
-            <!-- Jacoco 插件：单元测试覆盖率统计 -->
+            <!--
+                Jacoco 插件：单元测试覆盖率统计（mvn test 时自动生成报告）
+                全量覆盖率：mvn test
+                单模块：    mvn test -pl shop-admin
+                跳过测试：  mvn compile -DskipTests
+            -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -167,7 +171,6 @@
                 <executions>
                     <execution>
                         <goals>
-                            <!-- 在测试前准备 Jacoco Agent -->
                             <goal>prepare-agent</goal>
                         </goals>
                     </execution>
@@ -175,7 +178,6 @@
                         <id>report</id>
                         <phase>test</phase>
                         <goals>
-                            <!-- 测试后生成覆盖率报告 -->
                             <goal>report</goal>
                         </goals>
                     </execution>

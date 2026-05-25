@@ -9,6 +9,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.metrics.ApplicationStartup;
 import org.springframework.core.metrics.StartupStep;
+import org.springframework.lang.NonNull;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -30,7 +31,7 @@ public class StartupLoggingListener implements ApplicationListener<ApplicationRe
     private static final double MILLIS_TO_SECONDS = 1000.0;
 
     @Override
-    public void onApplicationEvent(ApplicationReadyEvent event) {
+    public void onApplicationEvent(@NonNull ApplicationReadyEvent event) {
         ApplicationStartup startup = event.getSpringApplication().getApplicationStartup();
         if (!(startup instanceof BufferingApplicationStartup buffering)) {
             LOG.info("Startup metrics not available (BufferingApplicationStartup not configured)");

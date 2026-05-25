@@ -186,6 +186,7 @@ public class AdminPermissionServiceImpl
         return Result.success(tree);
     }
 
+    @SuppressWarnings("null")
     @Override
     public List<String> getPermissionCodesByUserId(Long userId) {
         // 先从Redis缓存获取

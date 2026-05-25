@@ -2,6 +2,7 @@ package com.shop.admin.config;
 
 import com.shop.admin.security.RbacInterceptor;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -23,8 +24,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
         this.rbacInterceptor = rbacInterceptor;
     }
 
+    @SuppressWarnings("null")
     @Override
-    public void addInterceptors(InterceptorRegistry registry) {
+    public void addInterceptors(@NonNull InterceptorRegistry registry) {
         registry.addInterceptor(rbacInterceptor)
                 // 拦截需要认证的路径
                 .addPathPatterns("/**")

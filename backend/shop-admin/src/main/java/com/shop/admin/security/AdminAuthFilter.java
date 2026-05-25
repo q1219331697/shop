@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -58,8 +59,8 @@ public class AdminAuthFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
         String requestURI = request.getRequestURI();
 
         // 放行白名单路径（无需认证即可访问）
@@ -187,7 +188,7 @@ public class AdminAuthFilter extends OncePerRequestFilter {
         }
 
         // 生成Token并写入Redis
-        String token = adminTokenService.createToken(adminUser.getId(), adminUser.getUsername());
+        adminTokenService.createToken(adminUser.getId(), adminUser.getUsername());
         log.info("Basic认证成功, adminUserId: {}, username: {}", adminUser.getId(), adminUser.getUsername());
 
         // 将管理员信息和权限放入请求属性

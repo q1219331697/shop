@@ -1,0 +1,15 @@
+{
+  "recommendations": [
+    "vscjava.vscode-java-pack",
+    "vscjava.vscode-spring-initializr",
+    "vscjava.vscode-spring-boot-dashboard",
+    "vmware.vscode-spring-boot",
+    "pivotal.vscode-spring-boot",
+    "redhat.vscode-xml",
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "vue.volar",
+    "ms-azuretools.vscode-docker",
+    "cweijan.vscode-mysql-client2"
+  ]
+}
