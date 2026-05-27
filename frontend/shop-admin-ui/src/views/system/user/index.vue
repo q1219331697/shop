@@ -1,6 +1,11 @@
 <template>
   <!-- :methods 可覆盖内置 CRUD 行为，如：:methods="{ onCreate: handleCreate, onUpdate: handleUpdate, onDelete: handleDelete }" -->
-  <CrudTable ref="crudTableRef" :schema="userSchema" :handlers="toolbarHandlers">
+  <CrudTable
+    ref="crudTableRef"
+    :schema="userSchema"
+    :api="adminUserApi"
+    :handlers="toolbarHandlers"
+  >
     <!-- 行操作追加：禁用/启用/恢复/分配角色 -->
     <template #row-actions-extra="{ row }">
       <el-button
@@ -41,18 +46,36 @@
 /**
  * 管理员用户管理 - 基于 CrudTable 的 CRUD 页面
  */
+
+// ==================== 依赖引入 ====================
+
+// Vue 核心
 import { ref } from 'vue'
+
+// Element Plus
 import { ElMessage } from 'element-plus'
 import { Lock, Unlock, RefreshRight, Key } from '@element-plus/icons-vue'
+
+// 业务组件
 import { CrudTable } from '@/components/CrudTable'
-import { userSchema } from './schema'
-import type { ActionContext } from '@/components/CrudTable'
-import type { AdminUserItem } from '@/api/admin-user'
-import { disableAdminUser, enableAdminUser, restoreAdminUser } from '@/api/admin-user'
 import AssignRoleDialog from './AssignRoleDialog.vue'
 
-// ==================== CrudTable ref ====================
+// Schema 配置
+import { userSchema } from './schema'
+
+// 类型
+import type { ActionContext } from '@/components/CrudTable'
+import type { AdminUserItem } from '@/api/admin-user'
+
+// API
+import { adminUserApi, disableAdminUser, enableAdminUser, restoreAdminUser } from '@/api/admin-user'
+
+// ==================== 组件引用 ====================
+
 const crudTableRef = ref<InstanceType<typeof CrudTable>>()
+const assignRoleDialogRef = ref<InstanceType<typeof AssignRoleDialog>>()
+
+// ==================== 通用方法 ====================
 
 /** 刷新列表 */
 function refreshList() {
@@ -71,8 +94,9 @@ const toolbarHandlers = {
   assignRole: handleAssignRole,
 }
 
-// ==================== 单条操作 ====================
+// ==================== 行操作 ====================
 
+/** 禁用用户 */
 async function handleDisable(row: AdminUserItem) {
   try {
     await disableAdminUser(row.id)
@@ -83,6 +107,7 @@ async function handleDisable(row: AdminUserItem) {
   }
 }
 
+/** 启用用户 */
 async function handleEnable(row: AdminUserItem) {
   try {
     await enableAdminUser(row.id)
@@ -93,6 +118,7 @@ async function handleEnable(row: AdminUserItem) {
   }
 }
 
+/** 恢复用户 */
 async function handleRestore(row: AdminUserItem) {
   try {
     await restoreAdminUser(row.id)
@@ -102,9 +128,6 @@ async function handleRestore(row: AdminUserItem) {
     /* 请求工具已处理 */
   }
 }
-
-// ==================== 分配角色对话框 ====================
-const assignRoleDialogRef = ref<InstanceType<typeof AssignRoleDialog>>()
 </script>
 
 <style lang="scss" scoped>

@@ -112,9 +112,33 @@ const defaultToolbar: ActionItem[] = [
   },
 ]
 
-/** 解析后的工具栏按钮列表 */
+/** 解析后的工具栏按钮列表 - 支持 action 合并 */
 const resolvedToolbar = computed(() => {
-  const base = props.actions ?? defaultToolbar
+  let base: ActionItem[]
+  if (props.actions) {
+    // 用户传了 actions，按 action 字段与默认配置合并：用户配置覆盖默认，未提及的默认按钮保留
+    const overrideMap = new Map(props.actions.map((item) => [item.action, item]))
+    base = defaultToolbar
+      .map((def) => {
+        const override = overrideMap.get(def.action)
+        if (!override) return { ...def }
+        // 合并：样式字段从默认继承，行为字段（confirm/handler/disabled）以用户为准
+        // 用户未传 confirm 时清除默认的 confirm（即不弹确认框）
+        const { confirm, handler, disabled, visible, ...rest } = override
+        return {
+          ...def,
+          ...rest,
+          ...(confirm !== undefined ? { confirm } : {}),
+          ...(handler !== undefined ? { handler } : {}),
+          ...(disabled !== undefined ? { disabled } : {}),
+          ...(visible !== undefined ? { visible } : {}),
+        }
+      })
+      // 追加用户自定义的非默认按钮
+      .concat(props.actions.filter((item) => !defaultToolbar.some((d) => d.action === item.action)))
+  } else {
+    base = [...defaultToolbar]
+  }
   const items = [...base, ...(props.extraActions ?? [])]
   return items.filter((item) => {
     if (typeof item.visible === 'function') {

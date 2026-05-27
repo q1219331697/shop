@@ -4,34 +4,41 @@
 import type { CrudSchema, ActionContext } from '@/components/CrudTable'
 import type { AdminUserItem } from '@/api/admin-user'
 import type { FormRules } from 'element-plus'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import {
-  adminUserApi,
   batchDisableAdminUser,
   batchEnableAdminUser,
   batchRestoreAdminUser,
 } from '@/api/admin-user'
 
-/** 批量禁用 */
-async function handleBatchDisable(ctx: ActionContext<AdminUserItem>) {
-  const ids = ctx.selectedRows.filter((r) => !r.deleted && r.status === 1).map((r) => r.id)
-  try { await ElMessageBox.confirm(`确定禁用选中的 ${ids.length} 个管理员吗？`, '禁用', { type: 'warning' }) } catch { return }
-  try { await batchDisableAdminUser(ids); ElMessage.success('禁用成功'); ctx.refresh() } catch { /* 请求工具已处理 */ }
+/** 批量操作通用逻辑 */
+async function handleBatchAction(
+  ctx: ActionContext<AdminUserItem>,
+  filter: (r: AdminUserItem) => boolean,
+  action: (ids: number[]) => Promise<unknown>,
+  message: string,
+) {
+  const ids = ctx.selectedRows.filter(filter).map((r) => r.id)
+  try {
+    await action(ids)
+    ElMessage.success(message)
+    ctx.refresh()
+  } catch {
+    /* 请求工具已处理 */
+  }
 }
+
+/** 批量禁用 */
+const handleBatchDisable = (ctx: ActionContext<AdminUserItem>) =>
+  handleBatchAction(ctx, (r) => !r.deleted && r.status === 1, batchDisableAdminUser, '禁用成功')
 
 /** 批量启用 */
-async function handleBatchEnable(ctx: ActionContext<AdminUserItem>) {
-  const ids = ctx.selectedRows.filter((r) => !r.deleted && r.status === 0).map((r) => r.id)
-  try { await ElMessageBox.confirm(`确定启用选中的 ${ids.length} 个管理员吗？`, '启用', { type: 'warning' }) } catch { return }
-  try { await batchEnableAdminUser(ids); ElMessage.success('启用成功'); ctx.refresh() } catch { /* 请求工具已处理 */ }
-}
+const handleBatchEnable = (ctx: ActionContext<AdminUserItem>) =>
+  handleBatchAction(ctx, (r) => !r.deleted && r.status === 0, batchEnableAdminUser, '启用成功')
 
 /** 批量恢复 */
-async function handleBatchRestore(ctx: ActionContext<AdminUserItem>) {
-  const ids = ctx.selectedRows.filter((r) => r.deleted).map((r) => r.id)
-  try { await ElMessageBox.confirm(`确定恢复选中的 ${ids.length} 个管理员吗？`, '恢复', { type: 'warning' }) } catch { return }
-  try { await batchRestoreAdminUser(ids); ElMessage.success('恢复成功'); ctx.refresh() } catch { /* 请求工具已处理 */ }
-}
+const handleBatchRestore = (ctx: ActionContext<AdminUserItem>) =>
+  handleBatchAction(ctx, (r) => r.deleted, batchRestoreAdminUser, '恢复成功')
 
 /** 管理员用户 CRUD Schema */
 export const userSchema: CrudSchema<AdminUserItem> = {
@@ -67,31 +74,17 @@ export const userSchema: CrudSchema<AdminUserItem> = {
   // ---- 按钮区 ----
   actions: {
     toolbar: [
-      { action: 'create', label: '新增', icon: 'Plus', type: 'primary' },
       {
         action: 'edit',
-        label: '编辑',
-        icon: 'Edit',
-        type: 'warning',
         disabled: (ctx) =>
           ctx.selectedCount !== 1 || ctx.selectedRows.some((r: AdminUserItem) => r.deleted),
       },
       {
-        action: 'detail',
-        label: '详情',
-        icon: 'View',
-        type: 'info',
-        disabled: (ctx) => ctx.selectedCount !== 1,
-      },
-      {
         action: 'delete',
-        label: '删除',
-        icon: 'Delete',
-        type: 'danger',
         disabled: (ctx) => !ctx.selectedRows.some((r: AdminUserItem) => !r.deleted),
-        confirm: (ctx) =>
-          `确定删除选中的 ${ctx.selectedRows.filter((r: AdminUserItem) => !r.deleted).length} 个管理员吗？`,
       },
+    ],
+    extraToolbar: [
       {
         action: 'disable',
         label: '禁用',
@@ -227,7 +220,4 @@ export const userSchema: CrudSchema<AdminUserItem> = {
     { prop: 'createTime', label: '创建时间', type: 'date' },
     { prop: 'updateTime', label: '更新时间', type: 'date' },
   ],
-
-  // ---- API ----
-  api: adminUserApi,
 }

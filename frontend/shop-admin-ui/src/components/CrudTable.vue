@@ -129,6 +129,7 @@ import CrudFormDialog from './CrudFormDialog.vue'
 import CrudDetailDialog from './CrudDetailDialog.vue'
 import { useCrud } from '@/composables/use-crud'
 import type {
+  CrudApi,
   CrudSchema,
   RowData,
   ActionHandlers,
@@ -139,7 +140,10 @@ import type {
 const props = defineProps<{
   /** CRUD Schema 配置 */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  schema: CrudSchema<any, any>
+  schema: CrudSchema<any>
+  /** API 模块，遵循 CrudApi 契约 */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  api?: CrudApi<any, any>
   /** 操作 handler 映射，按 action 标识自动注入到 toolbar/rowActions */
   handlers?: ActionHandlers
   /** CRUD 方法约定，实现固定名称的方法，CrudTable 在对应时机自动调用 */
@@ -176,7 +180,7 @@ const resolvedSchema = computed(() => {
 /** 表单标签宽度 - 根据字段 label 自动估算 */
 const formLabelWidth = computed(() => {
   if (!resolvedSchema.value.formFields) return '80px'
-  const maxLen = resolvedSchema.value.formFields.reduce((max, f) => {
+  const maxLen = resolvedSchema.value.formFields.reduce((max: number, f) => {
     return Math.max(max, f.label.length)
   }, 0)
   // 每个中文字符约 14px + 12px 间距
@@ -184,7 +188,7 @@ const formLabelWidth = computed(() => {
 })
 
 /** 初始化 useCrud */
-const schemaApi = props.schema.api
+const crudApi = props.api
 
 const {
   // 列表
@@ -218,12 +222,12 @@ const {
   detailData,
   openDetailDialog,
 } = useCrud({
-  listApi: props.schema.listApi ?? schemaApi?.list,
-  detailApi: props.schema.detailApi ?? schemaApi?.detail,
-  createApi: props.schema.createApi ?? schemaApi?.create,
-  updateApi: props.schema.updateApi ?? schemaApi?.update,
-  deleteApi: props.schema.deleteApi ?? schemaApi?.delete,
-  batchDeleteApi: props.schema.batchDeleteApi ?? schemaApi?.batchDelete,
+  listApi: crudApi?.list,
+  detailApi: crudApi?.detail,
+  createApi: crudApi?.create,
+  updateApi: crudApi?.update,
+  deleteApi: crudApi?.delete,
+  batchDeleteApi: crudApi?.batchDelete,
   defaultPageSize: 10,
   searchFields: props.schema.searchFields || [],
   rowKey: props.schema.rowKey || 'id',

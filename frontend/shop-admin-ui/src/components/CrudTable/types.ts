@@ -4,7 +4,6 @@
 import type { Component } from 'vue'
 import type { FormRules } from 'element-plus'
 
-
 /** 行数据类型 - 动态键值对象，用于表格行、表单数据等场景 */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type RowData = Record<string, any>
@@ -116,8 +115,8 @@ export interface ActionContext<T = RowData> {
 export interface ActionItem<T = RowData> {
   /** 操作标识 */
   action: string
-  /** 按钮文本 */
-  label: string
+  /** 按钮文本（与默认按钮合并时可省略） */
+  label?: string
   /** 图标组件名 */
   icon?: string | Component
   /** 按钮类型 */
@@ -168,14 +167,7 @@ export interface ActionsConfig<T = RowData> {
 // ==================== 数据区 ====================
 
 /** 列类型 */
-export type ColumnType =
-  | 'default'
-  | 'index'
-  | 'tag'
-  | 'date'
-  | 'boolean'
-  | 'image'
-  | 'money'
+export type ColumnType = 'default' | 'index' | 'tag' | 'date' | 'boolean' | 'image' | 'money'
 
 /** Tag 映射配置 */
 export interface TagMap {
@@ -364,7 +356,7 @@ export interface CrudApi<T = RowData, Id = IdType> {
 }
 
 /** CRUD Schema 完整配置 */
-export interface CrudSchema<T extends RowData = RowData, Id extends IdType = IdType> {
+export interface CrudSchema<T extends RowData = RowData> {
   /** 模块名称（用于对话框标题等） */
   name: string
   /** 行唯一键，默认 'id' */
@@ -406,23 +398,4 @@ export interface CrudSchema<T extends RowData = RowData, Id extends IdType = IdT
   detailDialogWidth?: string
   /** 是否启用详情功能，默认 true */
   detailEnabled?: boolean
-
-  // ---- API ----
-  /** API 模块，遵循 CrudApi 契约，组件自动识别 list/detail/create/update/delete/batchDelete */
-  api?: CrudApi<T>
-  /** 列表请求（优先级高于 api.list） */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  listApi?: (params: any) => Promise<{ list: T[]; total: number }>
-  /** 详情请求（优先级高于 api.detail） */
-  detailApi?: (id: Id) => Promise<T>
-  /** 新增请求（优先级高于 api.create） */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  createApi?: (data: any) => Promise<unknown>
-  /** 编辑请求（优先级高于 api.update） */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  updateApi?: (id: Id, data: any) => Promise<unknown>
-  /** 删除请求（优先级高于 api.delete） */
-  deleteApi?: (id: Id) => Promise<unknown>
-  /** 批量删除请求（优先级高于 api.batchDelete） */
-  batchDeleteApi?: (ids: Id[]) => Promise<unknown>
 }

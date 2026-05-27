@@ -1,10 +1,16 @@
-
 /**
  * HTTP 请求封装
  */
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getToken, setToken, removeToken, isTokenExpiringSoon, isTokenExpired, getAutoRefreshInterval } from '@/utils/storage'
+import {
+  getToken,
+  setToken,
+  removeToken,
+  isTokenExpiringSoon,
+  isTokenExpired,
+  getAutoRefreshInterval,
+} from '@/utils/storage'
 import { SUCCESS, UNAUTHORIZED, FORBIDDEN } from '@/api/resultCode'
 import router from '@/router'
 

@@ -65,5 +65,3 @@ export const ORDER_STATUS_ERROR = '050001'
 export const ORDER_NOT_EXIST = '050404'
 /** 订单详情不存在 */
 export const ORDER_ITEM_NOT_EXIST = '051404'
-
-

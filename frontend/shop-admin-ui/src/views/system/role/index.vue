@@ -1,5 +1,5 @@
 <template>
-  <CrudTable ref="crudTableRef" :schema="roleSchema" @action="handleAction">
+  <CrudTable ref="crudTableRef" :schema="roleSchema" :api="roleApi" @action="handleAction">
     <!-- 行操作追加：分配权限 -->
     <template #row-actions-extra="{ row }">
       <el-button link class="action-link" @click="openAssignPermission(row)">
@@ -48,7 +48,7 @@ import { ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Key } from '@element-plus/icons-vue'
 import { CrudTable } from '@/components/CrudTable'
-import type { CrudSchema } from '@/components/CrudTable'
+import type { CrudSchema, CrudApi, ActionContext } from '@/components/CrudTable'
 import {
   getRoleList,
   getRoleDetail,
@@ -67,7 +67,7 @@ import { getPermissionTree, type PermissionItem } from '@/api/permission'
 const crudTableRef = ref<InstanceType<typeof CrudTable>>()
 
 /** Role CRUD Schema */
-const roleSchema: CrudSchema<RoleItem, string> = {
+const roleSchema: CrudSchema<RoleItem> = {
   name: '角色',
   rowKey: 'id',
 
@@ -93,14 +93,16 @@ const roleSchema: CrudSchema<RoleItem, string> = {
         label: '禁用',
         icon: 'Lock',
         type: 'warning',
-        disabled: (ctx) => !ctx.selectedRows.some((r: RoleItem) => r.status === 1),
+        disabled: (ctx: ActionContext<RoleItem>) =>
+          !ctx.selectedRows.some((r: RoleItem) => r.status === 1),
       },
       {
         action: 'enable',
         label: '启用',
         icon: 'Unlock',
         type: 'success',
-        disabled: (ctx) => !ctx.selectedRows.some((r: RoleItem) => r.status === 0),
+        disabled: (ctx: ActionContext<RoleItem>) =>
+          !ctx.selectedRows.some((r: RoleItem) => r.status === 0),
       },
     ],
     rowActions: [],
@@ -170,13 +172,15 @@ const roleSchema: CrudSchema<RoleItem, string> = {
     { prop: 'createTime', label: '创建时间', type: 'date' },
     { prop: 'updateTime', label: '更新时间', type: 'date' },
   ],
+}
 
-  // ---- API ----
-  listApi: getRoleList,
-  detailApi: getRoleDetail,
-  createApi: createRole,
-  updateApi: updateRole,
-  deleteApi: deleteRole,
+/** 角色 CRUD API */
+const roleApi: CrudApi<RoleItem, string> = {
+  list: getRoleList,
+  detail: getRoleDetail,
+  create: createRole,
+  update: updateRole,
+  delete: deleteRole,
 }
 
 // ==================== 自定义操作处理 ====================

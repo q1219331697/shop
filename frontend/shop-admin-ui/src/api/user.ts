@@ -40,5 +40,3 @@ export function updateUser(id: IdType, data: Partial<UserItem>) {
 export function deleteUser(id: IdType) {
   return del(`/user/${id}`)
 }
-
-

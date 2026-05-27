@@ -1,4 +1,3 @@
-
 /**
  * 权限 & 动态路由状态管理
  */
@@ -12,16 +11,16 @@ import { getUserMenus, type PermissionItem } from '@/api/permission'
  * 后端存储格式如：system/AdminUser, product/ProductList
  * 前端实际路径如：@/views/system/user/index.vue
  */
-const componentModules = import.meta.glob('@/views/**/*.vue')
+const componentModules = import.meta.glob('../views/**/*.vue')
 
 /**
  * 将后端 component 字段转换为前端实际组件路径
- * 规则：system/AdminUser → /src/views/system/AdminUser.vue
+ * 规则：system/AdminUser → ../views/system/AdminUser.vue
  */
 function resolveComponent(component: string | null | undefined) {
   if (!component) return undefined
   // 将后端 component 映射到 views 目录下的 .vue 文件
-  const path = `/src/views/${component}.vue`
+  const path = `../views/${component}.vue`
   if (componentModules[path]) {
     return componentModules[path]
   }
@@ -125,4 +124,3 @@ export const usePermissionStore = defineStore('permission', () => {
     resetPermission,
   }
 })
-

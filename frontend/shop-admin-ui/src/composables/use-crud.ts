@@ -6,7 +6,13 @@
  */
 import { ref, shallowRef, reactive, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import type { ActionContext, SearchField, SearchDateRange, RowData, IdType } from '../components/CrudTable/types'
+import type {
+  ActionContext,
+  SearchField,
+  SearchDateRange,
+  RowData,
+  IdType,
+} from '../components/CrudTable/types'
 
 interface UseCrudOptions<T extends RowData = RowData> {
   /** 列表请求 */
@@ -134,13 +140,16 @@ export function useCrud<T extends RowData = RowData>(options: UseCrudOptions<T>)
   }
 
   /** 操作上下文 */
-  const actionContext = computed(() => ({
-    selectedRows: selectedRows.value as T[],
-    selectedIds: selectedIds.value,
-    selectedCount: selectedIds.value.length,
-    loading: loading.value,
-    refresh: fetchData,
-  }) as ActionContext<T>)
+  const actionContext = computed(
+    () =>
+      ({
+        selectedRows: selectedRows.value as T[],
+        selectedIds: selectedIds.value,
+        selectedCount: selectedIds.value.length,
+        loading: loading.value,
+        refresh: fetchData,
+      }) as ActionContext<T>,
+  )
 
   // ==================== 操作处理 ====================
 
@@ -201,11 +210,11 @@ export function useCrud<T extends RowData = RowData>(options: UseCrudOptions<T>)
   async function handleBatchDelete() {
     if (selectedIds.value.length === 0) return
     try {
-      await ElMessageBox.confirm(
-        `确定删除选中的 ${selectedIds.value.length} 条数据吗？`,
-        '删除',
-        { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' },
-      )
+      await ElMessageBox.confirm(`确定删除选中的 ${selectedIds.value.length} 条数据吗？`, '删除', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      })
     } catch {
       return
     }
