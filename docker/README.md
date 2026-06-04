@@ -160,20 +160,6 @@ docker compose version
 
 > **注意**: Elasticsearch 和 Kafka 对内存要求较高，建议至少 8GB 内存。
 
-### 3.3 提前拉取基础镜像
-
-多阶段构建使用以下基础镜像，建议提前拉取以加速构建：
-
-```bash
-# 构建阶段：Maven + JDK 17（约 500MB）
-docker pull maven:3.9-eclipse-temurin-17
-
-# 运行阶段：JRE 17 Alpine（约 170MB）
-docker pull eclipse-temurin:17-jre-alpine
-```
-
-> **说明**: 不提前拉取也可以，`docker build` 时会自动下载。提前拉取的好处是构建过程更顺畅，避免网络问题导致构建中断。
-
 ---
 
 ## 4. 快速开始
@@ -444,6 +430,8 @@ docker/
 ├── docker-compose.infra.yml        # 基础设施服务（MySQL/Redis/Kafka/ELK）
 ├── docker-compose.app.yml          # 应用服务（shop-admin/shop-api/admin-ui）
 ├── .env                            # 默认环境配置（测试/开发）
+├── .env.pat                        # PAT（生产）环境配置
+├── .env.uat                        # UAT 环境配置
 ├── .env.prod.template              # 生产环境配置模板
 └── scripts/
     ├── deploy.sh                   # 部署脚本（Linux/Mac）
@@ -502,7 +490,9 @@ Redis ──────┘
 
 | 环境 | 配置文件 | APP_NAME | 用途 |
 |------|----------|----------|------|
-| 默认（测试/开发） | `.env` | `shop` | 日常开发测试 |
+| 默认（测试/开发） | `.env` | `shop-dev` | 日常开发测试 |
+| UAT | `.env.uat` | `shop-uat` | UAT 环境测试 |
+| PAT | `.env.pat` | `shop-pat` | PAT（生产）环境 |
 | 生产 | `.env.prod` | `shop-prod` | 生产环境部署 |
 
 > **重要**: 同一台机器同一时间只能启动一个环境，端口一致避免混淆。切换环境时需先 `down` 当前环境。
@@ -513,10 +503,9 @@ Redis ──────┘
 
 | 隔离项 | 默认环境 | 生产环境 |
 |--------|----------|----------|
-| 容器名前缀 | `shop-mysql`、`shop-redis` | `shop-prod-mysql`、`shop-prod-redis` |
-| Docker 网络 | `shop_network` | `shop-prod_network` |
-| 数据卷路径 | `volumes/shop/mysql/data` | `volumes/shop-prod/mysql/data` |
-| Compose 项目名 | `shop` | `shop-prod` |
+| 容器名前缀 | `shop-dev-mysql`、`shop-dev-redis` | `shop-prod-mysql`、`shop-prod-redis` |
+| Docker 网络 | `shop-dev_network` | `shop-prod_network` |
+| 数据卷路径 | `volumes/shop-dev/mysql/data` | `volumes/shop-prod/mysql/data` |
 
 ### 9.3 默认环境（测试/开发）
 
@@ -655,6 +644,8 @@ SPRING_DATA_REDIS_PASSWORD            → spring.data.redis.password
 | 文件 | 用途 | 说明 |
 |------|------|------|
 | `.env` | 默认环境 | 测试/开发环境配置，已包含可直接使用 |
+| `.env.uat` | UAT 环境 | UAT 环境配置，端口前缀 1xxx |
+| `.env.pat` | PAT 环境 | PAT（生产）环境配置，端口前缀 2xxx |
 | `.env.prod.template` | 生产环境模板 | 需复制为 `.env.prod` 并修改敏感配置 |
 | `.env.prod` | 生产环境 | 从模板创建，**不要提交到 Git** |
 
@@ -662,7 +653,6 @@ SPRING_DATA_REDIS_PASSWORD            → spring.data.redis.password
 
 ```properties
 # 环境隔离（不同环境必须不同）
-COMPOSE_PROJECT_NAME=shop          # Docker Compose 项目名
 APP_NAME=shop                      # 容器名前缀、网络名、数据卷路径
 
 # 应用端口
@@ -703,13 +693,27 @@ docker run -d   --name shop-admin   -v shop-admin-logs:/app/logs   shop-admin:1.
 
 ```
 docker/volumes/
-├── shop/                          # 默认环境数据
+├── shop-dev/                      # 默认环境数据
 │   ├── mysql/data/                # MySQL 数据文件
 │   ├── redis/data/                # Redis AOF 持久化数据
 │   ├── kafka/data/                # Kafka 日志数据
 │   ├── elasticsearch/data/        # ES 索引数据
 │   ├── logstash/data/             # Logstash 数据
 │   └── rabbitmq/data/             # RabbitMQ 数据
+├── shop-uat/                      # UAT 环境数据
+│   ├── mysql/data/
+│   ├── redis/data/
+│   ├── kafka/data/
+│   ├── elasticsearch/data/
+│   ├── logstash/data/
+│   └── rabbitmq/data/
+├── shop-pat/                      # PAT 环境数据
+│   ├── mysql/data/
+│   ├── redis/data/
+│   ├── kafka/data/
+│   ├── elasticsearch/data/
+│   ├── logstash/data/
+│   └── rabbitmq/data/
 ├── shop-prod/                     # 生产环境数据
 │   ├── mysql/data/
 │   ├── redis/data/
@@ -732,20 +736,20 @@ docker/volumes/
 
 ```bash
 # 备份
-docker exec shop-mysql mysqldump -u root shop > backup_$(date +%Y%m%d).sql
+docker exec shop-dev-mysql mysqldump -u root shop > backup_$(date +%Y%m%d).sql
 
 # 恢复
-docker exec -i shop-mysql mysql -u root shop < backup_20260101.sql
+docker exec -i shop-dev-mysql mysql -u root shop < backup_20260101.sql
 ```
 
 **Redis 备份：**
 
 ```bash
 # 触发 RDB 快照
-docker exec shop-redis redis-cli BGSAVE
+docker exec shop-dev-redis redis-cli BGSAVE
 
 # 复制备份文件
-docker cp shop-redis:/data/dump.rdb ./redis_backup_$(date +%Y%m%d).rdb
+docker cp shop-dev-redis:/data/dump.rdb ./redis_backup_$(date +%Y%m%d).rdb
 ```
 
 ---
@@ -785,13 +789,13 @@ shop-admin 采用 **Log4j2 → Kafka → Logstash → Elasticsearch → Kibana**
 
 ```bash
 # 实时查看
-docker logs -f shop-admin
+docker logs -f shop-dev-admin
 
 # 查看最近 200 行
-docker logs --tail 200 shop-admin
+docker logs --tail 200 shop-dev-admin
 
 # 查看指定时间段的日志
-docker logs --since "2024-01-01T00:00:00" --until "2024-01-01T12:00:00" shop-admin
+docker logs --since "2024-01-01T00:00:00" --until "2024-01-01T12:00:00" shop-dev-admin
 ```
 
 ### 12.4 Kibana 查看日志
@@ -1084,5 +1088,5 @@ docker system prune                    # 一键清理
 | Logstash | 9600 | 9600 | API | - |
 | Kibana | 5601 | 5601 | 可视化面板 | `KIBANA_PORT` |
 
-> **说明**: 所有宿主机端口均可在 `.env` / `.env.prod` 中通过对应环境变量自定义，同一台机器同一时间只能启动一个环境。
+> **说明**: 所有宿主机端口均可在 `.env` / `.env.uat` / `.env.pat` / `.env.prod` 中通过对应环境变量自定义，同一台机器同一时间只能启动一个环境。
 | Kibana | 5601 | 5601 | 可视化面板 |

@@ -4,12 +4,14 @@
 # 变量说明: 在 .env.<环境> 文件中配置，APP_NAME 控制容器名前缀和网络隔离
 #
 # 多环境部署（推荐使用 deploy.sh 脚本）:
-#   默认环境:  ./deploy.sh all
-#   生产环境:  ./deploy.sh -e prod all
+#   开发环境:  ./deploy.sh all
+#   UAT环境:   ./deploy.sh -e uat all
+#   生产环境:  ./deploy.sh -e pat all
 #
 # 手动启动:
-#   docker compose up -d                          # 默认环境（.env）
-#   docker compose --env-file .env.prod up -d     # 生产环境
+#   docker compose up -d                          # 开发环境（默认 .env，配置为 dev）
+#   docker compose --env-file .env.uat up -d      # UAT环境
+#   docker compose --env-file .env.pat up -d      # 生产环境
 #
 # 分层启动:
 #   仅基础设施:  docker compose -f docker-compose.infra.yml up -d

@@ -91,20 +91,7 @@ info "项目根目录: $PROJECT_ROOT"
 info "基础版本: $BASE_VERSION"
 info "构建日期: $BUILD_DATE"
 
-# -------------------- 拉取基础镜像 --------------------
-info "==========================================="
-info "拉取基础镜像..."
-info "==========================================="
-docker pull maven:3.9-eclipse-temurin-17 || error "拉取 maven:3.9-eclipse-temurin-17 失败"
-docker pull eclipse-temurin:17-jre-alpine || error "拉取 eclipse-temurin:17-jre-alpine 失败"
-
-# 前端镜像基础拉取（仅 admin-ui 或 all 时需要）
-if [[ "$TARGET" == "admin-ui" || "$TARGET" == "all" ]]; then
-    docker pull node:20-alpine || error "拉取 node:20-alpine 失败"
-    docker pull nginx:1.27-alpine || error "拉取 nginx:1.27-alpine 失败"
-fi
-
-info "✅ 基础镜像拉取完成"
+# 构建镜像（多阶段构建，Maven 编译在容器内完成）
 
 # 构建镜像（多阶段构建，Maven 编译在容器内完成）
 build_image() {
@@ -150,5 +137,15 @@ info "==========================================="
 info "构建完成！"
 info "==========================================="
 
+# 清理历史版本镜像（保留 latest 和 BASE_VERSION）
+info "清理历史版本镜像..."
+for image in $(docker images --format '{{.Repository}}:{{.Tag}}' | grep -E "shop-(admin|api|admin-ui):.*-${BUILD_DATE}-"); do
+    if [[ "$image" != "shop-admin:${VERSION}" && "$image" != "shop-api:${VERSION}" && "$image" != "shop-admin-ui:${VERSION}" ]]; then
+        info "删除: $image"
+        docker rmi "$image" 2>/dev/null || true
+    fi
+done
+info "✅ 历史版本镜像清理完成"
+
 # 显示镜像信息
-docker images | grep -E "shop-(admin|api)" | head -10
+docker images --format "  {{.Repository}}:{{.Tag}}	{{.Size}}	{{.CreatedAt}}" | grep -E "shop-(admin|api|admin-ui)"

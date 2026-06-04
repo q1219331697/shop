@@ -11,13 +11,13 @@ FROM node:24-alpine AS builder
 WORKDIR /build
 
 # 先复制依赖文件，利用 Docker 缓存加速依赖安装
-COPY frontend/admin-ui/package.json frontend/admin-ui/package-lock.json* ./
+COPY frontend/shop-admin-ui/package.json frontend/shop-admin-ui/package-lock.json* ./
 
 # 安装依赖（使用国内镜像加速）
-RUN npm config set registry https://registry.npmmirror.com     && npm ci --prefer-offline
+RUN npm config set registry https://registry.npmmirror.com     && npm install
 
 # 复制源代码
-COPY frontend/admin-ui/ ./
+COPY frontend/shop-admin-ui/ ./
 
 # 构建生产包
 RUN npm run build

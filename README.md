@@ -91,7 +91,7 @@ shop/
 
 - [Docker](https://www.docker.com/products/docker-desktop) 已安装并运行
 - [JDK 17](https://adoptium.net/) （本地开发时需要）
-- [Node.js 18+](https://nodejs.org/) （前端开发时需要）
+- [Node.js 24+](https://nodejs.org/) （前端开发时需要）
 
 ### Docker 部署（推荐）
 

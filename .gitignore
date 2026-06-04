@@ -108,20 +108,8 @@ src/components.d.ts
 # ========================
 # Docker Volumes (runtime data)
 # ========================
-docker/volumes/mysql/data/
-docker/volumes/redis/data/
-docker/volumes/elasticsearch/data/
-docker/volumes/kafka/data/
-docker/volumes/logstash/data/
-docker/volumes/rabbitmq/data/
-
-# Keep directory structure
-!docker/volumes/mysql/.gitkeep
-!docker/volumes/redis/.gitkeep
-!docker/volumes/elasticsearch/.gitkeep
-!docker/volumes/kafka/.gitkeep
-!docker/volumes/logstash/.gitkeep
-!docker/volumes/rabbitmq/.gitkeep
+docker/volumes/*
+!docker/volumes/.gitkeep
 
 # ========================
 # Logs

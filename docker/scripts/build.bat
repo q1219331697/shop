@@ -133,55 +133,13 @@ if not exist "docker\Dockerfile.admin-ui" (
 echo [OK] Dockerfile.admin-ui 存在
 echo.
 
-REM -------------------- 阶段2: 拉取基础镜像 --------------------
-echo [2/4] 拉取基础镜像
-echo ----------------------------------------
-
-echo [PULL] 拉取 Maven + JDK17 构建镜像 (maven:3.9-eclipse-temurin-17)...
-docker pull maven:3.9-eclipse-temurin-17
-if errorlevel 1 (
-    echo [ERROR] 拉取 maven:3.9-eclipse-temurin-17 失败
-    exit /b 1
-)
-echo [OK] maven:3.9-eclipse-temurin-17 拉取成功
-
-echo [PULL] 拉取 JRE17 运行镜像 (eclipse-temurin:17-jre-alpine)...
-docker pull eclipse-temurin:17-jre-alpine
-if errorlevel 1 (
-    echo [ERROR] 拉取 eclipse-temurin:17-jre-alpine 失败
-    exit /b 1
-)
-echo [OK] eclipse-temurin:17-jre-alpine 拉取成功
-
-REM 前端镜像基础拉取（仅 admin-ui 或 all 时需要）
-if not "%TARGET%"=="admin-ui" if not "%TARGET%"=="all" goto skip_frontend_pull
-
-echo [PULL] 拉取 Node20 构建镜像 (node:20-alpine)...
-docker pull node:20-alpine
-if errorlevel 1 (
-    echo [ERROR] 拉取 node:20-alpine 失败
-    exit /b 1
-)
-echo [OK] node:20-alpine 拉取成功
-
-echo [PULL] 拉取 Nginx 运行镜像 (nginx:1.27-alpine)...
-docker pull nginx:1.27-alpine
-if errorlevel 1 (
-    echo [ERROR] 拉取 nginx:1.27-alpine 失败
-    exit /b 1
-)
-echo [OK] nginx:1.27-alpine 拉取成功
-
-:skip_frontend_pull
-echo.
-
 if not "%TARGET%"=="admin" if not "%TARGET%"=="api" if not "%TARGET%"=="admin-ui" if not "%TARGET%"=="all" (
     echo [ERROR] 未知目标: %TARGET%
     exit /b 1
 )
 
-REM -------------------- 阶段3: 构建应用镜像 --------------------
-echo [3/4] 构建应用镜像
+REM -------------------- 阶段2: 构建应用镜像 --------------------
+echo [2/3] 构建应用镜像
 echo ----------------------------------------
 
 REM 自动计算当日构建序号
@@ -202,7 +160,7 @@ echo [BUILD] 构建 shop-admin:%VERSION%
 echo [BUILD]   阶段1: maven:3.9-eclipse-temurin-17 (编译打包)
 echo [BUILD]   阶段2: eclipse-temurin:17-jre-alpine (精简运行)
 echo.
-docker build %NO_CACHE% --progress=plain -t shop-admin:%VERSION% -t shop-admin:latest -f docker/Dockerfile.admin .
+docker build %NO_CACHE% --progress=plain -t shop-admin:%VERSION% -t shop-admin:latest -t shop-admin:%BASE_VERSION% -f docker/Dockerfile.admin .
 if errorlevel 1 (
     echo.
     echo [ERROR] shop-admin:%VERSION% 构建失败！请检查上方构建日志
@@ -218,7 +176,7 @@ echo [BUILD] 构建 shop-api:%VERSION%
 echo [BUILD]   阶段1: maven:3.9-eclipse-temurin-17 (编译打包)
 echo [BUILD]   阶段2: eclipse-temurin:17-jre-alpine (精简运行)
 echo.
-docker build %NO_CACHE% --progress=plain -t shop-api:%VERSION% -t shop-api:latest -f docker/Dockerfile.api .
+docker build %NO_CACHE% --progress=plain -t shop-api:%VERSION% -t shop-api:latest -t shop-api:%BASE_VERSION% -f docker/Dockerfile.api .
 if errorlevel 1 (
     echo.
     echo [ERROR] shop-api:%VERSION% 构建失败！请检查上方构建日志
@@ -234,7 +192,7 @@ echo [BUILD] 构建 shop-admin-ui:%VERSION%
 echo [BUILD]   阶段1: node:20-alpine (编译打包)
 echo [BUILD]   阶段2: nginx:1.27-alpine (精简运行)
 echo.
-docker build %NO_CACHE% --progress=plain -t shop-admin-ui:%VERSION% -t shop-admin-ui:latest -f docker/Dockerfile.admin-ui .
+docker build %NO_CACHE% --progress=plain -t shop-admin-ui:%VERSION% -t shop-admin-ui:latest -t shop-admin-ui:%BASE_VERSION% -f docker/Dockerfile.admin-ui .
 if errorlevel 1 (
     echo.
     echo [ERROR] shop-admin-ui:%VERSION% 构建失败！请检查上方构建日志
@@ -244,10 +202,26 @@ echo.
 echo [OK] shop-admin-ui:%VERSION% 构建成功
 echo.
 
-REM -------------------- 阶段4: 构建结果汇总 --------------------
+REM -------------------- 阶段3: 构建结果汇总 --------------------
 :done
-echo [4/4] 构建结果汇总
+echo [3/3] 构建结果汇总
 echo ----------------------------------------
+
+REM 删除历史版本的镜像（保留 latest 和 BASE_VERSION）
+echo [CLEAN] 清理历史版本镜像...
+for /f "tokens=*" %%i in ('docker images --format "{{.Repository}}:{{.Tag}}" ^| findstr /r "shop-admin:.*-%BUILD_DATE%- shop-api:.*-%BUILD_DATE%- shop-admin-ui:.*-%BUILD_DATE%-"') do (
+    if not "%%i"=="shop-admin:%VERSION%" (
+        if not "%%i"=="shop-api:%VERSION%" (
+            if not "%%i"=="shop-admin-ui:%VERSION%" (
+                echo [DELETE] %%i
+                docker rmi %%i 2>nul
+            )
+        )
+    )
+)
+echo [OK] 历史版本镜像清理完成
+echo.
+
 echo [OK] 全部构建完成！
 echo.
 echo 镜像列表:
