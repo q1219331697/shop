@@ -49,7 +49,11 @@ jwt:
 ## 构建项目
 
 ```bash
-# 编译打包
+# 编译打包整个项目
+mvn clean package
+
+# 只编译打包后端
+cd backend
 mvn clean package
 
 # 跳过测试打包
@@ -61,21 +65,31 @@ mvn clean package -DskipTests
 ### 1. 本地启动
 
 ```bash
-# 使用 Maven 启动
+# 启动后台管理服务
+cd backend/shop-admin-api
 mvn spring-boot:run
-
 # 或使用 java -jar 启动
-java -jar target/shop-1.0.0.jar
+java -jar target/shop-admin-api-1.0.0.jar
+
+# 启动前台接口服务
+cd ../shop-app-api
+mvn spring-boot:run
+# 或使用 java -jar 启动
+java -jar target/shop-app-api-1.0.0.jar
 ```
 
 ### 2. 生产环境启动
 
 ```bash
-# 后台启动
-nohup java -jar shop-1.0.0.jar > app.log 2>&1 &
+# 后台启动后台管理服务
+nohup java -jar shop-admin-api-1.0.0.jar > admin-api.log 2>&1 &
+
+# 后台启动前台接口服务
+nohup java -jar shop-app-api-1.0.0.jar > app-api.log 2>&1 &
 
 # 指定配置文件启动
-java -jar shop-1.0.0.jar --spring.config.location=/path/to/application-prod.yml
+java -jar shop-admin-api-1.0.0.jar --spring.config.location=/path/to/application-admin-prod.yml
+java -jar shop-app-api-1.0.0.jar --spring.config.location=/path/to/application-app-prod.yml
 ```
 
 ## Docker 部署
@@ -83,26 +97,43 @@ java -jar shop-1.0.0.jar --spring.config.location=/path/to/application-prod.yml
 ### 1. 构建镜像
 
 ```bash
-docker build -t shop:1.0.0 .
+# 构建后台管理服务镜像
+cd backend/shop-admin-api
+docker build -t shop-admin-api:1.0.0 .
+
+# 构建前台接口服务镜像
+cd ../shop-app-api
+docker build -t shop-app-api:1.0.0 .
 ```
 
 ### 2. 运行容器
 
 ```bash
+# 运行后台管理服务容器
 docker run -d \
-  --name shop \
+  --name shop-admin-api \
+  -p 8081:8081 \
+  -e SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/shop \
+  -e SPRING_DATASOURCE_USERNAME=root \
+  -e SPRING_DATASOURCE_PASSWORD=your_password \
+  -e SPRING_DATA_REDIS_HOST=redis \
+  shop-admin-api:1.0.0
+
+# 运行前台接口服务容器
+docker run -d \
+  --name shop-app-api \
   -p 8080:8080 \
   -e SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/shop \
   -e SPRING_DATASOURCE_USERNAME=root \
   -e SPRING_DATASOURCE_PASSWORD=your_password \
   -e SPRING_DATA_REDIS_HOST=redis \
-  shop:1.0.0
+  shop-app-api:1.0.0
 ```
 
 ### 3. Docker Compose 部署
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 ### 4. Logstash 配置部署
@@ -146,7 +177,7 @@ hosts => ["your-elasticsearch-server:9200"]
 docker restart logstash
 
 # Docker Compose 方式
-docker-compose restart logstash
+docker compose restart logstash
 ```
 
 ## 健康检查
@@ -162,11 +193,15 @@ curl http://localhost:8080/actuator/health
 ### 1. 应用日志
 
 ```bash
-# 查看实时日志
-tail -f logs/shop.log
+# 查看后台管理服务实时日志
+tail -f logs/shop-admin-api.log
+
+# 查看前台接口服务实时日志
+tail -f logs/shop-app-api.log
 
 # 查看错误日志
-grep ERROR logs/shop.log
+grep ERROR logs/shop-admin-api.log
+grep ERROR logs/shop-app-api.log
 ```
 
 ### 2. Docker 日志
@@ -225,7 +260,11 @@ docker logs -f shop
 调整 JVM 参数：
 
 ```bash
-java -Xms512m -Xmx1024m -jar shop-1.0.0.jar
+# 后台管理服务
+java -Xms512m -Xmx1024m -jar shop-admin-api-1.0.0.jar
+
+# 前台接口服务
+java -Xms512m -Xmx1024m -jar shop-app-api-1.0.0.jar
 ```
 
 ## 性能优化

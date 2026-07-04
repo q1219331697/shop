@@ -325,15 +325,15 @@ RUN mvn clean package -DskipTests -B -pl shop-admin -am
 # Linux/Mac
 cd docker
 ./scripts/build.sh              # 构建所有
-./scripts/build.sh admin        # 仅构建 admin
-./scripts/build.sh api          # 仅构建 api
+./scripts/build.sh admin-api   # 仅构建 admin-api
+./scripts/build.sh app-api     # 仅构建 app-api
 ./scripts/build.sh --no-cache   # 不使用缓存
 ./scripts/build.sh -v 1.0.1     # 指定版本号
 
 # Windows
 scripts\build.bat              # 构建所有
-scripts\build.bat admin        # 仅构建 admin
-scripts\build.bat api          # 仅构建 api
+scripts\build.bat admin-api   # 仅构建 admin-api
+scripts\build.bat app-api     # 仅构建 app-api
 scripts\build.bat --no-cache   # 不使用缓存
 ```
 
@@ -343,15 +343,23 @@ scripts\build.bat --no-cache   # 不使用缓存
 # 在项目根目录执行
 cd shop
 
-# 构建 shop-admin
-docker build -t shop-admin:1.0.0 -f shop-admin/Dockerfile .
+# 构建 shop-admin-api
+cd backend/shop-admin-api
+docker build -t shop-admin-api:1.0.0 -f Dockerfile .
+cd ..
 
-# 构建 shop-api
-docker build -t shop-api:1.0.0 -f shop-api/Dockerfile .
+# 构建 shop-app-api
+cd shop-app-api
+docker build -t shop-app-api:1.0.0 -f Dockerfile .
+cd ..
 
 # 同时打上 latest 标签
-docker build -t shop-admin:1.0.0 -t shop-admin:latest -f shop-admin/Dockerfile .
-docker build -t shop-api:1.0.0 -t shop-api:latest -f shop-api/Dockerfile .
+cd shop-admin-api
+docker build -t shop-admin-api:1.0.0 -t shop-admin-api:latest -f Dockerfile .
+cd ..
+cd shop-app-api
+docker build -t shop-app-api:1.0.0 -t shop-app-api:latest -f Dockerfile .
+cd ..
 ```
 
 ### 6.3 构建后验证
@@ -361,12 +369,12 @@ docker build -t shop-api:1.0.0 -t shop-api:latest -f shop-api/Dockerfile .
 docker images | grep shop
 
 # 预期输出:
-# shop-admin   1.0.0   ...   ~170MB
-# shop-api      1.0.0   ...   ~170MB
+# shop-admin-api   1.0.0   ...   ~170MB
+# shop-app-api      1.0.0   ...   ~170MB
 
 # 测试运行
-docker run --rm -p 8081:8081 shop-admin:1.0.0
-docker run --rm -p 8080:8080 shop-api:1.0.0
+docker run --rm -p 8081:8081 shop-admin-api:1.0.0
+docker run --rm -p 8080:8080 shop-app-api:1.0.0
 ```
 
 ---
@@ -377,9 +385,9 @@ docker run --rm -p 8080:8080 shop-api:1.0.0
 
 ```
                     MySQL (healthy) ──────┐
-                                          ├──► shop-admin
+                                          ├──► shop-admin-api
                     Redis (healthy) ──────┤
-                                          ├──► shop-api
+                                          ├──► shop-app-api
                     Kafka ────────────────┘
 
   Elasticsearch (healthy) ───► Logstash ───► Kibana
@@ -394,8 +402,8 @@ docker run --rm -p 8080:8080 shop-api:1.0.0
 | Kafka | `kafka-broker-api-versions` | 15s | 30s |
 | Elasticsearch | `curl /_cluster/health` | 15s | 40s |
 | RabbitMQ | `rabbitmq-diagnostics` | 15s | 30s |
-| shop-admin | `curl /actuator/health` | 30s | 60s |
-| shop-api | `curl /actuator/health` | 30s | 60s |
+| shop-admin-api | `curl /actuator/health` | 30s | 60s |
+| shop-app-api | `curl /actuator/health` | 30s | 60s |
 
 ### 7.3 网络架构
 

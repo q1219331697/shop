@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ 数据访问层模块
+  ~ 提供 DAO 接口、数据库配置，封装所有数据库操作
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!-- Maven 模型版本 -->
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- 继承商城根项目 -->
+    <parent>
+        <groupId>com.shop</groupId>
+        <artifactId>shop</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>shop-dao</artifactId>
+    <name>shop-dao</name>
+    <description>数据层模块 - DAO接口、数据库配置</description>
+
+    <dependencies>
+        <!-- ==================== 项目内部模块 ==================== -->
+        <!-- 依赖公共模块（实体类、枚举等） -->
+        <dependency>
+            <groupId>com.shop</groupId>
+            <artifactId>shop-common</artifactId>
+        </dependency>
+
+        <!-- ==================== API 文档 ==================== -->
+        <!-- Knife4j OpenAPI 注解（用于实体类文档） -->
+        <dependency>
+            <groupId>com.github.xiaoymin</groupId>
+            <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
+        </dependency>
+
+        <!-- ==================== 数据层 ==================== -->
+        <!-- MyBatis Plus Starter（排除默认 Logback 日志，使用 Log4j2） -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- MyBatis Plus JSqlParser（SQL 解析 / 分页插件） -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-jsqlparser</artifactId>
+        </dependency>
+
+        <!-- MySQL 数据库驱动 -->
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Liquibase 数据库版本管理 -->
+        <dependency>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-core</artifactId>
+        </dependency>
+
+        <!-- ==================== 开发工具 ==================== -->
+        <!-- Lombok 注解处理器 -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- ==================== 缓存 ==================== -->
+        <!-- Redis 客户端 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+    </dependencies>
+</project>

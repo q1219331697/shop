@@ -1,4 +1,3 @@
-
 # Shop 商城项目
 
 <p align="center">
@@ -9,24 +8,24 @@
 
 ## 📖 项目简介
 
-Shop 是一个基于 Spring Boot 3.5 和 Vue 3 构建的全栈商城系统，采用前后端分离架构，支持 Docker 容器化部署。项目包含后台管理（shop-admin）和前台 API（shop-api）两个核心服务，配套完整的中间件基础设施。
+Shop 是一个基于 Spring Boot 3.5 和 Vue 3 构建的全栈商城系统，采用前后端分离架构，支持 Docker 容器化部署。项目包含后台管理（shop-admin-api）和前台 API（shop-app-api）两个核心服务，配套完整的中间件基础设施。
 
 ## 🏗️ 项目结构
 
 ```
 shop/
 ├── backend/                  # 后端工程（Maven 多模块）
-│   ├── shop-admin/           # 后台管理服务（端口 8081）
-│   ├── shop-api/             # 前台 API 服务（端口 8080）
-│   ├── shop-common/          # 公共模块（工具类、常量、通用实体）
-│   ├── shop-mapper/          # 数据访问层（Mapper / DAO）
-│   └── shop-service/         # 业务逻辑层（Service）
-├── frontend/                 # 前端工程
-│   ├── admin-ui/             # 后台管理界面（Vue 3 + Element Plus）
-│   └── mini-app/             # 小程序端
-├── docker/                   # Docker 部署配置
-│   ├── Dockerfile.admin      # shop-admin 多阶段构建
-│   ├── Dockerfile.api        # shop-api 多阶段构建
+│   ├── shop-admin-api/       # 后台管理服务（端口 8081）
+│   ├── shop-app-api/        # 前台 API 服务（端口 8080）
+│   ├── shop-common/         # 公共模块（工具类、常量、通用实体）
+│   ├── shop-dao/           # 数据访问层（Entity 实体类, Mapper 接口, XML）
+│   └── shop-service/        # 业务逻辑层（Service）
+├── frontend/                # 前端工程
+│   ├── admin-ui/            # 后台管理界面（Vue 3 + Element Plus）
+│   └── mini-app/            # 小程序端
+├── docker/                  # Docker 部署配置
+│   ├── Dockerfile.admin-api # shop-admin-api 多阶段构建
+│   ├── Dockerfile.app-api   # shop-app-api 多阶段构建
 │   ├── docker-compose.infra.yml  # 基础设施编排
 │   ├── docker-compose.app.yml    # 应用服务编排
 │   ├── docker-compose.yml        # 完整编排（include）
@@ -114,10 +113,10 @@ docker compose -f docker-compose.infra.yml ps
 cd ..
 
 # 构建 shop-admin 镜像（多阶段构建，无需本机 Maven）
-docker build -t shop-admin:1.0.0 -f docker/Dockerfile.admin .
+docker build -t shop-admin-api:1.0.0 -f docker/Dockerfile.admin-api .
 
-# 构建 shop-api 镜像
-docker build -t shop-api:1.0.0 -f docker/Dockerfile.api .
+# 构建 shop-app-api 镜像
+docker build -t shop-app-api:1.0.0 -f docker/Dockerfile.app-api .
 
 # 或使用构建脚本
 docker/scripts/build.bat all          # Windows
@@ -130,7 +129,7 @@ docker/scripts/build.bat all          # Windows
 cd docker
 
 # 同时指定 infra 和 app 配置文件启动应用（app 依赖 infra 中的 mysql、redis）
-docker compose -f docker-compose.infra.yml -f docker-compose.app.yml up -d shop-admin shop-api
+docker compose -f docker-compose.infra.yml -f docker-compose.app.yml up -d shop-admin-api shop-app-api
 
 # 查看状态
 docker compose -f docker-compose.infra.yml -f docker-compose.app.yml ps
@@ -166,11 +165,15 @@ cd ../backend
 # 2. 编译项目
 ./mvnw clean package -DskipTests
 
-# 3. 启动 shop-admin
-java -jar shop-admin/target/shop-admin-1.0.0.jar
+# 3. 启动 shop-admin-api
+cd shop-admin-api
+java -jar target/shop-admin-api-1.0.0.jar
+cd ..
 
-# 4. 启动 shop-api
-java -jar shop-api/target/shop-api-1.0.0.jar
+# 4. 启动 shop-app-api
+cd shop-app-api
+java -jar target/shop-app-api-1.0.0.jar
+cd ..
 ```
 
 #### 前端
@@ -192,10 +195,10 @@ npm run build
 
 | 服务 | 地址 | 说明 |
 |------|------|------|
-| shop-admin API | http://localhost:8081 | 后台管理接口 |
-| shop-admin Doc | http://localhost:8081/doc.html | 后台 API 文档 |
-| shop-api API | http://localhost:8080 | 前台接口 |
-| shop-api Doc | http://localhost:8080/doc.html | 前台 API 文档 |
+| shop-admin-api API | http://localhost:8081 | 后台管理接口 |
+| shop-admin-api Doc | http://localhost:8081/doc.html | 后台 API 文档 |
+| shop-app-api API | http://localhost:8080 | 前台接口 |
+| shop-app-api Doc | http://localhost:8080/doc.html | 前台 API 文档 |
 | RabbitMQ 管理 | http://localhost:15672 | 账号: shop / shop123 |
 | Elasticsearch | http://localhost:9200 | REST API |
 | Kibana | http://localhost:5601 | 日志可视化 |
@@ -205,7 +208,7 @@ npm run build
 ### 日志流向
 
 ```
-shop-admin / shop-api (Log4j2 Kafka Appender)
+shop-admin-api / shop-app-api (Log4j2 Kafka Appender)
     │
     ▼
 Kafka (shop-logs topic)
@@ -224,9 +227,9 @@ Kibana (可视化查询)
 
 所有容器运行在 `shop_network`（bridge 网络）中，应用服务通过服务名访问中间件：
 
-- shop-admin / shop-api → `mysql:3306`
-- shop-admin / shop-api → `redis:6379`
-- shop-admin / shop-api → `kafka:9092`
+- shop-admin-api / shop-app-api → `mysql:3306`
+- shop-admin-api / shop-app-api → `redis:6379`
+- shop-admin-api / shop-app-api → `kafka:9092`
 
 ## 🔧 常用命令
 
@@ -246,12 +249,12 @@ docker compose -f docker/docker-compose.infra.yml ps
 docker compose -f docker/docker-compose.app.yml ps
 
 # 查看日志
-docker compose -f docker/docker-compose.app.yml logs -f shop-admin
+docker compose -f docker/docker-compose.app.yml logs -f shop-admin-api
 docker compose -f docker/docker-compose.infra.yml logs -f mysql
 
 # ==================== 镜像构建 ====================
-docker build -t shop-admin:1.0.0 -f docker/Dockerfile.admin .
-docker build -t shop-api:1.0.0 -f docker/Dockerfile.api .
+docker build -t shop-admin-api:1.0.0 -f docker/Dockerfile.admin-api .
+docker build -t shop-app-api:1.0.0 -f docker/Dockerfile.app-api .
 docker build --no-cache -t shop-admin:1.0.0 -f docker/Dockerfile.admin .   # 不使用缓存
 
 # ==================== 部署脚本 ====================

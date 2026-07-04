@@ -34,28 +34,20 @@ mvn clean install
 
 ```
 shop/
-├── doc/                    # 文档目录
+├── docs/                   # 文档目录
 │   ├── API.md             # API 接口文档
 │   ├── DATABASE.md        # 数据库设计文档
 │   ├── DEPLOY.md          # 部署文档
 │   └── DEVELOP.md        # 开发文档
-├── src/
-│   └── main/
-│       ├── java/
-│       │   └── com/shop/
-│       │       ├── common/        # 公共模块
-│       │       ├── config/        # 配置类
-│       │       ├── entity/        # 实体类
-│       │       ├── enums/         # 枚举类
-│       │       ├── mapper/        # Mapper 接口
-│       │       ├── service/       # 服务层
-│       │       ├── controller/    # 控制器
-│       │       └── util/         # 工具类
-│       └── resources/
-│           ├── db/changelog/      # Liquibase 变更集
-│           ├── mapper/            # MyBatis Mapper XML
-│           └── application.yml    # 配置文件
-└── pom.xml
+├── backend/                # 后端代码
+│   ├── shop-admin-api/    # 后台管理模块
+│   ├── shop-app-api/     # 前台接口模块
+│   ├── shop-common/      # 公共模块
+│   ├── shop-mapper/      # 数据访问层
+│   ├── shop-service/     # 业务逻辑层
+│   └── pom.xml          # 后端聚合POM
+└── frontend/              # 前端代码
+    └── shop-app/         # 小程序前端
 ```
 
 ## 开发规范

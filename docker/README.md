@@ -170,18 +170,14 @@ docker compose version
 # 1. 进入 docker 目录
 cd docker
 
-# 2. 启动基础设施（MySQL、Redis、Kafka、ELK 等）
-docker/scripts/deploy.sh infra
+# 2. 构建并启动所有服务（基础设施 + 应用）
+docker/scripts/deploy.sh build
 
-# 3. 回到项目根目录，构建镜像（多阶段构建，无需本机 Maven）
-cd ..
-docker/scripts/build.sh all
+# 或者分步启动：
+#   docker/scripts/deploy.sh infra  # 仅启动基础设施
+#   docker/scripts/deploy.sh app    # 仅启动应用
 
-# 4. 启动应用服务
-cd docker
-docker/scripts/deploy.sh app
-
-# 5. 查看启动日志
+# 3. 查看启动日志
 docker/scripts/deploy.sh logs shop-admin
 ```
 
@@ -378,6 +374,15 @@ docker/scripts/deploy.sh all
 
 # 生产环境
 docker/scripts/deploy.sh -e prod all
+
+# 构建并部署
+docker/scripts/deploy.sh build
+
+# 查看状态
+docker/scripts/deploy.sh status
+
+# 查看日志
+docker/scripts/deploy.sh logs shop-admin
 ```
 
 ### 7.3 手动连接基础设施
@@ -435,7 +440,8 @@ docker/
 ├── .env.prod.template              # 生产环境配置模板
 └── scripts/
     ├── deploy.sh                   # 部署脚本（Linux/Mac）
-    └── deploy.bat                  # 部署脚本（Windows）
+    ├── deploy.bat                  # 部署脚本（Windows）
+    └── build.sh                    # 构建脚本（Linux/Mac）
 ```
 
 ### 8.2 分层启动
@@ -581,14 +587,10 @@ docker/scripts/deploy.sh all
 ### 9.6 部署脚本完整用法
 
 ```bash
-docker/scripts/deploy.sh -e <环境> <命令>
-
-# 环境:
-#   (默认)     测试/开发环境，使用 .env
-#   -e prod    生产环境，使用 .env.prod
+docker/scripts/deploy.sh [命令] [选项]
 
 # 命令:
-#   infra       仅启动基础设施
+#   infra       仅启动基础设施服务
 #   app         仅启动应用服务
 #   all         启动所有服务
 #   down        停止当前环境所有服务
@@ -596,6 +598,16 @@ docker/scripts/deploy.sh -e <环境> <命令>
 #   status      查看服务状态
 #   logs [svc]  查看日志
 #   build       构建镜像后部署
+
+# 选项:
+#   -e <env>    指定环境 (dev/uat/prod)
+#   -h          显示帮助信息
+
+# 示例:
+#   ./deploy.sh all                  # 默认环境启动所有服务
+#   ./deploy.sh -e prod all          # 生产环境启动所有服务
+#   ./deploy.sh -e uat status        # UAT环境查看服务状态
+#   ./deploy.sh logs shop-admin      # 查看shop-admin日志
 ```
 
 Windows 用户使用 `deploy.bat`，用法相同：

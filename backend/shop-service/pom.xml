@@ -26,7 +26,7 @@
         <!-- 依赖数据访问层模块 -->
         <dependency>
             <groupId>com.shop</groupId>
-            <artifactId>shop-mapper</artifactId>
+            <artifactId>shop-dao</artifactId>
         </dependency>
 
         <!-- ==================== Spring Boot 核心 ==================== -->
