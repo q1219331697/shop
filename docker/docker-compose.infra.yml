@@ -22,9 +22,9 @@ services:
       TZ: Asia/Shanghai
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_0900_ai_ci
     volumes:
-      - ./volumes/${APP_NAME}/mysql/data:/var/lib/mysql
-      - ./volumes/${APP_NAME}/mysql/conf:/etc/mysql/conf.d
-      - ./volumes/${APP_NAME}/mysql/init:/docker-entrypoint-initdb.d
+      - ${APP_NAME}/mysql/data:/var/lib/mysql
+      - ${APP_NAME}/mysql/conf:/etc/mysql/conf.d
+      - ${APP_NAME}/mysql/init:/docker-entrypoint-initdb.d
     networks:
       - shop_network
     restart: unless-stopped
@@ -43,7 +43,7 @@ services:
       - "${REDIS_PORT:-6379}:6379"
     command: redis-server --appendonly yes ${REDIS_PASSWORD:+--requirepass ${REDIS_PASSWORD}}
     volumes:
-      - ./volumes/${APP_NAME}/redis/data:/data
+      - ${APP_NAME}/redis/data:/data
     networks:
       - shop_network
     restart: unless-stopped
@@ -64,8 +64,8 @@ services:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-shop}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-shop123}
     volumes:
-      - ./volumes/${APP_NAME}/rabbitmq/data:/var/lib/rabbitmq
-      - ./volumes/${APP_NAME}/rabbitmq/log:/var/log/rabbitmq
+      - ${APP_NAME}/rabbitmq/data:/var/lib/rabbitmq
+      - ${APP_NAME}/rabbitmq/log:/var/log/rabbitmq
     networks:
       - shop_network
     restart: unless-stopped
@@ -99,9 +99,9 @@ services:
       KAFKA_NUM_PARTITIONS: 3
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
     volumes:
-      - ./volumes/${APP_NAME}/kafka/data:/var/lib/kafka/data
-      - ./volumes/${APP_NAME}/kafka/secrets:/etc/kafka/secrets
-      - ./volumes/${APP_NAME}/kafka/config:/mnt/shared/config
+      - ${APP_NAME}/kafka/data:/var/lib/kafka/data
+      - ${APP_NAME}/kafka/secrets:/etc/kafka/secrets
+      - ${APP_NAME}/kafka/config:/mnt/shared/config
     networks:
       - shop_network
     restart: unless-stopped
@@ -125,7 +125,7 @@ services:
       - "${ES_PORT:-9200}:9200"
       - "9300:9300"
     volumes:
-      - ./volumes/${APP_NAME}/elasticsearch/data:/usr/share/elasticsearch/data
+      - ${APP_NAME}/elasticsearch/data:/usr/share/elasticsearch/data
     networks:
       - shop_network
     restart: unless-stopped
@@ -148,7 +148,7 @@ services:
       - "9600:9600"
     volumes:
       - ./config/logstash:/usr/share/logstash/pipeline
-      - ./volumes/${APP_NAME}/logstash/data:/usr/share/logstash/data
+      - ${APP_NAME}/logstash/data:/usr/share/logstash/data
     depends_on:
       elasticsearch:
         condition: service_healthy

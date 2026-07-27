@@ -1,6 +1,6 @@
 # ============================================================
 # shop-admin-api Dockerfile
-# 构建命令: docker build -t shop-admin-api:1.0.0 -f docker/Dockerfile.admin-api .
+# 构建命令: docker build -t shop-admin-api:1.0.0 -f backend/Dockerfile.admin-api .
 # ============================================================
 
 # -------------------- 阶段1: Maven 构建 --------------------
@@ -9,7 +9,7 @@ FROM maven:3.9-eclipse-temurin-17 AS builder
 WORKDIR /build
 
 # 配置阿里云 Maven 镜像加速
-COPY docker/maven/settings.xml /root/.m2/settings.xml
+COPY maven/settings.xml /root/.m2/settings.xml
 
 # 先复制 POM 文件，利用 Docker 缓存加速依赖下载
 COPY backend/pom.xml ./
