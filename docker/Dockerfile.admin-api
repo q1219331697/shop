@@ -1,7 +1,5 @@
-# syntax=docker/dockerfile:1
-
 # ============================================================
-# shop-admin-api Dockerfile - 多阶段构建
+# shop-admin-api Dockerfile
 # 构建命令: docker build -t shop-admin-api:1.0.0 -f docker/Dockerfile.admin-api .
 # ============================================================
 
@@ -14,7 +12,6 @@ WORKDIR /build
 COPY docker/maven/settings.xml /root/.m2/settings.xml
 
 # 先复制 POM 文件，利用 Docker 缓存加速依赖下载
-# POM 不变时，依赖层可直接复用，无需重新下载
 COPY backend/pom.xml ./
 COPY backend/shop-common/pom.xml ./shop-common/
 COPY backend/shop-dao/pom.xml ./shop-dao/
@@ -23,8 +20,8 @@ COPY backend/shop-service/pom.xml ./shop-service/
 COPY backend/shop-admin-api/pom.xml ./shop-admin-api/
 COPY backend/shop-app-api/pom.xml ./shop-app-api/
 
-# 下载依赖（POM 不变时此层被缓存）
-RUN --mount=type=cache,target=/root/.m2/repository     mvn dependency:go-offline -pl shop-admin-api -am -B
+# 下载依赖
+RUN mvn dependency:go-offline -pl shop-admin-api -am -B
 
 # 复制源代码
 COPY backend/shop-common/ ./shop-common/
@@ -33,40 +30,38 @@ COPY backend/shop-service/ ./shop-service/
 COPY backend/shop-admin-api/ ./shop-admin-api/
 COPY backend/shop-app-api/ ./shop-app-api/
 
-# 构建 JAR（利用缓存，跳过 checkstyle 和测试）
-RUN --mount=type=cache,target=/root/.m2/repository     mvn clean package -DskipTests -Dcheckstyle.skip=true -pl shop-admin-api -am -B
+# 构建 JAR
+RUN mvn clean package -DskipTests -Dcheckstyle.skip=true -pl shop-admin-api -am -B
 
 # -------------------- 阶段2: 运行镜像 --------------------
 FROM eclipse-temurin:17-jre-alpine
 
-# 添加标签
 LABEL maintainer="shop-team"
 LABEL description="shop-admin-api 后台管理API服务"
 LABEL version="1.0.0"
 
-# 安装 curl 用于健康检查，tzdata 用于时区支持
-RUN sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && apk add --no-cache curl tzdata && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && echo "Asia/Shanghai" > /etc/timezone && apk del tzdata
+# 安装 curl 和时区支持
+RUN sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && \
+    apk add --no-cache curl tzdata && \
+    cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    echo "Asia/Shanghai" > /etc/timezone && \
+    apk del tzdata
 
-# 创建非 root 用户运行应用
+# 创建非 root 用户
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-# 设置工作目录
 WORKDIR /app
 
-# 从构建阶段复制 JAR 文件（使用通配符避免硬编码版本号）
+# 复制 JAR 文件
 COPY --from=builder --chown=appuser:appgroup /build/shop-admin-api/target/shop-admin-api-*.jar app.jar
 
-# 切换到非 root 用户
 USER appuser
 
-# 暴露端口（shop-admin-api 默认 8081）
 EXPOSE 8081
 
-# JVM 参数（可通过环境变量覆盖）
 ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseG1GC"
 
-# 健康检查
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3     CMD curl -f http://localhost:8081/actuator/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8081/actuator/health || exit 1
 
-# 启动命令
 ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar app.jar"]

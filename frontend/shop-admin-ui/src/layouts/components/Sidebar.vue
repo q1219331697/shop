@@ -45,6 +45,7 @@
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
+import { computed } from 'vue'
 import { useAppStore } from '@/stores/modules/app'
 import { usePermissionStore } from '@/stores/modules/permission'
 

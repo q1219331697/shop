@@ -3,6 +3,7 @@
  */
 import { ref, reactive, toRaw } from 'vue'
 import type { PageParams, PageResult } from '@/api/types'
+import type { Ref } from 'vue'
 
 interface UseTableOptions<T, P> {
   /** 请求方法 */
