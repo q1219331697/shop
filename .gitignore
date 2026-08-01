@@ -1,6 +1,5 @@
-
 # ========================
-# OS Generated Files
+# 操作系统生成文件
 # ========================
 # macOS
 .DS_Store
@@ -23,12 +22,13 @@ $RECYCLE.BIN/
 .Trash-*
 .nfs*
 
-# Vim / Editor swap
+# 编辑器交换文件
 *.swp
 *.swo
+*.swn
 
 # ========================
-# IDE / Editor
+# IDE / 编辑器配置
 # ========================
 # IntelliJ IDEA
 .idea/
@@ -48,9 +48,6 @@ $RECYCLE.BIN/
 .classpath
 .factorypath
 
-# MyBatis Plugin Cache
-.mybatis/
-
 # NetBeans
 /nbproject/private/
 /nbbuild/
@@ -58,12 +55,12 @@ $RECYCLE.BIN/
 /nbdist/
 /.nb-gradle/
 
-# Sublime
+# Sublime Text
 *.sublime-workspace
 *.sublime-project
 
 # ========================
-# Java / Maven / Gradle
+# Java / Maven
 # ========================
 **/target/
 *.class
@@ -75,7 +72,7 @@ $RECYCLE.BIN/
 hs_err_pid*
 replay_pid*
 
-# Maven release & backup files
+# Maven 发布和备份文件
 pom.xml.tag
 pom.xml.releaseBackup
 pom.xml.versionsBackup
@@ -87,7 +84,7 @@ buildNumber.properties
 .mvn/wrapper/maven-wrapper.jar
 
 # ========================
-# Node.js / Frontend
+# Node.js / 前端
 # ========================
 node_modules/
 dist/
@@ -101,18 +98,18 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Auto generated (Vue)
+# 自动生成文件 (Vue)
 src/auto-imports.d.ts
 src/components.d.ts
 
 # ========================
-# Docker Volumes (runtime data)
+# Docker 数据目录 (运行时数据)
 # ========================
-docker/volumes/*
-!docker/volumes/.gitkeep
+docker/data/*/
+docker/data/*/.gitkeep
 
 # ========================
-# Logs
+# 日志文件
 # ========================
 logs/
 *.log
@@ -122,7 +119,7 @@ startup.log
 build-log.txt
 
 # ========================
-# Sensitive / Secrets
+# 敏感信息 / 密钥
 # ========================
 *.key
 *.pem
@@ -132,7 +129,7 @@ credentials.json
 secrets.yml
 
 # ========================
-# Build Output & Temp
+# 构建输出与临时文件
 # ========================
 build/
 out/
@@ -143,3 +140,9 @@ temp/
 *.cache
 *.pid
 *.seed
+
+# ========================
+# 其他临时文件
+# ========================
+*.lock
+.history/

@@ -43,7 +43,6 @@ docker/README.md
 doc/
 
 # ==================== 其他 ====================
-.mvn
 .mvn/wrapper
 mvnw
 mvnw.cmd

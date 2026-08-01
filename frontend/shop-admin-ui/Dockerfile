@@ -2,22 +2,25 @@
 
 # ============================================================
 # shop-admin-ui Dockerfile - 多阶段构建
-# 构建命令: docker build -t shop-admin-ui:1.0.0 -f frontend/shop-admin-ui/Dockerfile.admin-ui .
+# 构建命令: docker compose up -d shop-admin-ui --build
 # ============================================================
 
 # -------------------- 阶段1: Node 构建 --------------------
-FROM node:24-alpine AS builder
+FROM node:24-alpine as builder
 
 WORKDIR /build
 
 # 先复制依赖文件，利用 Docker 缓存加速依赖安装
 COPY package.json package-lock.json* ./
 
+# 复制 npm 配置文件，确保使用国内镜像源加速
+COPY .npmrc ./
+
 # 安装依赖（使用国内镜像加速）
-RUN npm config set registry https://registry.npmmirror.com     && npm install
+RUN npm install
 
 # 复制源代码
-COPY ./
+COPY . ./
 
 # 构建生产包
 RUN npm run build
@@ -30,20 +33,17 @@ LABEL maintainer="shop-team"
 LABEL description="shop-admin-ui 后台管理前端"
 LABEL version="1.0.0"
 
-# 安装 tzdata 用于时区支持
-RUN sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories && apk add --no-cache tzdata     && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime     && echo "Asia/Shanghai" > /etc/timezone     && apk del tzdata
+# 设置时区
+ENV TZ=Asia/Shanghai
 
 # 复制自定义 Nginx 配置
-COPY docker/nginx/admin-ui.conf /etc/nginx/conf.d/default.conf
+COPY ./nginx/conf/admin-ui.conf /etc/nginx/conf.d/default.conf
 
 # 从构建阶段复制产物
 COPY --from=builder /build/dist /usr/share/nginx/html
 
 # 暴露端口
 EXPOSE 80
-
-# 健康检查
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3     CMD curl -f http://localhost/ || exit 1
 
 # 启动 Nginx（前台运行）
 CMD ["nginx", "-g", "daemon off;"]
