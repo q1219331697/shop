@@ -533,12 +533,23 @@ docker compose logs -f shop-api
 
 ### 11.1 数据卷映射
 
-| 服务 | 容器路径 | 宿主机路径 |
-|------|----------|------------|
-| MySQL | `/var/lib/mysql` | `./volumes/mysql/data` |
-| Redis | `/data` | `./volumes/redis/data` |
-| Kafka | `/var/lib/kafka/data` | `./volumes/kafka/data` |
-| Elasticsearch | `/usr/share/elasticsearch/data` | `./volumes/elasticsearch/data` |
+除 Logstash 管道配置（`./docker/config/logstash/pipeline`）使用 bind mount 外，其余基础设施服务均使用 **Docker 命名卷** 进行数据持久化。命名卷会自动加上 `COMPOSE_PROJECT_NAME` 前缀，因此 dev/test/prod 环境的数据相互隔离，不会冲突。
+
+| 服务 | 容器路径 | 命名卷 |
+|------|----------|--------|
+| MySQL | `/var/lib/mysql` | `mysql_data` |
+| Redis | `/data` | `redis_data` |
+| Kafka | `/var/lib/kafka/data` | `kafka_data` |
+| Kafka | `/etc/kafka/secrets` | `kafka_secrets` |
+| Kafka | `/mnt/shared/config` | `kafka_config` |
+| RabbitMQ | `/var/lib/rabbitmq` | `rabbitmq_data` |
+| Elasticsearch | `/usr/share/elasticsearch/data` | `elasticsearch_data` |
+| Logstash | `/usr/share/logstash/pipeline` | `./docker/config/logstash/pipeline`（bind mount） |
+
+> **查看命名卷实际存储位置：**
+> ```bash
+> docker volume inspect shop-dev_mysql_data
+> ```
 
 ### 11.2 备份与恢复
 
