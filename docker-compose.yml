@@ -2,15 +2,15 @@
 # Docker Compose - Shop 应用统一配置
 # 包含：基础设施 + 应用服务
 #
-# 使用方法：
+# 使用方法：只有开发环境 --build 选项，测试和生产环境不需要
 #   开发环境:   docker compose --env-file .env.dev up -d --build
-#   测试环境:   docker compose --env-file .env.test up -d --build
-#   生产环境:   docker compose --env-file .env.prod up -d --build
+#   测试环境:   docker compose --env-file .env.test up -d
+#   生产环境:   docker compose --env-file .env.prod up -d
 #
-# 或使用项目前缀：
+# 或使用项目前缀：只有开发环境 --build 选项，测试和生产环境不需要
 #   开发环境:   docker compose --env-file .env.dev -p shop-dev up -d --build
-#   测试环境:   docker compose --env-file .env.test -p shop-test up -d --build
-#   生产环境:   docker compose --env-file .env.prod -p shop-prod up -d --build
+#   测试环境:   docker compose --env-file .env.test -p shop-test up -d
+#   生产环境:   docker compose --env-file .env.prod -p shop-prod up -d
 # ============================================================
 
 services:
@@ -63,9 +63,9 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_NUM_PARTITIONS: 3
     volumes:
-      - ./docker/data/${COMPOSE_PROJECT_NAME}/kafka:/var/lib/kafka/data
-      - ./docker/data/${COMPOSE_PROJECT_NAME}/kafka-secrets:/etc/kafka/secrets
-      - ./docker/data/${COMPOSE_PROJECT_NAME}/kafka-config:/mnt/shared/config
+      - ./docker/data/${COMPOSE_PROJECT_NAME}/kafka/data:/var/lib/kafka/data
+      - ./docker/data/${COMPOSE_PROJECT_NAME}/kafka/secrets:/etc/kafka/secrets
+      - ./docker/data/${COMPOSE_PROJECT_NAME}/kafka/config:/mnt/shared/config
     networks:
       - shop
     restart: unless-stopped
@@ -197,9 +197,6 @@ services:
     container_name: ${COMPOSE_PROJECT_NAME}-admin-ui
     ports:
       - '${ADMIN_UI_PORT:-8000}:80'
-    volumes:
-      - ./frontend/shop-admin-ui/nginx/conf:/etc/nginx/conf.d
-      - ./frontend/shop-admin-ui/dist:/usr/share/nginx/html
     networks:
       - shop
     restart: unless-stopped

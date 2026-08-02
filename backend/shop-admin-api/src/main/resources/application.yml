@@ -62,14 +62,14 @@ app:
       # 前缀匹配的放行路径（无需认证即可访问）
       permit-prefix-paths:
         - /public/
+        - /api-docs
+        - /actuator
         - /favicon.ico
         - /doc.html
         - /webjars/
         - /v3/api-docs
         - /swagger-resources
         - /swagger-ui
-        - /api-docs
-        - /actuator
 
   # 日志配置
   log:
