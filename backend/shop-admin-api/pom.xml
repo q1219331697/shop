@@ -29,6 +29,12 @@
             <artifactId>shop-service</artifactId>
         </dependency>
 
+        <!-- Liquibase 数据库版本管理 -->
+        <dependency>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-core</artifactId>
+        </dependency>
+
         <!-- ==================== Spring Boot 核心 ==================== -->
         <!-- Spring Boot Web（排除默认 Logback 日志，使用 Log4j2） -->
         <dependency>

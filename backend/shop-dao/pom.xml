@@ -61,12 +61,6 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Liquibase 数据库版本管理 -->
-        <dependency>
-            <groupId>org.liquibase</groupId>
-            <artifactId>liquibase-core</artifactId>
-        </dependency>
-
         <!-- ==================== 开发工具 ==================== -->
         <!-- Lombok 注解处理器 -->
         <dependency>

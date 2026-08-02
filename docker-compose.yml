@@ -3,9 +3,9 @@
 # 包含：基础设施 + 应用服务
 #
 # 使用方法：
-#   开发环境:   docker compose --env-file .env.dev up -d --build 
-#   测试环境:   docker compose --env-file .env.test up -d --build 
-#   生产环境:   docker compose --env-file .env.prod up -d --build 
+#   开发环境:   docker compose --env-file .env.dev up -d --build
+#   测试环境:   docker compose --env-file .env.test up -d --build
+#   生产环境:   docker compose --env-file .env.prod up -d --build
 #
 # 或使用项目前缀：
 #   开发环境:   docker compose --env-file .env.dev -p shop-dev up -d --build
@@ -51,7 +51,6 @@ services:
     container_name: ${COMPOSE_PROJECT_NAME}-kafka
     ports:
       - '${KAFKA_PORT:-9092}:9092'
-      - '${KAFKA_EXTERNAL_PORT:-9094}:9094'
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: controller,broker
@@ -76,8 +75,8 @@ services:
     image: rabbitmq:3-management
     container_name: ${COMPOSE_PROJECT_NAME}-rabbitmq
     ports:
-      - '${RABBITMQ_PORT:-5672}:${RABBITMQ_PORT:-5672}'
-      - '${RABBITMQ_MGMT_PORT:-5673}:${RABBITMQ_MGMT_PORT:-5673}'
+      - '${RABBITMQ_PORT:-5672}:5672'
+      - '${RABBITMQ_MGMT_PORT:-5673}:15672'
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-shop}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-shop123}
@@ -114,7 +113,7 @@ services:
       - '${LOGSTASH_PORT:-5044}:5044'
       - '${LOGSTASH_REPORTING_PORT:-9600}:9600'
     volumes:
-      - ./docker/data/${COMPOSE_PROJECT_NAME}/logstash/pipeline:/usr/share/logstash/pipeline
+      - ./docker/config/logstash/pipeline:/usr/share/logstash/pipeline
     networks:
       - shop
     restart: unless-stopped
@@ -209,4 +208,3 @@ services:
 networks:
   shop:
     driver: bridge
-

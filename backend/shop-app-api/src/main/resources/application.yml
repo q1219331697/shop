@@ -8,17 +8,9 @@ spring:
   # 数据源配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/shop?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
-    username: root
-    # password:
-
-  # Liquibase配置（api模块独立执行，与admin模块共用一套Liquibase表）
-  liquibase:
-    enabled: true
-    change-log: classpath:db/db.changelog-master.yaml
-    contexts: api
-    # 启动时清除Liquibase校验和（生产环境建议移除）
-    clear-checksums: true
+    url: jdbc:mysql://mysql:3306/shop?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+    username: ${MYSQL_USERNAME:-root}
+    password: ${MYSQL_PASSWORD:-root123}
 
   # Jackson配置
   jackson:
@@ -29,9 +21,9 @@ spring:
   data:
     # Redis配置
     redis:
-      host: localhost
-      # password:
-      port: 6379
+      host: ${SPRING_DATA_REDIS_HOST:-redis}
+      password: ${REDIS_PASSWORD:-}
+      port: ${SPRING_DATA_REDIS_PORT:-6379}
       database: 0
       timeout: 5000ms
 
@@ -74,7 +66,7 @@ app:
   # 日志配置
   log:
     kafka:
-      bootstrap-servers: localhost:9094
+      bootstrap-servers: kafka:9092
     level:
       app: DEBUG
       mybatis-plus: DEBUG
@@ -95,8 +87,3 @@ management:
 
 knife4j:
   enable: true
-  basic:
-    enable: true
-    username: admin
-    password: admin123
-
