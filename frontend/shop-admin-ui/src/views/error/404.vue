@@ -8,8 +8,12 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 
 const router = useRouter()
+
+// 组件挂载时显示提示
+ElMessage.warning('页面不存在')
 </script>
 
 <style lang="scss" scoped>

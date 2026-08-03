@@ -145,37 +145,30 @@ service.interceptors.response.use(
     }
     // 无权限访问
     if (code === FORBIDDEN) {
-      ElMessage.error(message || '无权限访问')
       return Promise.reject(new Error(message || '无权限访问'))
     }
-    ElMessage.error(message || '请求失败')
+    // 其他业务错误（非 200），不显示提示，由 response.error 统一处理
     return Promise.reject(new Error(message || '请求失败'))
   },
   (error) => {
-    const { response } = error
-    if (response) {
-      if (response.status === 401) {
-        return handleTokenExpired()
-      }
-      switch (response.status) {
-        case 403:
-          ElMessage.error('没有权限访问')
-          break
-        case 404:
-          ElMessage.error('请求资源不存在')
-          break
-        case 500:
-          ElMessage.error('服务器内部错误')
-          break
-        default:
-          ElMessage.error(error.message || '请求失败')
-      }
+    // 统一处理所有请求错误
+    const errorMsg = error.response?.data?.message || error.message || '请求失败'
+    if (error.response) {
+      ElMessage.error(`请求失败 (${error.response.status})：${errorMsg}`)
     } else {
       ElMessage.error('网络连接异常，请检查网络')
     }
     return Promise.reject(error)
   },
 )
+
+/**
+ * 判断是否为服务器错误（5xx）
+ * 服务器错误不应该在请求拦截器中显示提示，应该由调用者决定如何处理
+ */
+export function isServerError(error: any): boolean {
+  return error?.response?.status && error.response.status >= 500 && error.response.status < 600
+}
 
 export function get<T>(url: string, params?: object, config?: AxiosRequestConfig): Promise<T> {
   return service.get(url, { params, ...config }) as Promise<T>

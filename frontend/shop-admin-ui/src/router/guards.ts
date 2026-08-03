@@ -12,6 +12,8 @@ const WHITE_LIST = ['/login']
 
 export function setupGuards(router: Router) {
   let hasAddedRoutes = false
+  let isRefreshing = false // 防止重复获取路由
+  let isLoginAttempted = false // 防止重复登录尝试
 
   router.beforeEach(async (to, _from, next) => {
     NProgress.start()
@@ -23,7 +25,8 @@ export function setupGuards(router: Router) {
         next({ path: '/' })
       } else {
         // 登录后首次进入，从后端获取动态菜单并注册路由
-        if (!hasAddedRoutes) {
+        if (!hasAddedRoutes && !isRefreshing) {
+          isRefreshing = true
           // 页面刷新后重新启动 Token 自动刷新
           startAutoRefreshToken()
           const permissionStore = usePermissionStore()
@@ -38,6 +41,7 @@ export function setupGuards(router: Router) {
             })
 
             hasAddedRoutes = true
+            isRefreshing = false
 
             // 使用 fullPath 重新导航，确保动态路由注册后重新匹配
             // 避免刷新时 to 已匹配 404 通配路由导致重复跳转 404
@@ -46,18 +50,32 @@ export function setupGuards(router: Router) {
             // 获取菜单失败（如 Token 过期），清除状态跳转登录
             permissionStore.resetPermission()
             hasAddedRoutes = false
+            isRefreshing = false
             stopAutoRefreshToken()
             next(`/login?redirect=${to.path}`)
           }
-        } else {
+        } else if (hasAddedRoutes) {
+          // 已添加路由，直接放行
           next()
+        } else {
+          // 正在刷新路由中，等待完成
+          // 使用 setTimeout 确保在 generateRoutes 完成后再放行
+          setTimeout(() => {
+            next()
+          }, 0)
         }
       }
     } else {
       hasAddedRoutes = false
+      isRefreshing = false
+      isLoginAttempted = false // 重置登录尝试标志
       // 未登录，停止自动刷新
       stopAutoRefreshToken()
-      if (WHITE_LIST.includes(to.path)) {
+
+      // 在登录页面时不重复重定向
+      if (to.path === '/login') {
+        next()
+      } else if (WHITE_LIST.includes(to.path)) {
         next()
       } else {
         next(`/login?redirect=${to.path}`)

@@ -35,6 +35,7 @@ const constantRoutes: RouteRecordRaw[] = [
     children: [],
     // 子路由由路由守卫根据后端菜单动态添加
   },
+  // 404路由必须放在最后
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',

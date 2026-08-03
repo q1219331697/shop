@@ -50,9 +50,10 @@
           <el-form-item prop="username">
             <el-input
               v-model="loginForm.username"
-              placeholder="请输入用户名/姓名"
+              placeholder="请输入用户名"
               :prefix-icon="UserIcon"
               clearable
+              size="large"
             />
           </el-form-item>
 
@@ -64,11 +65,12 @@
               :prefix-icon="LockIcon"
               show-password
               @keyup.enter="handleLogin"
+              size="large"
             />
           </el-form-item>
 
           <div class="form-options">
-            <el-checkbox v-model="rememberMe">记住密码</el-checkbox>
+            <el-checkbox v-model="rememberMe" size="large">记住密码</el-checkbox>
           </div>
 
           <el-form-item>
@@ -158,8 +160,9 @@ async function handleLogin() {
     const redirect = (route.query.redirect as string) || '/'
     router.push(redirect)
     ElMessage.success('登录成功')
-  } catch {
-    ElMessage.error('登录失败，请检查用户名和密码')
+  } catch (error) {
+    // 记录错误，提示已在 http.ts 中统一显示
+    console.error('登录失败:', error)
   } finally {
     loading.value = false
   }
