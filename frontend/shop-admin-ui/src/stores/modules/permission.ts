@@ -5,6 +5,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { RouteRecordRaw } from 'vue-router'
 import { getUserMenus, type PermissionItem } from '@/api/permission'
+import dashboardRoutes from '@/router/modules/dashboard'
 
 /**
  * 后端菜单 component 字段到前端组件的映射
@@ -125,11 +126,15 @@ export const usePermissionStore = defineStore('permission', () => {
       permissionCodes.value = codes
 
       // 转换为路由
-      const routes = transformMenusToRoutes(menus)
-      dynamicRoutes.value = routes
-      menuList.value = filterHiddenRoutes(routes)
+      const transformedRoutes = transformMenusToRoutes(menus)
 
-      return routes
+      // 将固定仪表盘路由添加到最前面
+      const allRoutes = [dashboardRoutes, ...transformedRoutes]
+
+      dynamicRoutes.value = allRoutes
+      menuList.value = filterHiddenRoutes(allRoutes)
+
+      return allRoutes
     } catch (error) {
       // 重新抛出错误，让调用者处理
       throw error
