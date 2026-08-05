@@ -74,7 +74,6 @@ app:
   # 日志配置
   log:
     kafka:
-      enabled: false
       bootstrap-servers: kafka:9092
     level:
       app: DEBUG

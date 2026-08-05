@@ -3,12 +3,12 @@
 # 包含：基础设施 + 应用服务
 #
 # 使用方法：只有开发环境 --build 选项，测试和生产环境不需要
-#   开发环境:   docker compose --env-file .env.dev up -d --build
+#   开发环境:   docker compose up -d --build
 #   测试环境:   docker compose --env-file .env.test up -d
 #   生产环境:   docker compose --env-file .env.prod up -d
 #
 # 或使用项目前缀：只有开发环境 --build 选项，测试和生产环境不需要
-#   开发环境:   docker compose --env-file .env.dev -p shop-dev up -d --build
+#   开发环境:   docker compose -p shop up -d --build
 #   测试环境:   docker compose --env-file .env.test -p shop-test up -d
 #   生产环境:   docker compose --env-file .env.prod -p shop-prod up -d
 # ============================================================
@@ -28,7 +28,6 @@ services:
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_0900_ai_ci
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./docker/config/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - shop
     restart: unless-stopped
@@ -148,7 +147,7 @@ services:
       - '${ADMIN_PORT:-8081}:8080'
     environment:
       JAVA_OPTS: ${ADMIN_JAVA_OPTS:--Xms256m -Xmx512m -XX:+UseG1GC}
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/shop?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/shop?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USERNAME:-root}
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-root123}
       SPRING_DATA_REDIS_HOST: redis
@@ -174,7 +173,7 @@ services:
       - '${API_PORT:-8080}:8080'
     environment:
       JAVA_OPTS: ${API_JAVA_OPTS:--Xms256m -Xmx512m -XX:+UseG1GC}
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/shop?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/shop?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&createDatabaseIfNotExist=true
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USERNAME:-root}
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-root123}
       SPRING_DATA_REDIS_HOST: redis

@@ -16,21 +16,21 @@
   - **禁止**跳过 checkstyle 检查
   - **禁止**使用 `mvn install`
   - 正确流程为先单模块 compile 依赖，再启动目标模块
-  - 允许使用的命令：`mvn compile`、`mvn package`、`java -jar <jar-file>`
+  - 允许使用的命令：`mvn clean package`、`java -jar <jar-file>`
   - 应用启动流程：
     1. 使用 `mvn package -pl <module> -am -DskipTests` 打包指定模块及其依赖
     2. 使用 `java -jar <module>/target/<module>-<version>.jar` 运行应用
   - 示例：
+
     ```bash
     # 打包 shop-admin-api 模块及其依赖
-    mvn package -pl shop-admin-api -am -DskipTests
-    
+    mvn clean package -pl shop-admin-api -am -DskipTests
+
     # 运行应用
     java -jar shop-admin-api/target/shop-admin-api-1.0.0.jar
     ```
+
 - **Docker 部署**：
-  - 保持 `Dockerfile.admin-api` 和 `Dockerfile.app-api` 双文件独立。
-  - `docker-compose.yml` 必须通过 `include` 引入 infra 和 app。
   - 基础设施必须配 `restart: unless-stopped`，Elasticsearch 必须限额 `mem_limit: 1g`。
 
 ## 3. 分层与代码规则

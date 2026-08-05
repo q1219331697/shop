@@ -8,35 +8,20 @@ import { getUserMenus, type PermissionItem } from '@/api/permission'
 
 /**
  * 后端菜单 component 字段到前端组件的映射
- * 后端存储格式如: system/AdminUser, product/ProductList
+ * 后端存储格式如: views/system/user/index.vue
  * 前端实际路径如: @/views/system/user/index.vue
  */
 const componentModules = import.meta.glob('@/views/**/*.vue')
 
-// 调试：打印所有 componentModules 的键
-console.log('[动态路由] componentModules keys:', Object.keys(componentModules))
-
 /**
  * 将后端 component 字段转换为前端实际组件路径
- * 规则：system/AdminUser → /src/views/system/AdminUser.vue
+ * 规则：views/system/user/index.vue → @/views/system/user/index.vue
  */
 function resolveComponent(component: string | null | undefined) {
   if (!component) return undefined
 
-  // 特殊处理 Dashboard 组件（对应 dashboard/index.vue）
-  if (component === 'Dashboard') {
-    const path = '/src/views/dashboard/index.vue'
-    if (componentModules[path]) {
-      return componentModules[path]
-    }
-    console.warn(`[动态路由] Dashboard 组件未找到: ${path}`)
-    return undefined
-  }
-
   // 将后端 component 映射到 views 目录下的 .vue 文件
-  // 后端存储格式如: system/AdminUser, product/ProductList
-  // 前端路径格式如: /src/views/system/AdminUser.vue
-  const path = `/src/views/${component}.vue`
+  const path = `@/views/${component}`
   if (componentModules[path]) {
     return componentModules[path]
   }
