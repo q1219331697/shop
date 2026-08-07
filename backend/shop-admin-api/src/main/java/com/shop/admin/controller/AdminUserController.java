@@ -1,4 +1,3 @@
-
 package com.shop.admin.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -58,7 +57,7 @@ public class AdminUserController {
      * @param deleted 是否删除
      * @return 管理员分页数据
      */
-    @RequirePermission("system:admin:query")
+    @RequirePermission("system:user:list")
     @Operation(summary = "分页查询管理员列表")
     @GetMapping
     public Result<IPage<AdminUserEntity>> list(
@@ -77,7 +76,7 @@ public class AdminUserController {
      * @param id 管理员ID
      * @return 管理员详情
      */
-    @RequirePermission("system:admin:query")
+    @RequirePermission("system:user:list")
     @Operation(summary = "获取管理员详情")
     @GetMapping("/{id}")
     public Result<AdminUserEntity> getById(@PathVariable Long id) {
@@ -90,7 +89,7 @@ public class AdminUserController {
      * @param adminUser 管理员信息
      * @return 创建结果
      */
-    @RequirePermission("system:admin:create")
+    @RequirePermission("system:user:create")
     @Operation(summary = "创建管理员")
     @PostMapping
     public Result<Void> create(@RequestBody AdminUserEntity adminUser) {
@@ -104,7 +103,7 @@ public class AdminUserController {
      * @param adminUser 管理员信息
      * @return 更新结果
      */
-    @RequirePermission("system:admin:update")
+    @RequirePermission("system:user:update")
     @Operation(summary = "更新管理员信息")
     @PutMapping("/{id}")
     public Result<Void> update(@PathVariable Long id, @RequestBody AdminUserEntity adminUser) {
@@ -118,7 +117,7 @@ public class AdminUserController {
      * @param id 管理员ID
      * @return 删除结果
      */
-    @RequirePermission("system:admin:delete")
+    @RequirePermission("system:user:delete")
     @Operation(summary = "删除管理员")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
@@ -131,7 +130,7 @@ public class AdminUserController {
      * @param params 包含ids列表
      * @return 删除结果
      */
-    @RequirePermission("system:admin:delete")
+    @RequirePermission("system:user:delete")
     @Operation(summary = "批量删除管理员")
     @DeleteMapping("/batch")
     public Result<Void> batchDelete(@RequestBody Map<String, List<Long>> params) {
@@ -145,7 +144,7 @@ public class AdminUserController {
      * @param params 包含roleIds列表
      * @return 分配结果
      */
-    @RequirePermission("system:admin:update")
+    @RequirePermission("system:user:update")
     @Operation(summary = "为用户分配角色")
     @PostMapping("/{id}/roles")
     public Result<Void> assignRoles(@PathVariable("id") Long userId,
@@ -159,7 +158,7 @@ public class AdminUserController {
      * @param userId 用户ID
      * @return 角色ID列表
      */
-    @RequirePermission("system:admin:query")
+    @RequirePermission("system:user:list")
     @Operation(summary = "获取用户的角色ID列表")
     @GetMapping("/{id}/roles")
     public Result<List<Long>> getUserRoleIds(@PathVariable("id") Long userId) {
@@ -172,7 +171,7 @@ public class AdminUserController {
      * @param id 管理员ID
      * @return 禁用结果
      */
-    @RequirePermission("system:admin:update")
+    @RequirePermission("system:user:update")
     @Operation(summary = "禁用管理员")
     @PutMapping("/{id}/disable")
     public Result<Void> disable(@PathVariable Long id) {
@@ -185,7 +184,7 @@ public class AdminUserController {
      * @param id 管理员ID
      * @return 启用结果
      */
-    @RequirePermission("system:admin:update")
+    @RequirePermission("system:user:update")
     @Operation(summary = "启用管理员")
     @PutMapping("/{id}/enable")
     public Result<Void> enable(@PathVariable Long id) {
@@ -198,7 +197,7 @@ public class AdminUserController {
      * @param id 管理员ID
      * @return 恢复结果
      */
-    @RequirePermission("system:admin:update")
+    @RequirePermission("system:user:update")
     @Operation(summary = "恢复已删除的管理员")
     @PutMapping("/{id}/restore")
     public Result<Void> restore(@PathVariable Long id) {
@@ -211,7 +210,7 @@ public class AdminUserController {
      * @param params 包含ids列表
      * @return 禁用结果
      */
-    @RequirePermission("system:admin:update")
+    @RequirePermission("system:user:update")
     @Operation(summary = "批量禁用管理员")
     @PutMapping("/batch-disable")
     public Result<Void> batchDisable(@RequestBody Map<String, List<Long>> params) {
@@ -224,7 +223,7 @@ public class AdminUserController {
      * @param params 包含ids列表
      * @return 启用结果
      */
-    @RequirePermission("system:admin:update")
+    @RequirePermission("system:user:update")
     @Operation(summary = "批量启用管理员")
     @PutMapping("/batch-enable")
     public Result<Void> batchEnable(@RequestBody Map<String, List<Long>> params) {
@@ -237,7 +236,7 @@ public class AdminUserController {
      * @param params 包含ids列表
      * @return 恢复结果
      */
-    @RequirePermission("system:admin:update")
+    @RequirePermission("system:user:update")
     @Operation(summary = "批量恢复已删除的管理员")
     @PutMapping("/batch-restore")
     public Result<Void> batchRestore(@RequestBody Map<String, List<Long>> params) {
@@ -281,7 +280,7 @@ public class AdminUserController {
      * @param id 用户ID
      * @return 权限详情
      */
-    @RequirePermission("system:admin:query")
+    @RequirePermission("system:user:list")
     @Operation(summary = "获取用户权限详情")
     @GetMapping("/{id}/permission-detail")
     public Result<AdminUserPermissionVo> getUserPermissionDetail(@PathVariable Long id) {

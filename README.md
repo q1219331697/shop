@@ -1,4 +1,4 @@
-# Shop 项目 Docker 部署文档
+# Shop 项目
 
 ## 目录
 
@@ -37,45 +37,40 @@ Shop 是商城项目，包含以下服务模块：
 | Elasticsearch      | 9.3.3        | 日志存储             |
 | Logstash           | 9.3.3        | 日志处理             |
 | Kibana             | 9.3.3        | 日志可视化           |
-| Logstash TCP Input | 5044         | 日志接收端口         |
 
 ### 容器架构
 
 ```
-                    ┌─────────────────────────────────────────┐
-                    │           Docker Network                │
-                    │        (shop_network / bridge)          │
-                    │                                         │
-  ┌──────────┐      │                    ┌────┴────┐         │
-  │          │      │                    │  Kafka   │         │
-  │          │      │                    │ :9092    │         │
-  │ 管理端    │──────┼─►│shop-admin-api │    └────┬────┘         │
-  │          │      │  │ :8081         │───┐     │              │
-  └──────────┘      │  └─────┬─────────┘   │     │              │
-                    │        │              │     │              │
-  ┌──────────┐      │  ┌─────┴─────┐       │     │              │
-  │          │      │  │           │       │     │              │
-  │ 前台用户  │──────┼─►│ shop-app-api│──────┘     │              │
-  │          │      │  │ :8080     │          │              │
-  └──────────┘      │  └───────────┘          │              │
-                    │        │                │              │
-                    │        ▼                │              │
-                    │  ┌───────────┐          │              │
-                    │  │  MySQL    │◄─────────┘              │
-                    │  │  :3306    │                         │
-                    │  └───────────┘                         │
-                    │                                         │
-                    │        ┌───────────┐                    │
-                    │        │  Redis    │                    │
-                    │        │  :6379    │                    │
-                    │        └───────────┘                    │
-                    │                                         │
-                    │        ┌───────────┐                    │
-                    │        │ RabbitMQ  │                    │
-                    │        │ :5672     │                    │
-                    │        └───────────┘                    │
-                    │                                         │
-                    └─────────────────────────────────────────┘
+┌──────────┐         ┌──────────┐
+│ admin-ui │         │   app    │
+│  (8000)  │         │  (8080)  │
+└──────────┘         └──────────┘
+        │                     │
+        ▼                     ▼
+┌──────────┐         ┌──────────┐
+│ admin-api│         │  app-api │
+│  (8081)  │         │  (8080)  │
+└──────────┘         └──────────┘
+        │                     │
+        ├─────────────────────┤
+        │                     │
+        ▼                     ▼
+┌──────────────┐    ┌──────────────┐
+│   中间件层    │    │   日志层     │
+├──────────────┤    ├──────────────┤
+│   MySQL      │    │   Kafka      │
+│  (3306)      │    │  (9092)      │
+│   Redis      │    │   Logstash   │
+│  (6379)      │    │  (5044)      │
+│   RabbitMQ   │    │   ES         │
+│  (5672)      │    │  (9200)      │
+└──────────────┘    └──────────────┘
+                             │
+                             ▼
+                      ┌──────────────┐
+                      │   Kibana     │
+                      │   (5601)     │
+                      └──────────────┘
 ```
 
 ---
@@ -105,7 +100,7 @@ curl http://localhost:8080/actuator/health
 # 访问 API 文档
 # shop-admin-api: http://localhost:8081/doc.html
 # shop-app-api:   http://localhost:8080/doc.html
-# shop-admin-ui:  http://localhost:5173
+# shop-admin-ui:  http://localhost:8000
 ```
 
 ---
@@ -141,39 +136,21 @@ docker build -t shop-app-api:1.0.0 -f shop-app-api/Dockerfile .
 
 ## 4. Docker Compose 部署
 
-### 4.1 文件结构
-
-```
-docker-compose.yml          # 完整编排（基础设施 + 应用服务）
-docker/data/                # 数据卷
-├── shop-dev/               # 开发环境数据
-│   ├── mysql/
-│   ├── redis/
-│   ├── kafka/
-│   └── rabbitmq/
-├── shop-test/              # 测试环境数据
-└── shop-prod/              # 生产环境数据
-.env.dev                    # 开发环境配置
-.env.test                   # 测试环境配置
-.env.prod.template          # 生产环境配置模板
-.env.prod                   # 生产环境配置（不提交）
-```
-
-### 4.2 环境说明
+### 4.1 环境说明
 
 项目支持三个环境，通过不同的 `.env` 文件区分：
 
 | 环境     | 配置文件    | COMPOSE_PROJECT_NAME | 端口前缀 |
 | -------- | ----------- | -------------------- | -------- |
-| 开发环境 | `.env.dev`  | `shop-dev`           | 80xx     |
+| 开发环境 | `.env`      | `shop`               | 80xx     |
 | 测试环境 | `.env.test` | `shop-test`          | 18xxx    |
 | 生产环境 | `.env.prod` | `shop-prod`          | 28xxx    |
 
-### 4.3 启动命令
+### 4.2 启动命令
 
 ```bash
 # 开发环境
-docker compose --env-file .env.dev up -d
+docker compose --env-file .env up -d
 
 # 测试环境
 docker compose --env-file .env.test up -d
@@ -182,7 +159,7 @@ docker compose --env-file .env.test up -d
 docker compose --env-file .env.prod up -d
 ```
 
-### 4.4 停止命令
+### 4.3 停止命令
 
 ```bash
 # 停止当前环境
@@ -200,10 +177,10 @@ docker compose down -v
 
 | 环境变量               | 说明                | 示例                |
 | ---------------------- | ------------------- | ------------------- |
-| `COMPOSE_PROJECT_NAME` | 容器项目名前缀      | `shop-dev`          |
+| `COMPOSE_PROJECT_NAME` | 容器项目名前缀      | `shop`              |
 | `ADMIN_PORT`           | shop-admin-api 端口 | `8081`              |
 | `API_PORT`             | shop-app-api 端口   | `8080`              |
-| `ADMIN_UI_PORT`        | shop-admin-ui 端口  | `5173`              |
+| `ADMIN_UI_PORT`        | shop-admin-ui 端口  | `8000`              |
 | `MYSQL_PORT`           | MySQL 端口          | `3306`              |
 | `REDIS_PORT`           | Redis 端口          | `6379`              |
 | `KAFKA_PORT`           | Kafka 端口          | `9092`              |
@@ -218,97 +195,35 @@ docker compose down -v
 | `JAVA_OPTS`            | JVM 启动参数        | `-Xms256m -Xmx512m` |
 | `TZ`                   | 容器时区            | `Asia/Shanghai`     |
 
-### 5.2 生产环境配置
-
-生产环境配置文件位于 `docker/.env.prod`，从模板创建：
-
-```bash
-# 生成随机密码
-MYSQL_PASSWORD=$(openssl rand -base64 16)
-REDIS_PASSWORD=$(openssl rand -base64 16)
-RABBITMQ_PASSWORD=$(openssl rand -base64 16)
-JWT_SECRET=$(openssl rand -base64 32)
-COMPOSE_PROJECT_NAME=shop-prod
-
-# 创建配置文件
-cp docker/.env.prod.template docker/.env.prod
-
-# 使用 sed 替换密码（根据实际情况调整）
-sed -i "s/^MYSQL_PASSWORD=.*/MYSQL_PASSWORD=$MYSQL_PASSWORD/" docker/.env.prod
-sed -i "s/^REDIS_PASSWORD=.*/REDIS_PASSWORD=$REDIS_PASSWORD/" docker/.env.prod
-sed -i "s/^RABBITMQ_PASSWORD=.*/RABBITMQ_PASSWORD=$RABBITMQ_PASSWORD/" docker/.env.prod
-sed -i "s/^JWT_SECRET=.*/JWT_SECRET=$JWT_SECRET/" docker/.env.prod
-sed -i "s/^COMPOSE_PROJECT_NAME=.*/COMPOSE_PROJECT_NAME=$COMPOSE_PROJECT_NAME/" docker/.env.prod
-
-# 查看生成的配置
-cat docker/.env.prod
-```
-
-**配置说明**：
-
-```properties
-# 容器项目名前缀（必须不同）
-COMPOSE_PROJECT_NAME=shop-prod
-
-# 数据库密码（自动生成，建议至少 16 字符）
-MYSQL_PASSWORD=生成的随机密码
-
-# Redis 密码（自动生成，建议至少 16 字符）
-REDIS_PASSWORD=生成的随机密码
-
-# RabbitMQ 密码（自动生成，建议至少 16 字符）
-RABBITMQ_PASSWORD=生成的随机密码
-
-# JWT 签名密钥（自动生成，建议至少 32 字符）
-JWT_SECRET=生成的随机密钥
-
-# JVM 内存（生产环境建议调大）
-ADMIN_JAVA_OPTS=-Xms1g -Xmx2g -XX:+UseG1GC
-API_JAVA_OPTS=-Xms1g -Xmx2g -XX:+UseG1GC
-```
-
 ---
 
 ## 6. 数据持久化
 
-### 6.1 数据卷结构
+### 6.1 数据卷机制
 
-```
-docker/data/
-├── shop-dev/              # 开发环境数据
-│   ├── mysql/
-│   ├── redis/
-│   ├── kafka/
-│   ├── rabbitmq/
-│   ├── elasticsearch/     # Elasticsearch 数据
-│   ├── logstash/
-│   │   └── pipeline/      # Logstash 配置
-│   └── kibana/            # Kibana 配置
-├── shop-test/             # 测试环境数据
-│   ├── mysql/
-│   ├── redis/
-│   ├── kafka/
-│   ├── rabbitmq/
-│   ├── elasticsearch/
-│   ├── logstash/
-│   │   └── pipeline/
-│   └── kibana/
-├── shop-prod/             # 生产环境数据
-│   ├── mysql/
-│   ├── redis/
-│   ├── kafka/
-│   ├── rabbitmq/
-│   ├── elasticsearch/
-│   ├── logstash/
-│   │   └── pipeline/
-│   └── kibana/
-└── mysql/                 # MySQL 配置（共享）
-    └── conf/
-└── kafka/                 # Kafka 配置（共享）
-    └── config/
-```
+项目使用 **Docker 命名卷** 进行数据持久化，命名卷会自动加上 `COMPOSE_PROJECT_NAME` 前缀，因此不同环境（dev/test/prod）的数据卷相互隔离，不会冲突。
 
-> **说明**: 数据目录按 `COMPOSE_PROJECT_NAME` 隔离，切换环境不会丢失数据。
+### 6.2 自动创建的卷
+
+当您启动服务时，Docker Compose 会自动创建以下命名卷：
+
+| 卷名称                           | 用途               |
+| -------------------------------- | ------------------ |
+| `<project-name>-mysql`           | MySQL 数据         |
+| `<project-name>-redis`           | Redis 数据         |
+| `<project-name>-kafka`           | Kafka 数据         |
+| `<project-name>-kafka_secrets`   | Kafka 密钥         |
+| `<project-name>-kafka_config`    | Kafka 配置         |
+| `<project-name>-rabbitmq`        | RabbitMQ 数据      |
+| `<project-name>-elasticsearch`   | Elasticsearch 数据 |
+| `<project-name>-logstash_config` | Logstash 配置      |
+| `<project-name>-kibana_config`   | Kibana 配置        |
+
+> **示例**:
+>
+> - 开发环境会创建 `shop-mysql`、`shop-redis` 等卷
+> - 生产环境会创建 `shop-prod-mysql`、`shop-prod-redis` 等卷
+> - 切换环境不会影响其他环境的数据
 
 ---
 
@@ -327,30 +242,30 @@ JWT_SECRET=$(openssl rand -base64 32)
 COMPOSE_PROJECT_NAME=shop-prod
 
 # 创建配置文件
-cp docker/.env.prod.template docker/.env.prod
+cp .env.prod.template .env.prod
 
 # 使用 sed 替换密码
-sed -i "s/^MYSQL_PASSWORD=.*/MYSQL_PASSWORD=$MYSQL_PASSWORD/" docker/.env.prod
-sed -i "s/^REDIS_PASSWORD=.*/REDIS_PASSWORD=$REDIS_PASSWORD/" docker/.env.prod
-sed -i "s/^RABBITMQ_PASSWORD=.*/RABBITMQ_PASSWORD=$RABBITMQ_PASSWORD/" docker/.env.prod
-sed -i "s/^JWT_SECRET=.*/JWT_SECRET=$JWT_SECRET/" docker/.env.prod
-sed -i "s/^COMPOSE_PROJECT_NAME=.*/COMPOSE_PROJECT_NAME=$COMPOSE_PROJECT_NAME/" docker/.env.prod
+sed -i "s/^MYSQL_PASSWORD=.*/MYSQL_PASSWORD=$MYSQL_PASSWORD/" .env.prod
+sed -i "s/^REDIS_PASSWORD=.*/REDIS_PASSWORD=$REDIS_PASSWORD/" .env.prod
+sed -i "s/^RABBITMQ_PASSWORD=.*/RABBITMQ_PASSWORD=$RABBITMQ_PASSWORD/" .env.prod
+sed -i "s/^JWT_SECRET=.*/JWT_SECRET=$JWT_SECRET/" .env.prod
+sed -i "s/^COMPOSE_PROJECT_NAME=.*/COMPOSE_PROJECT_NAME=$COMPOSE_PROJECT_NAME/" .env.prod
 
 # 查看生成的配置
-cat docker/.env.prod
+cat .env.prod
 ```
 
 2. **启动服务**
 
 ```bash
-docker compose --env-file docker/.env.prod up -d
+docker compose --env-file .env.prod up -d
 ```
 
 3. **验证部署**
 
 ```bash
 # 检查容器状态
-docker compose --env-file docker/.env.prod ps
+docker compose --env-file .env.prod ps
 
 # 检查健康状态
 curl http://localhost:28081/actuator/health
@@ -372,19 +287,19 @@ docker exec shop-prod-rabbitmq rabbitmq-diagnostics -u shop -p shop123 ping
 
 ### A. 端口速查表
 
-| 服务           | 容器端口 | 宿主机端口 | 环境变量              |
-| -------------- | -------- | ---------- | --------------------- |
-| shop-admin-api | 8081     | 8081       | `ADMIN_PORT`          |
-| shop-app-api   | 8080     | 8080       | `API_PORT`            |
-| shop-admin-ui  | 80       | 8000       | `ADMIN_UI_PORT`       |
-| MySQL          | 3306     | 3306       | `MYSQL_PORT`          |
-| Redis          | 6379     | 6379       | `REDIS_PORT`          |
-| Kafka          | 9092     | 9092       | `KAFKA_PORT`          |
-| Kafka          | 9094     | 9094       | `KAFKA_EXTERNAL_PORT` |
-| RabbitMQ       | 5672     | 5672       | `RABBITMQ_PORT`       |
-| RabbitMQ       | 15672    | 5673       | `RABBITMQ_MGMT_PORT`  |
-| Elasticsearch  | 9200     | 9200       | `ES_PORT`             |
-| Logstash       | 5044     | 5044       | -                     |
-| Kibana         | 5601     | 5601       | -                     |
+| 服务           | 容器内部端口  | 开发环境  | 测试环境  | 生产环境 | 环境变量               |
+| -------------- | ------------ | -------- | -------- | -------- | --------------------- |
+| shop-admin-api | 8081         | 8081     | 18081    | 28081    | `ADMIN_PORT`          |
+| shop-app-api   | 8080         | 8080     | 18080    | 28080    | `API_PORT`            |
+| shop-admin-ui  | 80           | 8000     | 18000    | 28000    | `ADMIN_UI_PORT`       |
+| MySQL          | 3306         | 3306     | 13306    | 23306    | `MYSQL_PORT`          |
+| Redis          | 6379         | 6379     | 16379    | 26379    | `REDIS_PORT`          |
+| Kafka          | 9092         | 9092     | 19092    | 29092    | `KAFKA_PORT`          |
+| Kafka          | 9094         | 9094     | 19094    | 29094    | `KAFKA_EXTERNAL_PORT` |
+| RabbitMQ       | 5672         | 5672     | 15672    | 25672    | `RABBITMQ_PORT`       |
+| RabbitMQ       | 15672        | 5673     | 15673    | 25673    | `RABBITMQ_MGMT_PORT`  |
+| Elasticsearch  | 9200         | 9200     | 19200    | 29200    | `ES_PORT`             |
+| Logstash       | 5044         | 5044     | 15044    | 25044    | -                     |
+| Kibana         | 5601         | 5601     | 15601    | 25601    | -                     |
 
 > **说明**: 所有宿主机端口均可在对应环境变量中自定义。

@@ -16,13 +16,13 @@ const componentModules = import.meta.glob('@/views/**/*.vue')
 
 /**
  * 将后端 component 字段转换为前端实际组件路径
- * 规则：views/system/user/index.vue → @/views/system/user/index.vue
  */
 function resolveComponent(component: string | null | undefined) {
   if (!component) return undefined
 
-  // 将后端 component 映射到 views 目录下的 .vue 文件
-  const path = `@/views/${component}`
+  // 去掉开头的 views/ 前缀，避免路径重复
+  const path = component.replace(/^views\//, '')
+
   if (componentModules[path]) {
     return componentModules[path]
   }
@@ -85,7 +85,17 @@ function transformTreeToRoutes(menus: PermissionItem[]): RouteRecordRaw[] {
       // 设置重定向到第一个子菜单
       const firstChild = menu.children[0]
       if (firstChild.path) {
-        route.redirect = `${menu.path}/${firstChild.path}`
+        // 处理子菜单路径，避免重复前缀
+        let redirectPath = firstChild.path
+        // 如果子菜单路径不以 / 开头，则拼接父菜单路径
+        if (!redirectPath.startsWith('/')) {
+          redirectPath = `${menu.path}/${redirectPath}`
+        }
+        // 去掉重复的前缀
+        if (redirectPath.startsWith(`${menu.path}/${menu.path}`)) {
+          redirectPath = redirectPath.replace(`${menu.path}/${menu.path}`, menu.path)
+        }
+        route.redirect = redirectPath
       }
       // 递归处理子菜单
       route.children = transformTreeToRoutes(menu.children)

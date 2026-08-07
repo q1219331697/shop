@@ -24,6 +24,7 @@
 
     ```bash
     # 打包 shop-admin-api 模块及其依赖
+    cd backend
     mvn clean package -pl shop-admin-api -am -DskipTests
 
     # 运行应用
