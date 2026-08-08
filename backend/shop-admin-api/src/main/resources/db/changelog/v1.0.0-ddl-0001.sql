@@ -1,5 +1,5 @@
---liquibase formatted sql
---changeset admin:v1.0.0-ddl-0001
+-- liquibase formatted sql
+-- changeset admin:v1.0.0-ddl-0001
 
 CREATE TABLE IF NOT EXISTS t_admin_user (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',

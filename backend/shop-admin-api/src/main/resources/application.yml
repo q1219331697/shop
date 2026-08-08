@@ -16,9 +16,8 @@ spring:
   liquibase:
     enabled: true
     change-log: classpath:db/db.changelog-master.yaml
-    # 启动时清除Liquibase校验和（生产环境建议移除）
-    clear-checksums: true
-    # 禁用 duplicate-file-mode（Spring Boot 3.x 不支持此属性）
+    # 先删除数据库中的所有表，然后再应用变更（仅用于开发环境，生产环境请谨慎使用）
+    drop-first: ${LIQUIBASE_DROP_FIRST:false}
 
   # Jackson配置
   jackson:
@@ -61,15 +60,15 @@ app:
     auth:
       # 前缀匹配的放行路径（无需认证即可访问）
       permit-prefix-paths:
-        - /public/
-        - /api-docs
         - /actuator
-        - /favicon.ico
+        - /api-docs
         - /doc.html
-        - /webjars/
-        - /v3/api-docs
+        - /favicon.ico
+        - /public/
         - /swagger-resources
         - /swagger-ui
+        - /v3/api-docs
+        - /webjars/
 
   # 日志配置
   log:

@@ -152,6 +152,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-root123}
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
+      SPRING_LIQUIBASE_DROP_FIRST: ${LIQUIBASE_DROP_FIRST:-false}
       TZ: Asia/Shanghai
       JWT_SECRET: ${JWT_SECRET:-shop-secret-key-for-jwt-token-generation}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-604800000}

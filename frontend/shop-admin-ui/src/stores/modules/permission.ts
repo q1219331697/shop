@@ -85,17 +85,8 @@ function transformTreeToRoutes(menus: PermissionItem[]): RouteRecordRaw[] {
       // 设置重定向到第一个子菜单
       const firstChild = menu.children[0]
       if (firstChild.path) {
-        // 处理子菜单路径，避免重复前缀
-        let redirectPath = firstChild.path
-        // 如果子菜单路径不以 / 开头，则拼接父菜单路径
-        if (!redirectPath.startsWith('/')) {
-          redirectPath = `${menu.path}/${redirectPath}`
-        }
-        // 去掉重复的前缀
-        if (redirectPath.startsWith(`${menu.path}/${menu.path}`)) {
-          redirectPath = redirectPath.replace(`${menu.path}/${menu.path}`, menu.path)
-        }
-        route.redirect = redirectPath
+        // 直接使用数据库返回的路径，不做任何处理
+        route.redirect = firstChild.path
       }
       // 递归处理子菜单
       route.children = transformTreeToRoutes(menu.children)
