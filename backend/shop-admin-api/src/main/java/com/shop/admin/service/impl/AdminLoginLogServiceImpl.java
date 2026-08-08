@@ -28,14 +28,14 @@ public class AdminLoginLogServiceImpl
         implements AdminLoginLogService {
 
     @Override
-    public void recordLoginLog(Long userId, String username, Integer status,
+    public void recordLoginLog(Long userId, String username, Integer success,
                                String message) {
         try {
             AdminLoginLogEntity loginLog = new AdminLoginLogEntity();
             loginLog.setUserId(userId);
             loginLog.setUsername(username);
             loginLog.setLoginTime(LocalDateTime.now());
-            loginLog.setStatus(status);
+            loginLog.setSuccess(success);
             loginLog.setMessage(message);
             this.save(loginLog);
         } catch (Exception e) {
@@ -46,7 +46,7 @@ public class AdminLoginLogServiceImpl
 
     @Override
     public Result<IPage<AdminLoginLogEntity>> pageLoginLog(Long pageNum, Long pageSize,
-                                                           String username, Integer status,
+                                                           String username, Integer success,
                                                            String startTime, String endTime) {
         try {
             Page<AdminLoginLogEntity> page = new Page<>(pageNum, pageSize);
@@ -57,9 +57,9 @@ public class AdminLoginLogServiceImpl
                 queryWrapper.like(AdminLoginLogEntity::getUsername, username);
             }
 
-            // 状态精确查询
-            if (status != null) {
-                queryWrapper.eq(AdminLoginLogEntity::getStatus, status);
+            // 成功状态精确查询
+            if (success != null) {
+                queryWrapper.eq(AdminLoginLogEntity::getSuccess, success);
             }
 
             // 时间范围查询

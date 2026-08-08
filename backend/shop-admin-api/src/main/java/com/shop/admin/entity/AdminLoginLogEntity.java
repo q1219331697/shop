@@ -53,10 +53,10 @@ public class AdminLoginLogEntity implements Serializable {
     private LocalDateTime loginTime;
 
     /**
-     * 状态：0-失败，1-成功
+     * 是否成功：0-失败，1-成功
      */
-    @Schema(description = "状态：0-失败，1-成功")
-    private Integer status;
+    @Schema(description = "是否成功：0-失败，1-成功")
+    private Integer success;
 
     /**
      * 提示信息

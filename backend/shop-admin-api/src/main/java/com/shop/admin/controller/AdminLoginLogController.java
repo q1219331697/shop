@@ -34,7 +34,7 @@ public class AdminLoginLogController {
     /**
      * 分页查询登录日志
      *
-     * @param params 查询参数：pageNum, pageSize, username, status, startTime, endTime
+     * @param params 查询参数：pageNum, pageSize, username, success, startTime, endTime
      * @return 登录日志分页数据
      */
     @RequirePermission("system:loginlog:query")
@@ -45,9 +45,9 @@ public class AdminLoginLogController {
         Long pageSize = params.get("pageSize") != null
                 ? Long.valueOf(params.get("pageSize").toString()) : DEFAULT_PAGE_SIZE;
         String username = params.get("username") != null ? params.get("username").toString() : null;
-        Integer status = params.get("status") != null ? Integer.valueOf(params.get("status").toString()) : null;
+        Integer success = params.get("success") != null ? Integer.valueOf(params.get("success").toString()) : null;
         String startTime = params.get("startTime") != null ? params.get("startTime").toString() : null;
         String endTime = params.get("endTime") != null ? params.get("endTime").toString() : null;
-        return adminLoginLogService.pageLoginLog(pageNum, pageSize, username, status, startTime, endTime);
+        return adminLoginLogService.pageLoginLog(pageNum, pageSize, username, success, startTime, endTime);
     }
 }

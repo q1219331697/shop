@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS t_admin_login_log (
     user_id BIGINT DEFAULT NULL COMMENT '管理用户ID',
     username VARCHAR(50) NOT NULL COMMENT '用户名',
     login_time DATETIME NOT NULL COMMENT '登录时间',
-    status TINYINT NOT NULL DEFAULT 1 COMMENT '状态(0:禁用 1:启用)',
+    success TINYINT NOT NULL DEFAULT 1 COMMENT '是否成功(0:失败 1:成功)',
     message VARCHAR(255) DEFAULT NULL COMMENT '登录消息',
     create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     KEY idx_user_id (user_id),
