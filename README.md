@@ -83,7 +83,7 @@ Nginx 代理: http://shop-admin-api:8080/adminUser
 | ------------------ | ------------ | -------------------- |
 | Java               | 17           | Eclipse Temurin JRE  |
 | Spring Boot        | 3.5.14       | 应用框架             |
-| MySQL              | 9.7          | 数据库               |
+| MySQL              | 9            | 数据库               |
 | Redis              | 8 (Alpine)   | 缓存                 |
 | Kafka              | Latest       | 消息队列（日志收集） |
 | RabbitMQ           | 3-management | 消息队列（业务消息） |
