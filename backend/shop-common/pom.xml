@@ -22,6 +22,13 @@
     <description>公共模块 - 实体、枚举、工具类、通用响应</description>
 
     <dependencies>
+        <!-- ==================== JSON 序列化 ==================== -->
+        <!-- Jackson 注解（@JsonIgnore 等，版本由 Spring Boot parent 管理） -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+        </dependency>
+
         <!-- ==================== 数据层 ==================== -->
         <!-- MyBatis Plus 注解（仅注解，不含 Starter，用于实体类注解） -->
         <dependency>

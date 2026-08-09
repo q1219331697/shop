@@ -1,5 +1,6 @@
 package com.shop.common;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -95,9 +96,14 @@ public class Result<T> implements Serializable {
 
     /**
      * 判断是否成功
+     * <p>
+     * 注意：该方法为 {@code is} 前缀的 getter 方法，若不标注 {@code @JsonIgnore}，
+     * Jackson 序列化时会将其自动暴露为 JSON 字段 {@code success}。
+     * 该字段为根据 {@link #code} 动态计算的结果，并非响应体中的真实数据字段，因此需要忽略。
      *
      * @return true 表示成功
      */
+    @JsonIgnore
     public boolean isSuccess() {
         return ResultCodeEnum.SUCCESS.getCode().equals(this.code);
     }
