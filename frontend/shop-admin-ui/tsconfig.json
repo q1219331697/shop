@@ -7,6 +7,7 @@
     "skipLibCheck": true,
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
+    "typeRoots": ["./node_modules/@types"],
     "isolatedModules": true,
     "moduleDetection": "force",
     "noEmit": true,
@@ -16,6 +17,7 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
+    "types": ["node"],
     "paths": {
       "@/*": ["./src/*"]
     }

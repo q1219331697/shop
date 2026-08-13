@@ -30,6 +30,14 @@ public interface AdminUserService extends IService<AdminUserEntity> {
     Result<Void> logout(String token);
 
     /**
+     * 刷新Token，延长Redis中Token的有效时间
+     *
+     * @param token Token字符串
+     * @return 刷新结果
+     */
+    Result<Void> refreshToken(String token);
+
+    /**
      * 创建管理员
      *
      * @param adminUser 管理员信息

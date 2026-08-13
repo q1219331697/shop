@@ -1,4 +1,3 @@
-
 package com.shop.admin.controller;
 
 import com.shop.admin.entity.AdminUserEntity;
@@ -72,6 +71,26 @@ public class PublicController {
             token = authorization.substring(BEARER_PREFIX.length()).trim();
         }
         return adminUserService.logout(token);
+    }
+
+    /**
+     * 刷新Token
+     * <p>
+     * 用于前端定时任务每25分钟调用一次，延长Token有效时间
+     * </p>
+     *
+     * @param authorization 标准Authorization请求头
+     * @return 刷新结果
+     */
+    @Operation(summary = "刷新Token")
+    @PostMapping("/token/refresh")
+    public Result<Void> refreshToken(
+            @RequestHeader(value = AUTHORIZATION_HEADER, required = false) String authorization) {
+        String token = null;
+        if (authorization != null && authorization.startsWith(BEARER_PREFIX)) {
+            token = authorization.substring(BEARER_PREFIX.length()).trim();
+        }
+        return adminUserService.refreshToken(token);
     }
 
     /**

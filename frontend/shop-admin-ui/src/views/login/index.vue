@@ -64,8 +64,8 @@
               placeholder="请输入密码"
               :prefix-icon="LockIcon"
               show-password
-              @keyup.enter="handleLogin"
               size="large"
+              @keyup.enter="handleLogin"
             />
           </el-form-item>
 
@@ -144,11 +144,15 @@ onMounted(() => {
 })
 
 async function handleLogin() {
-  if (!formRef.value) return
+  if (!formRef.value || loading.value) return
+
+  // 表单验证
   await formRef.value.validate()
+
   loading.value = true
   try {
     await userStore.login(loginForm)
+
     // 记住用户名和密码
     if (rememberMe.value) {
       localStorage.setItem(REMEMBER_KEY, loginForm.username)
@@ -157,12 +161,12 @@ async function handleLogin() {
       localStorage.removeItem(REMEMBER_KEY)
       localStorage.removeItem(REMEMBER_PWD_KEY)
     }
+
     const redirect = (route.query.redirect as string) || '/'
     router.push(redirect)
     ElMessage.success('登录成功')
-  } catch (error) {
-    // 记录错误，提示已在 http.ts 中统一显示
-    console.error('登录失败:', error)
+  } catch (_error) {
+    // 错误已在 userStore.login 中处理
   } finally {
     loading.value = false
   }

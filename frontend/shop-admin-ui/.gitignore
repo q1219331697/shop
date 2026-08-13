@@ -25,3 +25,10 @@ src/components.d.ts
 # Logs
 *.log
 npm-debug.log*
+
+# Playwright Test
+test-results/
+playwright-report/
+screenshots/
+videos/
+traces/

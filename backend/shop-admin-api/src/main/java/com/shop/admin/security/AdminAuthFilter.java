@@ -252,13 +252,16 @@ public class AdminAuthFilter extends OncePerRequestFilter {
     }
 
     /**
-     * 写入401未授权响应
+     * 写入未授权响应
+     * <p>
+     * 统一返回HTTP 200 + 业务码，避免浏览器中断请求
+     * </p>
      *
      * @param response HTTP响应
      * @throws IOException IO异常
      */
     private void writeUnauthorizedResponse(HttpServletResponse response) throws IOException {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         Result<Void> result = Result.error(ResultCodeEnum.UNAUTHORIZED, "未登录或登录已过期");

@@ -17,12 +17,14 @@ CREATE TABLE IF NOT EXISTS t_admin_login_log (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     user_id BIGINT DEFAULT NULL COMMENT '管理用户ID',
     username VARCHAR(50) NOT NULL COMMENT '用户名',
+    ip VARCHAR(50) DEFAULT NULL COMMENT '登录IP地址',
     login_time DATETIME NOT NULL COMMENT '登录时间',
     success TINYINT NOT NULL DEFAULT 1 COMMENT '是否成功(0:失败 1:成功)',
     message VARCHAR(255) DEFAULT NULL COMMENT '登录消息',
     create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     KEY idx_user_id (user_id),
     KEY idx_username (username),
+    KEY idx_ip (ip),
     KEY idx_login_time (login_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='管理员登录日志表';
 

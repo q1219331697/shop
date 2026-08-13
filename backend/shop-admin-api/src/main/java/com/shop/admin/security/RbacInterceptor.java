@@ -39,7 +39,7 @@ public class RbacInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
-                            @NonNull Object handler) throws Exception {
+                             @NonNull Object handler) throws Exception {
         if (!(handler instanceof HandlerMethod handlerMethod)) {
             return true;
         }
@@ -78,13 +78,16 @@ public class RbacInterceptor implements HandlerInterceptor {
     }
 
     /**
-     * 写入403禁止访问响应
+     * 写入禁止访问响应
+     * <p>
+     * 统一返回HTTP 200 + 业务码，避免浏览器中断请求
+     * </p>
      *
      * @param response HTTP响应
      * @throws IOException IO异常
      */
     private void writeForbiddenResponse(HttpServletResponse response) throws IOException {
-        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         Result<Void> result = ResultCodeEnum.FORBIDDEN.toResult();

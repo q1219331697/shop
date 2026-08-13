@@ -42,12 +42,12 @@ function transformMenusToRoutes(menus: PermissionItem[]): RouteRecordRaw[] {
 
   // 将所有菜单项放入 Map
   menus.forEach((menu) => {
-    menuMap.set(menu.id!, menu)
+    menuMap.set(menu.id ?? 0, menu)
   })
 
   // 构建父子关系树
   menus.forEach((menu) => {
-    const parent = menuMap.get(menu.parentId!)
+    const parent = menu.parentId ? menuMap.get(menu.parentId) : undefined
     if (parent && menu.parentId !== 0) {
       // 如果有父菜单，添加到父菜单的 children
       if (!parent.children) {
@@ -112,34 +112,29 @@ export const usePermissionStore = defineStore('permission', () => {
 
   /** 从后端获取用户菜单并生成路由 */
   async function generateRoutes(): Promise<RouteRecordRaw[]> {
-    try {
-      const menus = await getUserMenus()
+    const menus = await getUserMenus()
 
-      // 收集所有权限编码
-      const codes: string[] = []
-      function collectCodes(items: PermissionItem[]) {
-        items.forEach((item) => {
-          codes.push(item.permissionCode)
-          if (item.children) collectCodes(item.children)
-        })
-      }
-      collectCodes(menus)
-      permissionCodes.value = codes
-
-      // 转换为路由
-      const transformedRoutes = transformMenusToRoutes(menus)
-
-      // 将固定仪表盘路由添加到最前面
-      const allRoutes = [dashboardRoutes, ...transformedRoutes]
-
-      dynamicRoutes.value = allRoutes
-      menuList.value = filterHiddenRoutes(allRoutes)
-
-      return allRoutes
-    } catch (error) {
-      // 重新抛出错误，让调用者处理
-      throw error
+    // 收集所有权限编码
+    const codes: string[] = []
+    function collectCodes(items: PermissionItem[]) {
+      items.forEach((item) => {
+        codes.push(item.permissionCode)
+        if (item.children) collectCodes(item.children)
+      })
     }
+    collectCodes(menus)
+    permissionCodes.value = codes
+
+    // 转换为路由
+    const transformedRoutes = transformMenusToRoutes(menus)
+
+    // 将固定仪表盘路由添加到最前面
+    const allRoutes = [dashboardRoutes, ...transformedRoutes]
+
+    dynamicRoutes.value = allRoutes
+    menuList.value = filterHiddenRoutes(allRoutes)
+
+    return allRoutes
   }
 
   /** 过滤隐藏的路由（不显示在菜单中） */

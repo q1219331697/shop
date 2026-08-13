@@ -134,7 +134,7 @@ Nginx 代理: http://shop-admin-api:8080/adminUser
 
 ```bash
 # 在项目根目录执行
-docker compose up -d
+docker compose up -d --build
 
 # 查看启动日志
 docker compose logs -f shop-admin-api
@@ -203,7 +203,7 @@ docker build -t shop-app-api:1.0.0 -f shop-app-api/Dockerfile .
 
 ```bash
 # 开发环境
-docker compose --env-file .env up -d
+docker compose --env-file .env up -d --build
 
 # 测试环境
 docker compose --env-file .env.test up -d

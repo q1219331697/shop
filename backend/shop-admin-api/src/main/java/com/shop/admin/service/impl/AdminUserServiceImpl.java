@@ -99,6 +99,23 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
     }
 
     /**
+     * 刷新Token，延长Redis中Token的有效时间
+     *
+     * @param token Token字符串
+     * @return 刷新结果
+     */
+    @Override
+    public Result<Void> refreshToken(String token) {
+        if (token != null && adminTokenService.validateToken(token)) {
+            adminTokenService.refreshToken(token);
+            log.info("Token刷新成功");
+            return Result.success();
+        }
+        log.info("Token刷新失败, token无效");
+        return Result.error(ResultCodeEnum.UNAUTHORIZED, "Token无效，请重新登录");
+    }
+
+    /**
      * 创建管理员
      *
      * @param adminUser 管理员信息

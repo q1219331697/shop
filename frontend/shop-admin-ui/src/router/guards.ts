@@ -12,54 +12,62 @@ const WHITE_LIST = ['/login']
 
 export function setupGuards(router: Router) {
   let hasAddedRoutes = false
-  let isRefreshing = false // 防止重复获取路由
-  let isLoginAttempted = false // 防止重复登录尝试
+  let isRefreshing = false
+  let isLoginAttempted = false
+  let isNavigationPending = false // 防止导航过程中的重复处理
 
   router.beforeEach(async (to, _from, next) => {
+    // 如果正在导航中，避免重复处理
+    if (isNavigationPending) {
+      return
+    }
+
     NProgress.start()
 
     const loggedIn = hasTokenCookie()
 
     if (loggedIn) {
       if (to.path === '/login') {
-        next({ path: '/' })
+        // 已登录用户访问登录页，重定向到首页
+        next({ path: '/', replace: true })
       } else {
-        // 登录后首次进入，从后端获取动态菜单并注册路由
+        // 需要加载动态路由
         if (!hasAddedRoutes && !isRefreshing) {
           isRefreshing = true
-          // 页面刷新后重新启动 Token 自动刷新
+          isNavigationPending = true
           startAutoRefreshToken()
           const permissionStore = usePermissionStore()
 
           try {
-            // 从后端获取当前用户的菜单并转换为路由
             const routes = await permissionStore.generateRoutes()
 
-            // 将动态路由注册到 router（作为 Layout 的子路由）
             routes.forEach((route) => {
               router.addRoute('Layout', route)
             })
 
             hasAddedRoutes = true
             isRefreshing = false
+            isNavigationPending = false
 
-            // 使用 fullPath 重新导航，确保动态路由注册后重新匹配
-            // 避免刷新时 to 已匹配 404 通配路由导致重复跳转 404
+            // 路由加载完成，重新导航到目标路径
             next({ path: to.fullPath, replace: true })
-          } catch (_error) {
-            // 获取菜单失败（如 Token 过期），清除状态跳转登录
+          } catch (error) {
+            console.error('[RouterGuard] 动态路由加载失败:', error)
             permissionStore.resetPermission()
             hasAddedRoutes = false
             isRefreshing = false
+            isNavigationPending = false
             stopAutoRefreshToken()
+            // 清除登录状态，跳转到登录页
+            localStorage.clear()
+            sessionStorage.clear()
             next(`/login?redirect=${to.path}`)
           }
         } else if (hasAddedRoutes) {
-          // 已添加路由，直接放行
+          // 路由已加载，直接放行
           next()
         } else {
-          // 正在刷新路由中，等待完成
-          // 使用 setTimeout 确保在 generateRoutes 完成后再放行
+          // 正在加载中，延迟处理
           setTimeout(() => {
             next()
           }, 0)
@@ -68,16 +76,21 @@ export function setupGuards(router: Router) {
     } else {
       hasAddedRoutes = false
       isRefreshing = false
-      isLoginAttempted = false // 重置登录尝试标志
-      // 未登录，停止自动刷新
       stopAutoRefreshToken()
 
-      // 在登录页面时不重复重定向
+      // 防止登录过期无限循环
       if (to.path === '/login') {
-        next()
+        if (isLoginAttempted) {
+          // 如果已经尝试过登录但仍在登录页，说明可能Token失效，重定向到首页
+          next({ path: '/', replace: true })
+        } else {
+          isLoginAttempted = true
+          next()
+        }
       } else if (WHITE_LIST.includes(to.path)) {
         next()
       } else {
+        // 未登录且不在白名单，跳转到登录页
         next(`/login?redirect=${to.path}`)
       }
     }
@@ -87,8 +100,17 @@ export function setupGuards(router: Router) {
     NProgress.done()
     document.title = `${to.meta.title || ''} - 商城管理后台`
 
-    // 记录标签页
     const tabsStore = useTabsStore()
     tabsStore.addTab(to)
+  })
+
+  // 路由重置钩子：用于登录/登出时清理状态
+  router.afterEach((to) => {
+    // 如果成功进入登录页，重置登录尝试标志
+    if (to.path === '/login') {
+      isLoginAttempted = false
+      hasAddedRoutes = false
+      isRefreshing = false
+    }
   })
 }

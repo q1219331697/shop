@@ -176,7 +176,7 @@ public Result<IPage<AdminUserEntity>> list(...) {
 | Java | 17 | Eclipse Temurin JRE |
 | Spring Boot | 3.5.14 | 应用框架 |
 | MyBatis Plus | - | ORM 框架 |
-| MySQL | 9.7 | 数据库 |
+| MySQL | 9 | 数据库 |
 | Redis | 8 (Alpine) | 缓存 |
 | JWT | - | Token 认证 |
 | Swagger/OpenAPI | - | API 文档 |
