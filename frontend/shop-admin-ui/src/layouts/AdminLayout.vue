@@ -40,10 +40,8 @@ const appStore = useAppStore()
 .main-container {
   flex-direction: column;
   margin-left: var(--sidebar-width);
-  width: calc(100% - var(--sidebar-width));
-  transition:
-    margin-left 0.3s ease,
-    width 0.3s ease;
+  width: 100%;
+  transition: margin-left 0.3s ease;
   overflow: hidden;
 }
 

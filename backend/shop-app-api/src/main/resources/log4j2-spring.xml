@@ -51,7 +51,7 @@
           topic: Kafka主题名称
           syncSend: 是否同步发送
         -->
-        <Kafka name="Kafka" topic="shop-logs" syncSend="false">
+        <Kafka name="Kafka" topic="logs-shop" syncSend="false" ignoreExceptions="true">
             <!--
               Kafka专用的日志格式
               %d{ISO8601} - ISO8601时间格式（如 2026-05-11T19:53:23.608+08:00）

@@ -1,15 +1,10 @@
 <template>
   <div v-if="tabsStore.tabList.length > 0" class="tab-bar">
-    <el-scrollbar class="tab-scroll">
+    <el-scrollbar ref="tabScrollRef" class="tab-scroll">
       <div class="tab-list">
-        <div
-          v-for="tab in tabsStore.tabList"
-          :key="tab.path"
-          class="tab-item"
-          :class="{ active: tab.path === tabsStore.activeTab }"
-          @click="handleClick(tab)"
-          @contextmenu.prevent="openContextMenu($event, tab)"
-        >
+        <div v-for="(tab, index) in tabsStore.tabList" :key="tab.path" :ref="(el: any) => (tabItemRefs[index] = el)"
+          class="tab-item" :class="{ active: tab.path === tabsStore.activeTab }" @click="handleClick(tab)"
+          @contextmenu.prevent="openContextMenu($event, tab)">
           <span class="tab-title">{{ tab.title }}</span>
           <el-icon v-if="!tab.affix" class="tab-close" @click.stop="handleClose(tab.path)">
             <Close />
@@ -18,46 +13,54 @@
       </div>
     </el-scrollbar>
     <div class="tab-actions">
-      <el-tooltip content="关闭其他" placement="bottom">
+      <el-tooltip content="关闭其他" placement="bottom-start">
         <span class="action-btn" @click="handleCloseOthersCurrent">
-          <el-icon><SemiSelect /></el-icon>
+          <el-icon>
+            <SemiSelect />
+          </el-icon>
         </span>
       </el-tooltip>
     </div>
 
     <!-- 右键菜单 -->
     <teleport to="body">
-      <div
-        v-show="contextMenuVisible"
-        class="tab-context-menu"
-        :style="{ left: contextMenuLeft + 'px', top: contextMenuTop + 'px' }"
-      >
+      <div v-show="contextMenuVisible" class="tab-context-menu"
+        :style="{ left: contextMenuLeft + 'px', top: contextMenuTop + 'px' }">
         <div class="menu-item" @click="handleRefresh">
-          <el-icon><Refresh /></el-icon>
+          <el-icon>
+            <Refresh />
+          </el-icon>
           <span>重新加载</span>
         </div>
-        <div
-          class="menu-item"
-          :class="{ disabled: contextMenuTab?.affix }"
-          @click="handleClose(contextMenuTab?.path || '')"
-        >
-          <el-icon><Close /></el-icon>
+        <div class="menu-item" :class="{ disabled: contextMenuTab?.affix }"
+          @click="handleClose(contextMenuTab?.path || '')">
+          <el-icon>
+            <Close />
+          </el-icon>
           <span>关闭当前</span>
         </div>
         <div class="menu-item" @click="handleCloseOthers">
-          <el-icon><SemiSelect /></el-icon>
+          <el-icon>
+            <SemiSelect />
+          </el-icon>
           <span>关闭其他</span>
         </div>
         <div class="menu-item" @click="handleCloseLeft">
-          <el-icon><DArrowLeft /></el-icon>
+          <el-icon>
+            <DArrowLeft />
+          </el-icon>
           <span>关闭左侧</span>
         </div>
         <div class="menu-item" @click="handleCloseRight">
-          <el-icon><DArrowRight /></el-icon>
+          <el-icon>
+            <DArrowRight />
+          </el-icon>
           <span>关闭右侧</span>
         </div>
         <div class="menu-item" @click="handleCloseAll">
-          <el-icon><CircleClose /></el-icon>
+          <el-icon>
+            <CircleClose />
+          </el-icon>
           <span>关闭所有</span>
         </div>
       </div>
@@ -66,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import {
   Close,
@@ -88,12 +91,57 @@ const contextMenuLeft = ref(0)
 const contextMenuTop = ref(0)
 const contextMenuTab = ref<TabItem | null>(null)
 
+// 标签项引用
+const tabItemRefs = ref<(globalThis.Element | null)[]>([])
+
+// 滚动容器引用
+const tabScrollRef = ref<globalThis.Element | null>(null)
+
+/** 滚动到激活标签 */
+function scrollToActiveTab() {
+  const activeTab = tabsStore.activeTab
+  if (!activeTab || tabItemRefs.value.length === 0) return
+
+  const index = tabsStore.tabList.findIndex((tab) => tab.path === activeTab)
+  if (index === -1) return
+
+  const el = tabItemRefs.value[index]
+  if (el && tabScrollRef.value) {
+    el.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'start',
+    })
+  }
+}
+
 /** 点击标签切换页面 */
 function handleClick(tab: TabItem) {
   if (tab.path !== route.path) {
     router.push({ path: tab.path, query: tab.query })
   }
 }
+
+/** 监听激活标签变化，自动滚动到激活标签 */
+watch(
+  () => tabsStore.activeTab,
+  () => {
+    // 等待下一帧，确保 ref 绑定完成
+    window.requestAnimationFrame(() => {
+      scrollToActiveTab()
+    })
+  },
+  { immediate: true },
+)
+
+/** 监听标签列表变化，重建 ref 数组 */
+watch(
+  () => tabsStore.tabList,
+  () => {
+    tabItemRefs.value = []
+  },
+  { deep: true },
+)
 
 /** 关闭标签 */
 function handleClose(path: string) {
@@ -204,7 +252,11 @@ onUnmounted(() => {
   height: 100%;
 
   :deep(.el-scrollbar__bar.is-horizontal) {
-    height: 4px;
+    display: none !important;
+  }
+
+  :deep(.el-scrollbar__bar.is-vertical) {
+    display: none;
   }
 }
 
@@ -214,6 +266,7 @@ onUnmounted(() => {
   height: 44px;
   padding: 0 12px;
   white-space: nowrap;
+  box-sizing: border-box;
 }
 
 .tab-item {

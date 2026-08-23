@@ -71,18 +71,18 @@ Nginx 代理: http://shop-admin-api:8080/adminUser
 
 ### 服务组成
 
-| 服务           | 端口 | 说明         |
-| -------------- | ---- | ------------ |
-| shop-admin-api | 8081 | 后台管理 API |
-| shop-admin-ui  | 8000 | 管理前端界面 |
-| shop-app-api   | 8080 | 前台 API     |
+| 服务           | 说明         |
+| -------------- | ------------ |
+| shop-admin-api | 后台管理 API |
+| shop-admin-ui  | 管理前端界面 |
+| shop-app-api   | 前台 API     |
 
 ### 技术栈
 
 | 组件               | 版本         | 说明                 |
 | ------------------ | ------------ | -------------------- |
 | Java               | 17           | Eclipse Temurin JRE  |
-| Spring Boot        | 3.5.14       | 应用框架             |
+| Spring Boot        | 3.5.16       | 应用框架             |
 | MySQL              | 9            | 数据库               |
 | Redis              | 8 (Alpine)   | 缓存                 |
 | Kafka              | Latest       | 消息队列（日志收集） |
@@ -96,7 +96,7 @@ Nginx 代理: http://shop-admin-api:8080/adminUser
 ```
 ┌──────────┐         ┌──────────┐
 │ admin-ui │         │   app    │
-│  (8000)  │         │  (8080)  │
+│  (8001)  │         │  (8080)  │
 └──────────┘         └──────────┘
         │                     │
         ▼                     ▼
@@ -153,7 +153,7 @@ curl http://localhost:8080/actuator/health
 # 访问 API 文档
 # shop-admin-api: http://localhost:8081/doc.html
 # shop-app-api:   http://localhost:8080/doc.html
-# shop-admin-ui:  http://localhost:8000
+# shop-admin-ui:  http://localhost:8001
 ```
 
 ---
@@ -233,7 +233,7 @@ docker compose down -v
 | `COMPOSE_PROJECT_NAME` | 容器项目名前缀      | `shop`              |
 | `ADMIN_PORT`           | shop-admin-api 端口 | `8081`              |
 | `API_PORT`             | shop-app-api 端口   | `8080`              |
-| `ADMIN_UI_PORT`        | shop-admin-ui 端口  | `8000`              |
+| `ADMIN_UI_PORT`        | shop-admin-ui 端口  | `8001`              |
 | `MYSQL_PORT`           | MySQL 端口          | `3306`              |
 | `REDIS_PORT`           | Redis 端口          | `6379`              |
 | `KAFKA_PORT`           | Kafka 端口          | `9092`              |
@@ -344,7 +344,7 @@ docker exec shop-prod-rabbitmq rabbitmq-diagnostics -u shop -p shop123 ping
 | -------------- | ------------ | -------- | -------- | -------- | --------------------- |
 | shop-admin-api | 8081         | 8081     | 18081    | 28081    | `ADMIN_PORT`          |
 | shop-app-api   | 8080         | 8080     | 18080    | 28080    | `API_PORT`            |
-| shop-admin-ui  | 80           | 8000     | 18000    | 28000    | `ADMIN_UI_PORT`       |
+| shop-admin-ui  | 80           | 8001     | 18001    | 28001    | `ADMIN_UI_PORT`       |
 | MySQL          | 3306         | 3306     | 13306    | 23306    | `MYSQL_PORT`          |
 | Redis          | 6379         | 6379     | 16379    | 26379    | `REDIS_PORT`          |
 | Kafka          | 9092         | 9092     | 19092    | 29092    | `KAFKA_PORT`          |

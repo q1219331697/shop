@@ -7,26 +7,36 @@ import type { RouteRecordRaw } from 'vue-router'
 import { getUserMenus, type PermissionItem } from '@/api/permission'
 import dashboardRoutes from '@/router/modules/dashboard'
 
-/**
- * 后端菜单 component 字段到前端组件的映射
- * 后端存储格式如: views/system/user/index.vue
- * 前端实际路径如: @/views/system/user/index.vue
- */
-const componentModules = import.meta.glob('@/views/**/*.vue')
+// 预加载所有 Vue 组件（使用 import.meta.glob）
+// 使用绝对路径 /src/，确保打包后正确解析
+// 返回格式：/src/views/**/*.vue
+const componentModules = import.meta.glob('/src/views/**/*.vue')
 
-/**
- * 将后端 component 字段转换为前端实际组件路径
- */
+// 使用 import.meta.glob 处理组件路径
 function resolveComponent(component: string | null | undefined) {
-  if (!component) return undefined
-
-  // 去掉开头的 views/ 前缀，避免路径重复
-  const path = component.replace(/^views\//, '')
-
-  if (componentModules[path]) {
-    return componentModules[path]
+  if (!component) {
+    console.error(`[动态路由] 组件路径为空: menu.component = ${component}`)
+    return undefined
   }
-  console.warn(`[动态路由] 组件未找到: ${path}`)
+
+  console.log('[路由转换] 解析组件:', component)
+
+  // 后端返回的路径格式：views/system/user/index.vue
+  // 使用绝对路径 /src/，确保打包后正确解析
+  const fullVuePath = `/src/${component}`
+  console.log('[路由转换] 完整路径:', fullVuePath)
+
+  // 从预加载的模块中查找
+  const module = componentModules[fullVuePath]
+  // const module = () => import(fullVuePath)
+  console.log('[路由转换] module:', module)
+  if (module) {
+    console.warn(`✓ 找到组件: ${fullVuePath} (原路径: ${component})`)
+    return module
+  }
+
+  console.error(`✗ 组件未找到: ${component}`)
+  console.error(`可用的组件路径:`, Object.keys(componentModules).slice(0, 50))
   return undefined
 }
 
@@ -69,8 +79,11 @@ function transformMenusToRoutes(menus: PermissionItem[]): RouteRecordRaw[] {
  */
 function transformTreeToRoutes(menus: PermissionItem[]): RouteRecordRaw[] {
   return menus.map((menu) => {
+    // 直接使用后端返回的 path，不做任何处理
+    const path = menu.path || '/'
+
     const route: Partial<RouteRecordRaw> = {
-      path: menu.path,
+      path,
       name: menu.permissionCode || menu.permissionName,
       meta: {
         title: menu.permissionName,
@@ -80,21 +93,17 @@ function transformTreeToRoutes(menus: PermissionItem[]): RouteRecordRaw[] {
       },
     }
 
-    // 有子菜单的情况
+    // 递归处理子菜单
     if (menu.children && menu.children.length > 0) {
-      // 设置重定向到第一个子菜单
-      const firstChild = menu.children[0]
-      if (firstChild.path) {
-        // 直接使用数据库返回的路径，不做任何处理
-        route.redirect = firstChild.path
-      }
-      // 递归处理子菜单
       route.children = transformTreeToRoutes(menu.children)
-    } else if (menu.component) {
-      // 叶子菜单：动态加载组件
+    }
+    // 有子菜单时不设置 component
+    else if (menu.component) {
       const component = resolveComponent(menu.component)
       if (component) {
         route.component = component
+      } else {
+        route.component = () => import('@/views/error/404.vue')
       }
     }
 
@@ -112,29 +121,38 @@ export const usePermissionStore = defineStore('permission', () => {
 
   /** 从后端获取用户菜单并生成路由 */
   async function generateRoutes(): Promise<RouteRecordRaw[]> {
-    const menus = await getUserMenus()
+    try {
+      console.log('[路由转换] 开始获取用户菜单...')
+      const menus = await getUserMenus()
+      console.log('[路由转换] 获取到菜单数据:', menus)
 
-    // 收集所有权限编码
-    const codes: string[] = []
-    function collectCodes(items: PermissionItem[]) {
-      items.forEach((item) => {
-        codes.push(item.permissionCode)
-        if (item.children) collectCodes(item.children)
-      })
+      // 收集所有权限编码
+      const codes: string[] = []
+      function collectCodes(items: PermissionItem[]) {
+        items.forEach((item) => {
+          codes.push(item.permissionCode)
+          if (item.children) collectCodes(item.children)
+        })
+      }
+      collectCodes(menus)
+      permissionCodes.value = codes
+
+      // 转换为路由
+      console.log('[路由转换] 开始转换菜单为路由...')
+      const transformedRoutes = transformMenusToRoutes(menus)
+
+      // 将固定仪表盘路由添加到最前面
+      const allRoutes = [dashboardRoutes, ...transformedRoutes]
+
+      dynamicRoutes.value = allRoutes
+      menuList.value = filterHiddenRoutes(allRoutes)
+
+      console.log('[路由转换] 路由生成完成:', allRoutes)
+      return allRoutes
+    } catch (error) {
+      console.error('生成路由失败:', error)
+      throw error
     }
-    collectCodes(menus)
-    permissionCodes.value = codes
-
-    // 转换为路由
-    const transformedRoutes = transformMenusToRoutes(menus)
-
-    // 将固定仪表盘路由添加到最前面
-    const allRoutes = [dashboardRoutes, ...transformedRoutes]
-
-    dynamicRoutes.value = allRoutes
-    menuList.value = filterHiddenRoutes(allRoutes)
-
-    return allRoutes
   }
 
   /** 过滤隐藏的路由（不显示在菜单中） */

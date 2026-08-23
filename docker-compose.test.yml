@@ -1,18 +1,18 @@
-# ============================================================
-# Docker Compose - Shop 应用
+﻿# ============================================================
+# Docker Compose - Shop 应用（测试环境）
 # 包含：基础设施 + 应用服务
 #
 # 使用方法：
-#   docker compose up -d --build
+#   docker compose -p shop-test -f docker-compose.test.yml up -d
 # ============================================================
 
 services:
   # ==================== MySQL 数据库 ====================
   mysql:
     image: mysql:9
-    container_name: shop-mysql
+    container_name: shop-test-mysql
     ports:
-      - '3306:3306'
+      - '13306:3306'
     environment:
       MYSQL_ROOT_PASSWORD: root123
       MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
@@ -28,9 +28,9 @@ services:
   # ==================== Redis 缓存 ====================
   redis:
     image: redis:8-alpine
-    container_name: shop-redis
+    container_name: shop-test-redis
     ports:
-      - '6379:6379'
+      - '16379:6379'
     command: redis-server --appendonly yes
     volumes:
       - redis_data:/data
@@ -41,14 +41,14 @@ services:
   # ==================== Kafka 消息队列 ====================
   kafka:
     image: apache/kafka:latest
-    container_name: shop-kafka
+    container_name: shop-test-kafka
     ports:
-      - '9094:9094'
+      - '19094:9094'
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: 'controller,broker'
       KAFKA_LISTENERS: 'PLAINTEXT://:9092,CONTROLLER://:9093,PLAINTEXT_HOST://:9094'
-      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9094'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:19094'
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
       KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
       KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
@@ -65,10 +65,10 @@ services:
   # ==================== RabbitMQ 消息队列 ====================
   rabbitmq:
     image: rabbitmq:3-management
-    container_name: shop-rabbitmq
+    container_name: shop-test-rabbitmq
     ports:
-      - '5672:5672'
-      - '5673:15672'
+      - '15672:5672'
+      - '15673:15672'
     environment:
       RABBITMQ_DEFAULT_USER: shop
       RABBITMQ_DEFAULT_PASS: shop123
@@ -81,15 +81,15 @@ services:
   # ==================== Elasticsearch ====================
   elasticsearch:
     image: elasticsearch:9.3.3
-    container_name: shop-elasticsearch
+    container_name: shop-test-elasticsearch
     environment:
       - discovery.type=single-node
       - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
       - xpack.security.enabled=false
       - TZ=Asia/Shanghai
     ports:
-      - '9200:9200'
-      - '9300:9300'
+      - '19200:9200'
+      - '19300:9300'
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     networks:
@@ -100,10 +100,10 @@ services:
   # ==================== Logstash ====================
   logstash:
     image: logstash:9.3.3
-    container_name: shop-logstash
+    container_name: shop-test-logstash
     ports:
-      - '5044:5044'
-      - '9600:9600'
+      - '15044:5044'
+      - '19600:9600'
     volumes:
       - ./docker/config/logstash/pipeline:/usr/share/logstash/pipeline
     networks:
@@ -116,12 +116,12 @@ services:
   # ==================== Kibana ====================
   kibana:
     image: kibana:9.3.3
-    container_name: shop-kibana
+    container_name: shop-test-kibana
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
       - TZ=Asia/Shanghai
     ports:
-      - '5601:5601'
+      - '15601:5601'
     networks:
       - shop_default
     restart: unless-stopped
@@ -134,9 +134,9 @@ services:
     build:
       context: ./backend
       dockerfile: ./shop-admin-api/Dockerfile
-    container_name: shop-admin-api
+    container_name: shop-test-admin-api
     ports:
-      - '8081:8080'
+      - '18081:8080'
     environment:
       JAVA_OPTS: -Xms512m -Xmx1g -XX:+UseG1GC
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/shop?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
@@ -144,9 +144,9 @@ services:
       SPRING_DATASOURCE_PASSWORD: root123
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
-      SPRING_LIQUIBASE_DROP_FIRST: true
+      SPRING_LIQUIBASE_DROP_FIRST: false
       TZ: Asia/Shanghai
-      JWT_SECRET: shop-secret-key
+      JWT_SECRET: shop-test-secret-key
       JWT_EXPIRATION: 604800000
     networks:
       - shop_default
@@ -161,9 +161,9 @@ services:
     build:
       context: ./backend
       dockerfile: ./shop-app-api/Dockerfile
-    container_name: shop-app-api
+    container_name: shop-test-app-api
     ports:
-      - '8080:8080'
+      - '18080:8080'
     environment:
       JAVA_OPTS: -Xms512m -Xmx1g -XX:+UseG1GC
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/shop?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&createDatabaseIfNotExist=true
@@ -172,7 +172,7 @@ services:
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       TZ: Asia/Shanghai
-      JWT_SECRET: shop-secret-key
+      JWT_SECRET: shop-test-secret-key
       JWT_EXPIRATION: 604800000
     networks:
       - shop_default
@@ -187,9 +187,9 @@ services:
     build:
       context: ./frontend/shop-admin-ui
       dockerfile: Dockerfile
-    container_name: shop-admin-ui
+    container_name: shop-test-admin-ui
     ports:
-      - '8001:80'
+      - '18001:80'
     networks:
       - shop_default
     restart: unless-stopped
