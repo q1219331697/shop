@@ -7,10 +7,12 @@ import type { RouteRecordRaw } from 'vue-router'
 import { getUserMenus, type PermissionItem } from '@/api/permission'
 import dashboardRoutes from '@/router/modules/dashboard'
 
-// 预加载所有 Vue 组件（使用 import.meta.glob）
-// 使用绝对路径 /src/，确保打包后正确解析
-// 返回格式：/src/views/**/*.vue
-const componentModules = import.meta.glob('/src/views/**/*.vue')
+/**
+ * 后端菜单 component 字段到前端组件的映射
+ * 后端存储格式如: views/system/user/index.vue
+ * 前端实际路径如: @/views/system/user/index.vue
+ */
+const componentModules = import.meta.glob('@/views/**/*.vue')
 
 // 使用 import.meta.glob 处理组件路径
 function resolveComponent(component: string | null | undefined) {

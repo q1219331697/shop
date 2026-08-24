@@ -1,10 +1,6 @@
 import { BasePage } from './BasePage'
 
 export class DashboardPage extends BasePage {
-  constructor(page: any) {
-    super(page)
-  }
-
   // 定位器
   get title() {
     return this.page.locator('.dashboard h2')

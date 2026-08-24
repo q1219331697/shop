@@ -42,7 +42,7 @@ test.describe('登录认证', () => {
     // 获取错误消息内容
     const errorMessages = await loginPage.getErrorMessages()
     expect(errorMessages).toBeTruthy()
-    expect(errorMessages!.length > 0).toBeTruthy()
+    expect(errorMessages.length > 0).toBeTruthy()
   })
 
   test('用户登出后跳转到登录页', async ({ page }) => {

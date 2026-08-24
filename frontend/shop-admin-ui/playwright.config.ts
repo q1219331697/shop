@@ -22,16 +22,7 @@ export default defineConfig({
   retries: 0,
   // workers: process.env.CI ? 1 : undefined,
   workers: 1,
-  reporter: [
-    [
-      'html',
-      {
-        outputFolder: 'playwright-report',
-        open: 'never',
-      },
-    ],
-    ['list'],
-  ],
+  reporter: [['list']],
   use: {
     // ============================================================
     // 重要：baseURL 指向本地 Vite 服务 (http://localhost:5173)
@@ -43,6 +34,10 @@ export default defineConfig({
     video: 'off',
     actionTimeout: 5000,
     navigationTimeout: 30000,
+    // 根据是否为无头模式动态设置 slowMo
+    launchOptions: {
+      slowMo: process.env.SLOW ? 1500 : 0,
+    },
   },
 
   projects: [

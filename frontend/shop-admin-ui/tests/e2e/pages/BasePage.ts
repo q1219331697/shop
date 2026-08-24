@@ -1,7 +1,7 @@
 import { Page } from '@playwright/test'
 
 export class BasePage {
-  constructor(private page: Page) {}
+  constructor(protected page: Page) {}
 
   // 基础操作方法
   async waitForPageLoad() {
@@ -13,7 +13,7 @@ export class BasePage {
       const element = this.page.locator(selector)
       await element.waitFor({ state: 'visible', timeout })
       return await element.textContent()
-    } catch (error) {
+    } catch {
       return null
     }
   }
@@ -23,7 +23,7 @@ export class BasePage {
       const element = this.page.locator(selector)
       await element.waitFor({ state: 'visible', timeout })
       return await element.isVisible()
-    } catch (error) {
+    } catch {
       return false
     }
   }

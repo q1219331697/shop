@@ -5,8 +5,15 @@
       <h1 v-show="appStore.sidebarCollapsed">M</h1>
     </div>
     <el-scrollbar>
-      <el-menu :default-active="route.path" :collapse="appStore.sidebarCollapsed" :collapse-transition="false"
-        background-color="#ffffff" text-color="#535966" active-text-color="#006bb4" router>
+      <el-menu
+        :default-active="route.path"
+        :collapse="appStore.sidebarCollapsed"
+        :collapse-transition="false"
+        background-color="#ffffff"
+        text-color="#535966"
+        active-text-color="#006bb4"
+        router
+      >
         <template v-for="item in menuList" :key="item.path">
           <!-- 有子菜单 -->
           <el-sub-menu v-if="item.children?.length" :index="item.path">
@@ -28,7 +35,9 @@
             <el-icon>
               <component :is="item.meta?.icon" />
             </el-icon>
-            <template #title><span>{{ item.meta?.title }}</span></template>
+            <template #title
+              ><span>{{ item.meta?.title }}</span></template
+            >
           </el-menu-item>
         </template>
       </el-menu>

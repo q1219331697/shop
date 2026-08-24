@@ -2,9 +2,15 @@
   <div v-if="tabsStore.tabList.length > 0" class="tab-bar">
     <el-scrollbar ref="tabScrollRef" class="tab-scroll">
       <div class="tab-list">
-        <div v-for="(tab, index) in tabsStore.tabList" :key="tab.path" :ref="(el: any) => (tabItemRefs[index] = el)"
-          class="tab-item" :class="{ active: tab.path === tabsStore.activeTab }" @click="handleClick(tab)"
-          @contextmenu.prevent="openContextMenu($event, tab)">
+        <div
+          v-for="(tab, index) in tabsStore.tabList"
+          :key="tab.path"
+          :ref="(el: any) => (tabItemRefs[index] = el)"
+          class="tab-item"
+          :class="{ active: tab.path === tabsStore.activeTab }"
+          @click="handleClick(tab)"
+          @contextmenu.prevent="openContextMenu($event, tab)"
+        >
           <span class="tab-title">{{ tab.title }}</span>
           <el-icon v-if="!tab.affix" class="tab-close" @click.stop="handleClose(tab.path)">
             <Close />
@@ -24,16 +30,22 @@
 
     <!-- 右键菜单 -->
     <teleport to="body">
-      <div v-show="contextMenuVisible" class="tab-context-menu"
-        :style="{ left: contextMenuLeft + 'px', top: contextMenuTop + 'px' }">
+      <div
+        v-show="contextMenuVisible"
+        class="tab-context-menu"
+        :style="{ left: contextMenuLeft + 'px', top: contextMenuTop + 'px' }"
+      >
         <div class="menu-item" @click="handleRefresh">
           <el-icon>
             <Refresh />
           </el-icon>
           <span>重新加载</span>
         </div>
-        <div class="menu-item" :class="{ disabled: contextMenuTab?.affix }"
-          @click="handleClose(contextMenuTab?.path || '')">
+        <div
+          class="menu-item"
+          :class="{ disabled: contextMenuTab?.affix }"
+          @click="handleClose(contextMenuTab?.path || '')"
+        >
           <el-icon>
             <Close />
           </el-icon>

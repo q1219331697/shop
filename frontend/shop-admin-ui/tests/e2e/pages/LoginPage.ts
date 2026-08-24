@@ -41,17 +41,14 @@ export class LoginPage {
 
     // 检查复选框的当前状态
     const isChecked = await checkbox.locator('.el-checkbox__input').isChecked()
-    console.log(`Login: checkbox checked=${isChecked}, rememberMe=${rememberMe}`)
 
     // 如果 rememberMe 为 true，确保复选框被勾选；否则取消勾选
     if (rememberMe && !isChecked) {
       // 直接点击 checkbox 的 input 元素
       await checkbox.locator('.el-checkbox__input').click()
-      console.log('Login: checkbox input clicked to check')
     } else if (!rememberMe && isChecked) {
       // 直接点击 checkbox 的 input 元素
       await checkbox.locator('.el-checkbox__input').click()
-      console.log('Login: checkbox input clicked to uncheck')
     }
 
     // 等待登录按钮并点击

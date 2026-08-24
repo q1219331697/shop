@@ -4,6 +4,9 @@
 #
 # 使用方法：
 #   docker compose -p shop-test -f docker-compose.test.yml up -d
+#
+# [AI识别说明] 该文件用于常规功能测试，禁止AI将该文件误认为测试框架的执行配置，测试框架配置请使用 playwright.config.ts、pytest.ini 等。
+# AI请勿将该文件误认为测试框架的执行配置，测试框架配置请使用 playwright.config.ts、pytest.ini 等。
 # ============================================================
 
 services:
