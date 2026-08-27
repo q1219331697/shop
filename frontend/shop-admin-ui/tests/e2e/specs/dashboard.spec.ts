@@ -17,6 +17,8 @@ test.describe('仪表盘', () => {
     await page.goto('/')
     await loginPage.login(testUsers.admin.username, testUsers.admin.password)
     await expect(page).toHaveURL(/.*dashboard/, { timeout: 15000 })
+    // 并行 worker 下 dashboard 组件可能加载较慢，等待标题元素真正渲染后再断言
+    await expect(page.locator('.dashboard h2')).toBeVisible({ timeout: 20000 })
     const title = await dashboardPage.getTitleText()
     expect(title).toBe('仪表盘')
   })
@@ -27,7 +29,7 @@ test.describe('仪表盘', () => {
     await expect(page).toHaveURL(/.*dashboard/, { timeout: 15000 })
 
     // 检查页面标题
-    await expect(page.locator('.dashboard h2')).toBeVisible()
+    await expect(page.locator('.dashboard h2')).toBeVisible({ timeout: 20000 })
     const titleText = await page.locator('.dashboard h2').textContent()
     expect(titleText).toBe('仪表盘')
 

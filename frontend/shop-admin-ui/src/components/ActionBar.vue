@@ -125,14 +125,18 @@ const resolvedToolbar = computed(() => {
         // 合并：样式字段从默认继承，行为字段（confirm/handler/disabled）以用户为准
         // 用户未传 confirm 时清除默认的 confirm（即不弹确认框）
         const { confirm, handler, disabled, visible, ...rest } = override
-        return {
-          ...def,
-          ...rest,
-          ...(confirm !== undefined ? { confirm } : {}),
-          ...(handler !== undefined ? { handler } : {}),
-          ...(disabled !== undefined ? { disabled } : {}),
-          ...(visible !== undefined ? { visible } : {}),
+        const merged: Record<string, unknown> = { ...def, ...rest }
+        if ('confirm' in override) {
+          // 用户显式定义了 confirm（含函数），使用用户的值
+          merged.confirm = confirm
+        } else {
+          // 用户未定义 confirm，清除默认的确认框（避免与内置 handleBatchDelete 的确认重复弹出）
+          delete merged.confirm
         }
+        if (handler !== undefined) merged.handler = handler
+        if (disabled !== undefined) merged.disabled = disabled
+        if (visible !== undefined) merged.visible = visible
+        return merged
       })
       // 追加用户自定义的非默认按钮
       .concat(props.actions.filter((item) => !defaultToolbar.some((d) => d.action === item.action)))

@@ -4,6 +4,13 @@
 INSERT IGNORE INTO t_admin_user (id, username, password, real_name, status) VALUES
 (1, 'admin', 'admin123', '超级管理员', 1);
 
+-- 测试用户数据
+INSERT IGNORE INTO t_admin_user (id, username, password, real_name, status, deleted) VALUES
+(2, 'testuser', 'testpass123', '测试用户', 1, 0),
+(3, 'testuser2', 'testpass123', '测试用户2', 1, 0),
+(4, 'testuser3', 'testpass123', '测试用户3', 0, 0),
+(5, 'testuser4', 'testpass123', '测试用户4', 1, 1);
+
 INSERT IGNORE INTO t_admin_role (id, role_name, description, sort_order, status) VALUES
 (1, '超级管理员', '拥有系统所有权限', 1, 1);
 
@@ -48,7 +55,11 @@ INSERT IGNORE INTO t_admin_permission (id, parent_id, permission_name, permissio
 (40304, 403, '权限删除', 'system:permission:delete', 2, NULL, NULL, 'views/system/permission/index.vue', 4, 1, 1);
 
 INSERT IGNORE INTO t_admin_user_role (user_id, role_id) VALUES
-(1, 1);
+(1, 1),
+(2, 1),
+(3, 1),
+(4, 1),
+(5, 1);
 
 INSERT IGNORE INTO t_admin_role_permission (role_id, permission_id) VALUES
 -- 订单管理

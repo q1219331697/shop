@@ -3,8 +3,8 @@
     <!-- 搜索区 -->
     <template v-if="resolvedSchema.searchFields && resolvedSchema.searchFields.length > 0" #search>
       <SearchBar
+        v-model:query-params="queryParams"
         :fields="resolvedSchema.searchFields"
-        :query-params="queryParams"
         :show-buttons="true"
         @search="handleSearch"
         @reset="handleReset"
@@ -171,6 +171,7 @@ const resolvedSchema = computed(() => {
     schema.actions = {
       ...schema.actions,
       toolbar: injectHandlers(schema.actions.toolbar),
+      extraToolbar: injectHandlers(schema.actions.extraToolbar),
       rowActions: injectHandlers(schema.actions.rowActions),
     }
   }

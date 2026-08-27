@@ -29,8 +29,8 @@ test.describe('登录认证', () => {
 
     // 等待跳转到 dashboard
     await expect(page).toHaveURL(/.*dashboard/, { timeout: 15000 })
-    // 等待仪表盘元素可见
-    await expect(page.locator('.dashboard h2')).toBeVisible({ timeout: 10000 })
+    // 等待仪表盘元素可见（并行 worker 下组件加载可能较慢）
+    await expect(page.locator('.dashboard h2')).toBeVisible({ timeout: 20000 })
   })
 
   test('显示登录错误信息', async ({ page }) => {

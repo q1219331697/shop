@@ -186,9 +186,9 @@ watch(
   { immediate: true, deep: true },
 )
 
-/** 同步本地修改回父组件 */
+/** 同步本地修改回父组件（合并父组件原有字段，避免丢失 pageNum/pageSize 等） */
 function syncParams() {
-  emit('update:queryParams', { ...localParams })
+  emit('update:queryParams', { ...props.queryParams, ...localParams })
 }
 
 /** 日期范围的本地值（数组形式） */
@@ -231,6 +231,8 @@ function handleDateRangeChange(field: SearchDateRange, val: [string, string] | n
 
 /** 搜索 */
 function handleSearch() {
+  // 先把本地搜索条件同步回父组件 queryParams，再触发搜索请求
+  syncParams()
   emit('search')
 }
 

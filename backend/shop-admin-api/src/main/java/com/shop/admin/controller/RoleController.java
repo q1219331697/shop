@@ -42,7 +42,7 @@ public class RoleController {
      * @param queryVo 查询参数
      * @return 角色分页数据
      */
-    @RequirePermission("system:role:query")
+    @RequirePermission("system:role:list")
     @Operation(summary = "分页查询角色列表")
     @GetMapping
     public Result<IPage<AdminRoleEntity>> list(RolePageQueryVo queryVo) {
@@ -63,7 +63,7 @@ public class RoleController {
      *
      * @return 所有角色列表
      */
-    @RequirePermission("system:role:query")
+    @RequirePermission("system:role:list")
     @Operation(summary = "查询所有角色")
     @GetMapping("/all")
     public Result<List<AdminRoleEntity>> all() {
@@ -76,7 +76,7 @@ public class RoleController {
      * @param id 角色ID
      * @return 角色详情
      */
-    @RequirePermission("system:role:query")
+    @RequirePermission("system:role:list")
     @Operation(summary = "获取角色详情")
     @GetMapping("/{id}")
     public Result<AdminRoleEntity> getById(@PathVariable Long id) {
@@ -197,7 +197,7 @@ public class RoleController {
      * @param roleId 角色ID
      * @return 权限ID列表
      */
-    @RequirePermission("system:role:query")
+    @RequirePermission("system:role:list")
     @Operation(summary = "获取角色的权限ID列表")
     @GetMapping("/{id}/permissions")
     public Result<List<Long>> getRolePermissionIds(@PathVariable("id") Long roleId) {
