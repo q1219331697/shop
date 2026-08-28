@@ -116,11 +116,11 @@
       <!-- 搜索/重置按钮 -->
       <el-form-item v-if="showButtons">
         <slot name="search-buttons" :search="handleSearch" :reset="handleReset">
-          <el-button type="primary" @click="handleSearch">
-            <el-icon><Search /></el-icon>搜索
-          </el-button>
           <el-button @click="handleReset">
             <el-icon><Refresh /></el-icon>重置
+          </el-button>
+          <el-button type="primary" @click="handleSearch">
+            <el-icon><Search /></el-icon>搜索
           </el-button>
         </slot>
       </el-form-item>

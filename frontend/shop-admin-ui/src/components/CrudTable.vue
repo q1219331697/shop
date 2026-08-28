@@ -3,7 +3,7 @@
     <!-- 搜索区 -->
     <template v-if="resolvedSchema.searchFields && resolvedSchema.searchFields.length > 0" #search>
       <SearchBar
-        v-model:query-params="queryParams"
+        v-model:query-params="queryParamsModel"
         :fields="resolvedSchema.searchFields"
         :show-buttons="true"
         @search="handleSearch"
@@ -248,6 +248,24 @@ onMounted(() => {
   } else {
     fetchData()
   }
+})
+
+/**
+ * 查询参数双向绑定代理：
+ * SearchBar 通过 v-model:query-params 更新参数。若直接绑定 queryParams 会被替换为新对象，
+ * 导致 useCrud 内部闭包引用的 reactive 对象无法感知搜索条件（搜索失效）。
+ * 这里用 computed 就地合并回原 reactive 对象，保证 handleSearch/fetchData 读到最新搜索条件。
+ */
+const queryParamsModel = computed({
+  get: () => queryParams,
+  set: (val) => {
+    Object.keys(queryParams).forEach((key) => {
+      if (!(key in (val as Record<string, unknown>))) {
+        queryParams[key] = undefined
+      }
+    })
+    Object.assign(queryParams, val)
+  },
 })
 
 /** 处理工具栏操作 */

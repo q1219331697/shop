@@ -42,11 +42,11 @@ export class RolesPage extends BasePage {
   }
 
   getSearchButton() {
-    return this.page.locator('.search-bar .el-button--primary').first()
+    return this.page.locator('.search-bar .el-button', { hasText: '搜索' }).first()
   }
 
   getResetButton() {
-    return this.page.locator('.search-bar .el-button').nth(1)
+    return this.page.locator('.search-bar .el-button', { hasText: '重置' }).first()
   }
 
   getAddButton() {

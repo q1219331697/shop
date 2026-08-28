@@ -64,11 +64,11 @@ export class UsersPage extends BasePage {
   }
 
   getSearchButton() {
-    return this.page.locator('.search-bar .el-button--primary').first();
+    return this.page.locator('.search-bar .el-button', { hasText: '搜索' }).first();
   }
 
   getResetButton() {
-    return this.page.locator('.search-bar .el-button').nth(1);
+    return this.page.locator('.search-bar .el-button', { hasText: '重置' }).first();
   }
 
   getAddButton() {
@@ -133,11 +133,26 @@ export class UsersPage extends BasePage {
     return -1
   }
 
-  /** 等待指定用户名所在行出现（配合操作后刷新） */
+  /**
+   * 等待指定用户名所在行出现（配合操作后刷新）。
+   * 若当前页未找到（残留测试数据可能把种子用户挤到后续页），
+   * 回退为通过搜索框精确搜索该用户名，使表格过滤到目标用户后定位。
+   */
   async waitForRowByUsername(username: string, timeout = 10000): Promise<number> {
     await expect
       .poll(async () => (await this.findRowIndexByUsername(username)) >= 0, { timeout })
       .toBe(true)
+    return this.findRowIndexByUsername(username)
+  }
+
+  /**
+   * 通过搜索框精确搜索指定用户名并定位其行索引（与分页无关，始终有效）。
+   * 用于定位种子测试用户，避免残留数据导致其被挤到第 2 页而无法命中。
+   */
+  async findRowByUsernameViaSearch(username: string): Promise<number> {
+    await this.getUsernameInput().fill(username)
+    await this.getSearchButton().click()
+    await this.page.waitForLoadState('networkidle')
     return this.findRowIndexByUsername(username)
   }
 
@@ -286,13 +301,25 @@ export class UsersPage extends BasePage {
     await this.getTableHeaderCheckbox().check();
   }
 
-  /** 按用户名精确选中多行（复用种子测试用户，用于批量操作测试） */
+  /**
+   * 按用户名精确选中多行（复用种子测试用户，用于批量操作测试）。
+   * 通过搜索"第一个目标用户名"把列表过滤到目标子集（种子用户共享 testuser 前缀），
+   * 再在同一页面内勾选所有目标用户，避免逐用户搜索会清空此前勾选。
+   */
   async selectRowsByUsernames(usernames: string[]): Promise<number> {
+    if (usernames.length === 0) return 0
+    // 用第一个目标用户名搜索，得到包含所有同前缀种子用户的过滤列表
+    await this.getUsernameInput().fill(usernames[0])
+    await this.getSearchButton().click()
+    await this.page.waitForLoadState('networkidle')
+
     let selected = 0
     for (const name of usernames) {
-      const idx = await this.waitForRowByUsername(name)
-      await this.getTableBodyCheckbox(idx).check()
-      selected++
+      const idx = await this.findRowIndexByUsername(name)
+      if (idx >= 0) {
+        await this.getTableBodyCheckbox(idx).check()
+        selected++
+      }
     }
     return selected
   }

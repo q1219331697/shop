@@ -269,210 +269,135 @@ test.describe('用户管理', () => {
     test.describe.configure({ mode: 'serial' })
 
   test('状态标签正确显示', async () => {
-    // 等待表格数据加载完成
-    await expect
-      .poll(async () => usersPage.getRowCount(), { timeout: 10000 })
-      .toBeGreaterThan(0)
-
-    // 查找状态为正常的标签
+    // 搜索正常用户 testuser，验证状态标签为"正常"
+    await usersPage.findRowByUsernameViaSearch('testuser')
     const normalTag = usersPage.getStatusNormalTag()
     await expect(normalTag).toBeVisible()
 
-    // 查找状态为禁用的标签（数据中应存在禁用用户 testuser3）
+    // 搜索禁用用户 testuser3，验证状态标签为"禁用"
+    await usersPage.findRowByUsernameViaSearch('testuser3')
     const disabledTag = usersPage.getStatusDisabledTag()
     await expect(disabledTag).toBeVisible()
   })
 
   test('删除状态标签正确显示', async () => {
-    // 等待表格数据加载完成
-    await expect
-      .poll(async () => usersPage.getRowCount(), { timeout: 10000 })
-      .toBeGreaterThan(0)
-
-    // 查找删除状态为是（初始数据中 testuser4 已删除）
+    // 搜索已删除用户 testuser4，验证删除标签为"是"
+    await usersPage.findRowByUsernameViaSearch('testuser4')
     const deletedYesTag = usersPage.getDeletedYesTag()
     await expect(deletedYesTag).toBeVisible()
 
-    // 查找删除状态为否
+    // 搜索未删除用户 testuser，验证删除标签为"否"
+    await usersPage.findRowByUsernameViaSearch('testuser')
     const deletedNoTag = usersPage.getDeletedNoTag()
     await expect(deletedNoTag).toBeVisible()
   })
 
   test('禁用用户功能正常工作', async ({ page }) => {
-    const rowCount = await usersPage.getRowCount()
-    if (rowCount > 0) {
-      // 寻找非当前登录用户（admin）的启用状态用户进行禁用测试
-      let targetIndex = -1
-      let targetUsername = ''
-      for (let i = 0; i < rowCount; i++) {
-        const statusCell = usersPage.getTableDataCell(i, 4)
-        const statusText = await statusCell.textContent()
-        const usernameText = await usersPage.getTableDataCell(i, 2).textContent()
-        // 状态标签中包含 "正常" 表示是启用状态，且用户名不是 admin
-        if (statusText && statusText.includes('正常') && usernameText && usernameText.trim() !== 'admin') {
-          targetIndex = i
-          targetUsername = usernameText.trim()
-          break
-        }
-      }
+    // 目标：种子测试用户 testuser（默认 status=1 正常、未删除），不新增数据
+    // 按用户名精确定位，避免依赖表格遍历扫描状态文本（并行 worker 下状态可能短暂不一致）
+    const targetUsername = 'testuser'
+    const targetIndex = await usersPage.findRowByUsernameViaSearch(targetUsername)
 
-      if (targetIndex !== -1 && targetUsername) {
-        // 选择找到的启用状态用户
-        await usersPage.selectRow(targetIndex)
-        await page.waitForTimeout(300)
+    // 选择找到的启用状态用户
+    await usersPage.selectRow(targetIndex)
+    await page.waitForTimeout(300)
 
-        // 点击禁用按钮
-        await usersPage.clickRowDisable(targetIndex)
-        await page.waitForTimeout(500)
+    // 点击禁用按钮
+    await usersPage.clickRowDisable(targetIndex)
+    await page.waitForTimeout(500)
 
-        // 验证成功消息
-        const successMsg = await usersPage.getSuccessMessageText()
-        expect(successMsg).toBeTruthy()
+    // 验证成功消息
+    const successMsg = await usersPage.getSuccessMessageText()
+    expect(successMsg).toBeTruthy()
 
-        // 刷新后按用户名重新定位并验证状态变为禁用
-        const newIndex = await usersPage.waitForRowByUsername(targetUsername)
-        const newStatusText = await usersPage.getTableDataCell(newIndex, 4).textContent()
-        expect(newStatusText).toContain('禁用')
-      }
-    }
+    // 搜索后按用户名重新定位并验证状态变为禁用
+    const newIndex = await usersPage.findRowByUsernameViaSearch(targetUsername)
+    const newStatusText = await usersPage.getTableDataCell(newIndex, 4).textContent()
+    expect(newStatusText).toContain('禁用')
   })
 
   test('启用用户功能正常工作', async ({ page }) => {
-    const rowCount = await usersPage.getRowCount()
-    if (rowCount > 0) {
-      // 寻找非当前登录用户（admin）的禁用状态用户进行启用测试
-      let targetIndex = -1
-      let targetUsername = ''
-      for (let i = 0; i < rowCount; i++) {
-        const statusCell = usersPage.getTableDataCell(i, 4)
-        const statusText = await statusCell.textContent()
-        const usernameText = await usersPage.getTableDataCell(i, 2).textContent()
-        // 状态标签中包含 "禁用" 表示是禁用状态，且用户名不是 admin
-        if (statusText && statusText.includes('禁用') && usernameText && usernameText.trim() !== 'admin') {
-          targetIndex = i
-          targetUsername = usernameText.trim()
-          break
-        }
-      }
+    // 目标：种子测试用户 testuser3（默认 status=0 禁用、未删除），不新增数据
+    // 按用户名精确定位，避免依赖表格遍历扫描状态文本（并行 worker 下状态可能短暂不一致）
+    const targetUsername = 'testuser3'
+    const targetIndex = await usersPage.findRowByUsernameViaSearch(targetUsername)
 
-      if (targetIndex !== -1 && targetUsername) {
-        // 选择找到的禁用状态用户
-        await usersPage.selectRow(targetIndex)
-        await page.waitForTimeout(300)
+    // 选择找到的禁用状态用户
+    await usersPage.selectRow(targetIndex)
+    await page.waitForTimeout(300)
 
-        // 点击启用按钮
-        await usersPage.clickRowEnable(targetIndex)
-        await page.waitForTimeout(500)
+    // 点击启用按钮
+    await usersPage.clickRowEnable(targetIndex)
+    await page.waitForTimeout(500)
 
-        // 验证成功消息
-        const successMsg = await usersPage.getSuccessMessageText()
-        expect(successMsg).toBeTruthy()
+    // 验证成功消息
+    const successMsg = await usersPage.getSuccessMessageText()
+    expect(successMsg).toBeTruthy()
 
-        // 刷新后按用户名重新定位并验证状态变为启用
-        const newIndex = await usersPage.waitForRowByUsername(targetUsername)
-        const newStatusText = await usersPage.getTableDataCell(newIndex, 4).textContent()
-        expect(newStatusText).toContain('正常')
-      }
-    }
+    // 搜索后按用户名重新定位并验证状态变为启用
+    const newIndex = await usersPage.findRowByUsernameViaSearch(targetUsername)
+    const newStatusText = await usersPage.getTableDataCell(newIndex, 4).textContent()
+    expect(newStatusText).toContain('正常')
   })
 
   test('恢复用户功能正常工作', async ({ page }) => {
-    const rowCount = await usersPage.getRowCount()
-    if (rowCount > 0) {
-      // 寻找非当前登录用户（admin）的已删除用户进行恢复测试
-      let targetIndex = -1
-      let targetUsername = ''
-      for (let i = 0; i < rowCount; i++) {
-        const deletedCell = usersPage.getTableDataCell(i, 5)
-        const deletedText = await deletedCell.textContent()
-        const usernameText = await usersPage.getTableDataCell(i, 2).textContent()
-        // 查找删除标记为"是"的用户，且用户名不是 admin
-        if (deletedText && deletedText.includes('是') && usernameText && usernameText.trim() !== 'admin') {
-          targetIndex = i
-          targetUsername = usernameText.trim()
-          break
-        }
-      }
+    // 目标：种子测试用户 testuser4（默认 deleted=1 已删除），不新增数据
+    // 按用户名精确定位，避免依赖表格遍历扫描状态文本（并行 worker 下状态可能短暂不一致）
+    const targetUsername = 'testuser4'
+    const targetIndex = await usersPage.findRowByUsernameViaSearch(targetUsername)
 
-      if (targetIndex !== -1 && targetUsername) {
-        // 选择找到的已删除用户
-        await usersPage.selectRow(targetIndex)
-        await page.waitForTimeout(300)
+    // 选择找到的已删除用户
+    await usersPage.selectRow(targetIndex)
+    await page.waitForTimeout(300)
 
-        // 点击恢复按钮
-        await usersPage.clickRowRestore(targetIndex)
-        await page.waitForTimeout(500)
+    // 点击恢复按钮
+    await usersPage.clickRowRestore(targetIndex)
+    await page.waitForTimeout(500)
 
-        // 验证成功消息
-        const successMsg = await usersPage.getSuccessMessageText()
-        expect(successMsg).toBeTruthy()
+    // 验证成功消息
+    const successMsg = await usersPage.getSuccessMessageText()
+    expect(successMsg).toBeTruthy()
 
-        // 刷新后按用户名重新定位并验证删除标记变为"否"
-        const newIndex = await usersPage.waitForRowByUsername(targetUsername)
-        const newDeletedText = await usersPage.getTableDataCell(newIndex, 5).textContent()
-        expect(newDeletedText).toContain('否')
-      }
-    }
+    // 搜索后按用户名重新定位并验证删除标记变为"否"
+    const newIndex = await usersPage.findRowByUsernameViaSearch(targetUsername)
+    const newDeletedText = await usersPage.getTableDataCell(newIndex, 5).textContent()
+    expect(newDeletedText).toContain('否')
   })
 
   test('删除用户功能正常工作', async ({ page }) => {
-    const rowCount = await usersPage.getRowCount()
-    if (rowCount > 0) {
-      // 寻找未删除且启用状态、且非当前登录用户（admin）的用户进行删除测试
-      // 删除按钮对已删除用户禁用，必须选择未删除用户
-      let targetIndex = -1
-      let targetUsername = ''
-      for (let i = 0; i < rowCount; i++) {
-        const statusCell = usersPage.getTableDataCell(i, 4)
-        const statusText = await statusCell.textContent()
-        const deletedCell = usersPage.getTableDataCell(i, 5)
-        const deletedText = await deletedCell.textContent()
-        const usernameText = await usersPage.getTableDataCell(i, 2).textContent()
-        if (
-          statusText &&
-          statusText.includes('正常') &&
-          deletedText &&
-          !deletedText.includes('是') &&
-          usernameText &&
-          usernameText.trim() !== 'admin'
-        ) {
-          targetIndex = i
-          targetUsername = usernameText.trim()
-          break
-        }
-      }
+    // 目标：种子测试用户 testuser2（默认 status=1 正常、未删除），不新增数据
+    // 删除按钮对已删除用户禁用，必须选择未删除用户
+    const targetUsername = 'testuser2'
+    const targetIndex = await usersPage.findRowByUsernameViaSearch(targetUsername)
 
-      if (targetIndex !== -1 && targetUsername) {
-        // 选择找到的用户
-        await usersPage.selectRow(targetIndex)
-        await page.waitForTimeout(500)
+    // 选择找到的用户
+    await usersPage.selectRow(targetIndex)
+    await page.waitForTimeout(500)
 
-        // 等待删除按钮可用（需选中未删除用户）
-        await expect(usersPage.getDeleteButton()).toBeEnabled({ timeout: 5000 })
+    // 等待删除按钮可用（需选中未删除用户）
+    await expect(usersPage.getDeleteButton()).toBeEnabled({ timeout: 5000 })
 
-        // 点击删除按钮触发 ElMessageBox.confirm 确认框
-        await usersPage.getDeleteButton().click()
-        await page.waitForTimeout(500)
+    // 点击删除按钮触发 ElMessageBox.confirm 确认框
+    await usersPage.getDeleteButton().click()
+    await page.waitForTimeout(500)
 
-        // 验证删除确认框出现
-        const messageBox = usersPage.getMessageBox()
-        await expect(messageBox).toBeVisible()
+    // 验证删除确认框出现
+    const messageBox = usersPage.getMessageBox()
+    await expect(messageBox).toBeVisible()
 
-        // 确认删除
-        await usersPage.getMessageBoxConfirmButton().click()
-        await page.waitForTimeout(500)
+    // 确认删除
+    await usersPage.getMessageBoxConfirmButton().click()
+    await page.waitForTimeout(500)
 
-        // 验证成功消息
-        const successMsg = await usersPage.getSuccessMessageText()
-        expect(successMsg).toBeTruthy()
+    // 验证成功消息
+    const successMsg = await usersPage.getSuccessMessageText()
+    expect(successMsg).toBeTruthy()
 
-        // 删除为逻辑删除（deleted 标记置为 1），列表默认仍会显示已删除用户
-        // 因此验证该用户的删除标记变为"是"
-        const newIndex = await usersPage.waitForRowByUsername(targetUsername)
-        const newDeletedText = await usersPage.getTableDataCell(newIndex, 5).textContent()
-        expect(newDeletedText).toContain('是')
-      }
-    }
+    // 删除为逻辑删除（deleted 标记置为 1），列表默认仍会显示已删除用户
+    // 因此验证该用户的删除标记变为"是"
+    const newIndex = await usersPage.findRowByUsernameViaSearch(targetUsername)
+    const newDeletedText = await usersPage.getTableDataCell(newIndex, 5).textContent()
+    expect(newDeletedText).toContain('是')
   })
 
   test('添加用户功能正常工作', async ({ page }) => {
@@ -518,64 +443,49 @@ test.describe('用户管理', () => {
   })
 
   test('编辑用户功能正常工作', async ({ page }) => {
-    const rowCount = await usersPage.getRowCount()
-    if (rowCount > 0) {
-      // 寻找非当前登录用户（admin）且未删除的用户进行编辑测试
-      let targetIndex = -1
-      for (let i = 0; i < rowCount; i++) {
-        const usernameText = await usersPage.getTableDataCell(i, 2).textContent()
-        const deletedText = await usersPage.getTableDataCell(i, 5).textContent()
-        // 用户名非 admin 且未删除（编辑按钮对已删除用户禁用）
-        if (
-          usernameText &&
-          usernameText.trim() !== 'admin' &&
-          deletedText &&
-          !deletedText.includes('是')
-        ) {
-          targetIndex = i
-          break
-        }
-      }
+    // 目标：种子测试用户 testuser（默认未删除），不新增数据
+    // 按用户名精确定位，避免依赖表格遍历扫描状态文本（并行 worker 下状态可能短暂不一致）
+    const targetUsername = 'testuser'
+    const targetIndex = await usersPage.findRowByUsernameViaSearch(targetUsername)
 
-      if (targetIndex !== -1) {
-        // 选中该行（编辑按钮需要恰好选中一行才可用）
-        await usersPage.selectRow(targetIndex)
-        await page.waitForTimeout(300)
+    {
+      // 选中该行（编辑按钮需要恰好选中一行才可用）
+      await usersPage.selectRow(targetIndex)
+      await page.waitForTimeout(300)
 
-        // 点击工具栏编辑按钮
-        await usersPage.clickRowEdit(targetIndex)
+      // 点击工具栏编辑按钮
+      await usersPage.clickRowEdit(targetIndex)
 
-        // 等待编辑对话框出现
-        const editDialog = usersPage.getFormDialog()
-        await expect(editDialog).toBeVisible()
+      // 等待编辑对话框出现
+      const editDialog = usersPage.getFormDialog()
+      await expect(editDialog).toBeVisible()
 
-        // 修改姓名
-        const realNameInput = page.locator('.el-dialog input[placeholder="请输入姓名"]').first()
-        const originalValue = await realNameInput.inputValue()
-        await realNameInput.fill('测试编辑用户')
+      // 修改姓名
+      const realNameInput = page.locator('.el-dialog input[placeholder="请输入姓名"]').first()
+      const originalValue = await realNameInput.inputValue()
+      await realNameInput.fill('测试编辑用户')
 
-        // 点击确定按钮
-        await usersPage.clickConfirm()
+      // 点击确定按钮
+      await usersPage.clickConfirm()
 
-        // 等待成功消息
-        await usersPage.waitForSuccessMessage()
+      // 等待成功消息
+      await usersPage.waitForSuccessMessage()
 
-        // 验证成功消息显示
-        const successMsg = await usersPage.getSuccessMessageText()
-        expect(successMsg).toBeTruthy()
-        // 等待对话框关闭
-        await expect(editDialog).toBeHidden({ timeout: 10000 })
+      // 验证成功消息显示
+      const successMsg = await usersPage.getSuccessMessageText()
+      expect(successMsg).toBeTruthy()
+      // 等待对话框关闭
+      await expect(editDialog).toBeHidden({ timeout: 10000 })
 
-        // 回滚更改：重新打开编辑对话框，改回原姓名
-        await usersPage.selectRow(targetIndex)
-        await page.waitForTimeout(300)
-        await usersPage.clickRowEdit(targetIndex)
-        await expect(editDialog).toBeVisible()
-        const rollbackInput = page.locator('.el-dialog input[placeholder="请输入姓名"]').first()
-        await rollbackInput.fill(originalValue)
-        await usersPage.clickConfirm()
-        await page.waitForTimeout(500)
-      }
+      // 回滚更改：重新打开编辑对话框，改回原姓名
+      await usersPage.selectRow(targetIndex)
+      await page.waitForTimeout(300)
+      await usersPage.clickRowEdit(targetIndex)
+      await expect(editDialog).toBeVisible()
+      const rollbackInput = page.locator('.el-dialog input[placeholder="请输入姓名"]').first()
+      await rollbackInput.fill(originalValue)
+      await usersPage.clickConfirm()
+      await page.waitForTimeout(500)
     }
   })
 
