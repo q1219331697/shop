@@ -82,3 +82,12 @@ export function assignRolePermissions(roleId: string, permissionIds: number[]) {
 export function getRolePermissionIds(roleId: string) {
   return get<number[]>(`/role/${roleId}/permissions`)
 }
+
+/** 角色 API 模块（遵循 CrudApi 契约） */
+export const roleApi = {
+  list: getRoleList,
+  detail: getRoleDetail,
+  create: createRole,
+  update: updateRole,
+  delete: deleteRole,
+}
