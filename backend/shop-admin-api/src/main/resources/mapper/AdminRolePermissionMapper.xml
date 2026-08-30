@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shop.admin.mapper.AdminRolePermissionMapper">
+
+    <!-- 物理删除指定角色名前缀的角色的权限关联（prefix 需以 e2e_ 开头，调用方/Service 已校验） -->
+    <delete id="deleteByRoleNamePrefix">
+        DELETE rp FROM t_admin_role_permission rp
+        INNER JOIN t_admin_role r ON rp.role_id = r.id
+        WHERE r.role_name LIKE CONCAT(#{prefix}, '%') ESCAPE '\\'
+    </delete>
+
+</mapper>

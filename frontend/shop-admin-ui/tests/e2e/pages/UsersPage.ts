@@ -1,4 +1,10 @@
 // User Management Page Object
+//
+// E2E 测试数据编码规则（务必遵守，禁止自定义前缀）：
+// 完整格式：e2e_<模块>_<workerId>_<s|b>_<案例简码>[_<序号>]_<时间戳>
+//   单条示例：e2e_u_000_s_dis_mtf74u4a
+//   批量示例：e2e_u_000_b_dis_0_mtf74u4a
+// 文件简码 u=用户，案例简码见 users.spec.ts 文件头；workerId 为 3 位定长补零。
 import { expect, type Page } from '@playwright/test'
 import { BasePage } from './BasePage';
 
@@ -7,6 +13,7 @@ export class UsersPage extends BasePage {
     super(page);
   }
 
+  // ===== 页面区域 =====
   get pageContainer() {
     return this.page.locator('.page-container');
   }
@@ -27,32 +34,13 @@ export class UsersPage extends BasePage {
     return this.page.locator('.el-table');
   }
 
+  // ===== 搜索区 =====
   getUsernameInput() {
     return this.page.locator('.search-bar .el-input__inner[placeholder="请输入用户名"]').first();
   }
 
   getRealNameInput() {
     return this.page.locator('.search-bar .el-input__inner[placeholder="请输入姓名"]').first();
-  }
-
-  getStatusNormalTag() {
-    // 状态列："正常" 使用 success 标签
-    return this.page.locator('.el-table__body .el-tag--success').first();
-  }
-
-  getStatusDisabledTag() {
-    // 状态列："禁用" 使用 danger 标签，按文本"禁用"区分（排除"已删除=是"）
-    return this.page.locator('.el-table__body .el-tag--danger').filter({ hasText: /禁用/i }).first();
-  }
-
-  getDeletedYesTag() {
-    // 已删除列："是" 使用 danger 标签（限定在表格 body 内，避免匹配到表格外的标签）
-    return this.page.locator('.el-table__body .el-tag--danger').filter({ hasText: /是/i }).first();
-  }
-
-  getDeletedNoTag() {
-    // 已删除列："否" 使用 info 标签（限定在表格 body 内）
-    return this.page.locator('.el-table__body .el-tag--info').filter({ hasText: /否/i }).first();
   }
 
   getStatusSelect() {
@@ -71,16 +59,13 @@ export class UsersPage extends BasePage {
     return this.page.locator('.search-bar .el-button', { hasText: '重置' }).first();
   }
 
+  // ===== 工具栏按钮 =====
   getAddButton() {
     return this.page.locator('.action-bar .el-button').nth(0);
   }
 
   getEditButton() {
     return this.page.locator('.action-bar .el-button').nth(1);
-  }
-
-  getDetailButton() {
-    return this.page.locator('.action-bar .el-button').nth(2);
   }
 
   getDeleteButton() {
@@ -103,6 +88,7 @@ export class UsersPage extends BasePage {
     return this.page.locator('.action-bar .el-button').nth(7);
   }
 
+  // ===== 表格元素 =====
   getTableHeaderCheckbox() {
     return this.page.locator('.el-table__header .el-checkbox__input').first();
   }
@@ -113,61 +99,6 @@ export class UsersPage extends BasePage {
 
   getTableRow(index: number) {
     return this.page.locator('.el-table__body tr').nth(index);
-  }
-
-  getTableDataCell(rowIndex: number, cellIndex: number) {
-    return this.page.locator('.el-table__body tr').nth(rowIndex).locator('td').nth(cellIndex);
-  }
-
-  /** 按用户名查找行索引（用户名在第 2 列，即 cellIndex=2） */
-  async findRowIndexByUsername(username: string): Promise<number> {
-    const rows = this.page.locator('.el-table__body tr')
-    const count = await rows.count()
-    for (let i = 0; i < count; i++) {
-      const usernameCell = rows.nth(i).locator('td').nth(2)
-      const text = await usernameCell.textContent()
-      if (text && text.trim() === username) {
-        return i
-      }
-    }
-    return -1
-  }
-
-  /**
-   * 等待指定用户名所在行出现（配合操作后刷新）。
-   * 若当前页未找到（残留测试数据可能把种子用户挤到后续页），
-   * 回退为通过搜索框精确搜索该用户名，使表格过滤到目标用户后定位。
-   */
-  async waitForRowByUsername(username: string, timeout = 10000): Promise<number> {
-    await expect
-      .poll(async () => (await this.findRowIndexByUsername(username)) >= 0, { timeout })
-      .toBe(true)
-    return this.findRowIndexByUsername(username)
-  }
-
-  /**
-   * 通过搜索框精确搜索指定用户名并定位其行索引（与分页无关，始终有效）。
-   * 用于定位种子测试用户，避免残留数据导致其被挤到第 2 页而无法命中。
-   */
-  async findRowByUsernameViaSearch(username: string): Promise<number> {
-    await this.getUsernameInput().fill(username)
-    await this.getSearchButton().click()
-    await this.page.waitForLoadState('networkidle')
-    return this.findRowIndexByUsername(username)
-  }
-
-  getRowButtonByAction(rowIndex: number, action: string) {
-    // 支持 action: 'Detail', 'Disable', 'Enable', 'Restore', 'Assign Role'
-    // 注意：编辑/删除在工具栏，不在行内
-    const actionMap: Record<string, RegExp> = {
-      'Detail': /详情/i,
-      'Disable': /禁用/i,
-      'Enable': /启用/i,
-      'Restore': /恢复/i,
-      'Assign Role': /分配角色/i,
-    }
-    const pattern = actionMap[action] || action
-    return this.page.locator('.el-table__body tr').nth(rowIndex).locator('.action-link').filter({ hasText: pattern }).first();
   }
 
   getPagination() {
@@ -182,10 +113,7 @@ export class UsersPage extends BasePage {
     return this.page.locator('.el-pagination button.btn-next').first();
   }
 
-  getPageSizeSelect() {
-    return this.page.locator('.data-area__pagination .el-select');
-  }
-
+  // ===== 对话框与消息 =====
   getFormDialog() {
     return this.page.locator('.el-dialog').first();
   }
@@ -198,152 +126,125 @@ export class UsersPage extends BasePage {
     return this.page.locator('.el-dialog__footer .el-button').last();
   }
 
-  getConfirmDialog() {
-    // 工具栏删除/批量操作使用 el-popconfirm 弹出确认（取最后一个，匹配最新弹出的确认框）
-    return this.page.locator('.el-popconfirm').last();
-  }
-
-  getPopconfirmConfirmButton() {
-    return this.page.locator('.el-popconfirm__action .el-button--primary').last();
-  }
-
   getMessageBox() {
-    // 批量删除确认框为标准 ElMessageBox.confirm（渲染为 .el-message-box）
+    // 删除确认框为标准 ElMessageBox.confirm（渲染为 .el-message-box）
     return this.page.locator('.el-message-box').filter({ hasText: '确定删除选中的' }).first();
   }
 
+  // 确认按钮限定到当前确认框内部，避免匹配到页面其他 MessageBox 的按钮导致点错
   getMessageBoxConfirmButton() {
-    return this.page.locator('.el-message-box__btns .el-button--primary').first();
+    return this.getMessageBox().locator('.el-message-box__btns .el-button--primary').first();
   }
 
-  getMessageBoxCancelButton() {
-    return this.page.locator('.el-message-box__btns .el-button').last();
+  // ===== 状态/删除标签（限定在目标行内，避免并行下误配其他 worker 的行） =====
+  getStatusNormalTag(username: string) {
+    return this.getRowByUsername(username).locator('.el-tag--success').filter({ hasText: /正常/i }).first();
   }
 
-  getSuccessMessage() {
-    // 取最后一个成功消息，匹配最新弹出的消息，避免匹配到登录等历史残留
-    return this.page.locator('.el-message--success').last();
+  getStatusDisabledTag(username: string) {
+    return this.getRowByUsername(username).locator('.el-tag--danger').filter({ hasText: /禁用/i }).first();
   }
 
-  getErrorMessage() {
-    return this.page.locator('.el-message--error').last();
+  getDeletedYesTag(username: string) {
+    return this.getRowByUsername(username).locator('.el-tag--danger').filter({ hasText: /是/i }).first();
   }
 
-  getWarningMessage() {
-    return this.page.locator('.el-message--warning').last();
+  getDeletedNoTag(username: string) {
+    return this.getRowByUsername(username).locator('.el-tag--info').filter({ hasText: /否/i }).first();
   }
 
-  async goto() {
-    await this.page.goto('/system/user');
-    await this.waitForPageLoad();
+  // ===== 行定位（不依赖行索引，避免并行下列表变动导致错位） =====
+  /**
+   * 返回包含指定用户名的表格行 locator（用户名在第 3 列，精确匹配）。
+   */
+  getRowByUsername(username: string) {
+    return this.page
+      .locator('.el-table__body tr')
+      .filter({ has: this.page.locator('td').nth(2).getByText(username, { exact: true }) })
+      .first()
   }
 
-  /** 通过侧边栏菜单导航到用户管理页面（SPA 内跳转，避免整页刷新导致 token 失效） */
-  async navigateViaMenu() {
-    // 等待侧边栏菜单渲染完成（动态路由加载后菜单才出现）
-    await expect(this.page.locator('.el-sub-menu__title', { hasText: '系统管理' })).toBeVisible({
-      timeout: 15000,
-    })
-    // 点击"系统管理"子菜单展开（若已展开则无需重复点击）
-    const systemMenu = this.page.locator('.el-sub-menu__title', { hasText: '系统管理' }).first()
-    const userMenuItem = this.page.locator('.el-menu-item', { hasText: '用户管理' }).first()
-    if (!(await userMenuItem.isVisible())) {
-      await systemMenu.click()
-    }
-    // 等待"用户管理"菜单项可见（确保子菜单已展开）
-    await expect(userMenuItem).toBeVisible({ timeout: 10000 })
-    await userMenuItem.click()
-    // 等待用户管理页面加载
-    await expect(this.page).toHaveURL(/\/system\/user/, { timeout: 15000 })
-  }
-
-  async clickAdd() {
-    await this.getAddButton().click();
-  }
-
-  async clickEdit() {
-    await this.getEditButton().click();
-  }
-
-  async clickDelete() {
-    await this.getDeleteButton().click();
-  }
-
-  async batchDisable() {
-    await this.getBatchDisableButton().click();
-  }
-
-  async batchEnable() {
-    await this.getBatchEnableButton().click();
-  }
-
-  async batchRestore() {
-    await this.getBatchRestoreButton().click();
-  }
-
-  async batchAssignRole() {
-    await this.getBatchAssignRoleButton().click();
-  }
-
-  async clickConfirm() {
-    await this.getConfirmButton().click();
-  }
-
-  async clickCancel() {
-    await this.getCancelButton().click();
-  }
-
-  async selectRow(index: number) {
-    await this.getTableBodyCheckbox(index).check();
-  }
-
-  async selectAllRows() {
-    await this.getTableHeaderCheckbox().check();
+  /** 按用户名查找行索引（用户名在第 3 列），原子化读取避免遍历时表格重渲染 */
+  async findRowIndexByUsername(username: string): Promise<number> {
+    const usernames = await this.page
+      .locator('.el-table__body tr td:nth-child(3)')
+      .evaluateAll((cells) => cells.map((c) => (c.textContent ?? '').trim()))
+    return usernames.indexOf(username)
   }
 
   /**
-   * 按用户名精确选中多行（复用种子测试用户，用于批量操作测试）。
-   * 通过搜索"第一个目标用户名"把列表过滤到目标子集（种子用户共享 testuser 前缀），
-   * 再在同一页面内勾选所有目标用户，避免逐用户搜索会清空此前勾选。
+   * 通过搜索框精确搜索指定用户名并定位（与分页无关），返回目标所在行索引。
+   *
+   * ⚠️ 外层 for 重试不可删除，原因常被误解：
+   * 内层 expect.poll 轮询的是 findRowIndexByUsername()，而它只读取当前 DOM 列表，
+   * 不会再发起搜索请求。所以一旦首次 fill+click 的搜索请求因竞态未真正生效
+   * （点击时组件未 ready、请求被 debounce 吞掉等），内层轮询再久读到的都是同一份
+   * 错误列表。只有外层的「重新 fill + click」才能重新触发搜索并自愈。
+   *
+   * 实测该重试极少触发（几乎首次即命中），属于廉价的韧性保险：
+   * 成功路径零额外开销，仅在真的搜不到时才付出约 20s 代价。
+   * 注意它与 config 的 retries 不同：retries 重跑整个用例（贵，且当前为 0），
+   * 此处只重做单次搜索操作（便宜）。
    */
-  async selectRowsByUsernames(usernames: string[]): Promise<number> {
-    if (usernames.length === 0) return 0
-    // 用第一个目标用户名搜索，得到包含所有同前缀种子用户的过滤列表
-    await this.getUsernameInput().fill(usernames[0])
-    await this.getSearchButton().click()
-    await this.page.waitForLoadState('networkidle')
-
-    let selected = 0
-    for (const name of usernames) {
-      const idx = await this.findRowIndexByUsername(name)
-      if (idx >= 0) {
-        await this.getTableBodyCheckbox(idx).check()
-        selected++
+  async findRowByUsernameViaSearch(username: string): Promise<number> {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      await this.getUsernameInput().fill(username)
+      await this.getSearchButton().click()
+      try {
+        await expect
+          .poll(async () => (await this.findRowIndexByUsername(username)) >= 0, {
+            timeout: 10000,
+            intervals: [200, 400, 600, 1000],
+          })
+          .toBe(true)
+        return await this.findRowIndexByUsername(username)
+      } catch {
+        // 本轮搜索超时未出现目标：直接进入下一轮重试（重新 fill + 搜索），无需重置
+        await this.page.waitForTimeout(300)
       }
     }
-    return selected
+    // 不额外打印日志：抛出的 Error 已包含完整 username，
+    // 且 Playwright 失败时会自动生成 error-context.md（页面快照）与 trace，诊断信息更充分
+    throw new Error(`多次重试后仍未在列表中找到目标用户: ${username}`)
   }
 
-  /** 选中当前列表中所有用户名以指定前缀开头的行（避免误选 admin 等用户） */
-  async selectRowsByUsernamePrefix(prefix: string): Promise<number> {
-    const usernameCells = this.page.locator('.el-table__body td:nth-child(3)')
-    const count = await usernameCells.count()
-    let selected = 0
-    for (let i = 0; i < count; i++) {
-      const text = await usernameCells.nth(i).textContent()
-      if (text && text.trim().startsWith(prefix)) {
-        await this.getTableBodyCheckbox(i).check()
-        selected++
+  /**
+   * 批量场景：搜索共享前缀，轮询等待至少一行以该前缀开头的用户出现，返回命中行数。
+   * 外层 for 重试的必要性同 findRowByUsernameViaSearch（内层轮询只读取列表不重新搜索），
+   * 详见该方法注释。
+   */
+  async findRowsByPrefixViaSearch(prefix: string): Promise<number> {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      await this.getUsernameInput().fill(prefix)
+      await this.getSearchButton().click()
+      try {
+        await expect
+          .poll(async () => (await this.findRowCountByPrefix(prefix)) > 0, {
+            timeout: 10000,
+            intervals: [200, 400, 600, 1000],
+          })
+          .toBe(true)
+        return await this.findRowCountByPrefix(prefix)
+      } catch {
+        // 本轮搜索超时未出现目标：直接进入下一轮重试（重新 fill + 搜索），无需重置
+        await this.page.waitForTimeout(300)
       }
     }
-    return selected
+    throw new Error(`多次重试后仍未在列表中找到目标前缀用户: ${prefix}`)
   }
 
-  /** 等待列表完全过滤为指定前缀的用户（用于确认搜索生效，避免误选其他用户） */
+  /** 统计当前列表中以指定前缀开头的用户行数 */
+  async findRowCountByPrefix(prefix: string): Promise<number> {
+    const cells = await this.page
+      .locator('.el-table__body td:nth-child(3)')
+      .evaluateAll((tds) => tds.map((c) => (c.textContent ?? '').trim()))
+    return cells.filter((t) => t.startsWith(prefix)).length
+  }
+
+  /** 等待列表完全过滤为指定前缀的用户（确认搜索生效） */
   async waitForFilterByPrefix(prefix: string, timeout = 10000) {
     await expect
       .poll(async () => {
-        // 用户名在第 3 列（td:nth-child(3)），直接定位数据单元格，避免表头/空占位行干扰
         const cells = this.page.locator('.el-table__body td:nth-child(3)')
         const count = await cells.count()
         if (count === 0) return false
@@ -353,12 +254,40 @@ export class UsersPage extends BasePage {
       .toBe(true)
   }
 
-  async deselectAllRows() {
-    await this.getTableHeaderCheckbox().uncheck();
+  getRowButtonByAction(rowIndex: number, action: string) {
+    const actionMap: Record<string, RegExp> = {
+      Detail: /详情/i,
+    }
+    const pattern = actionMap[action] || action
+    return this.page.locator('.el-table__body tr').nth(rowIndex).locator('.action-link').filter({ hasText: pattern }).first();
   }
 
-  async deselectRow(index: number) {
-    await this.getTableBodyCheckbox(index).uncheck();
+  // ===== 操作 =====
+  /** 通过侧边栏菜单导航到用户管理页面（SPA 内跳转，避免整页刷新导致 token 失效） */
+  async navigateViaMenu() {
+    await expect(this.page.locator('.el-sub-menu__title', { hasText: '系统管理' })).toBeVisible({
+      timeout: 15000,
+    })
+    const systemMenu = this.page.locator('.el-sub-menu__title', { hasText: '系统管理' }).first()
+    const userMenuItem = this.page.locator('.el-menu-item', { hasText: '用户管理' }).first()
+    if (!(await userMenuItem.isVisible())) {
+      await systemMenu.click()
+    }
+    await expect(userMenuItem).toBeVisible({ timeout: 10000 })
+    await userMenuItem.click()
+    await expect(this.page).toHaveURL(/\/system\/user/, { timeout: 15000 })
+  }
+
+  async clickAdd() {
+    await this.getAddButton().click();
+  }
+
+  async clickConfirm() {
+    await this.getConfirmButton().click();
+  }
+
+  async clickCancel() {
+    await this.getCancelButton().click();
   }
 
   async clickRowDetail(rowIndex: number) {
@@ -370,25 +299,80 @@ export class UsersPage extends BasePage {
     await this.getEditButton().click();
   }
 
-  async clickRowDelete(_rowIndex: number) {
-    // 删除按钮在工具栏（选中行后点击）
-    await this.getDeleteButton().click();
+  async selectRow(index: number) {
+    await this.getTableBodyCheckbox(index).check();
   }
 
-  async clickRowDisable(rowIndex: number) {
-    await this.getRowButtonByAction(rowIndex, 'Disable').click();
+  async selectAllRows() {
+    await this.getTableHeaderCheckbox().check();
   }
 
-  async clickRowEnable(rowIndex: number) {
-    await this.getRowButtonByAction(rowIndex, 'Enable').click();
+  async deselectAllRows() {
+    await this.getTableHeaderCheckbox().uncheck();
   }
 
-  async clickRowRestore(rowIndex: number) {
-    await this.getRowButtonByAction(rowIndex, 'Restore').click();
+  /** 勾选指定用户所在行的复选框（列表重渲染时自动重试，避免 check 超时竞态） */
+  async selectRowByUsername(username: string) {
+    const checkbox = this.getRowByUsername(username).locator('.el-checkbox__input')
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        await checkbox.check({ timeout: 5000 })
+        return
+      } catch {
+        await this.page.waitForTimeout(500)
+      }
+    }
+    throw new Error(`多次重试后仍无法勾选目标用户: ${username}`)
   }
 
-  async clickRowAssignRole(rowIndex: number) {
-    await this.getRowButtonByAction(rowIndex, 'Assign Role').click();
+  /** 选中当前列表中所有用户名以指定前缀开头的行（批量操作用） */
+  async selectRowsByUsernamePrefix(prefix: string): Promise<number> {
+    await this.waitForFilterByPrefix(prefix)
+    // 原子化读取所有用户名，避免逐行 textContent 在列表重渲染时行数变化导致超时
+    const usernames = await this.page
+      .locator('.el-table__body td:nth-child(3)')
+      .evaluateAll((cells) => cells.map((c) => (c.textContent ?? '').trim()))
+    let selected = 0
+    for (let i = 0; i < usernames.length; i++) {
+      if (usernames[i].startsWith(prefix)) {
+        await this.getTableBodyCheckbox(i).check()
+        selected++
+      }
+    }
+    return selected
+  }
+
+  async clickRowDisableByUsername(username: string) {
+    await this.getRowByUsername(username).locator('.action-link').filter({ hasText: /禁用/i }).first().click()
+  }
+
+  async clickRowEnableByUsername(username: string) {
+    await this.getRowByUsername(username).locator('.action-link').filter({ hasText: /启用/i }).first().click()
+  }
+
+  async clickRowRestoreByUsername(username: string) {
+    await this.getRowByUsername(username).locator('.action-link').filter({ hasText: /恢复/i }).first().click()
+  }
+
+  /** 轮询等待指定用户所在行的指定单元格文本包含期望值（操作后状态断言，替代硬等待） */
+  async expectCellTextContainByUsername(
+    username: string,
+    cellIndex: number,
+    expected: string,
+    timeout = 10000,
+  ) {
+    await expect
+      .poll(
+        async () => {
+          const row = this.getRowByUsername(username)
+          const count = await row.count()
+          if (count === 0) return ''
+          const text = await row.locator('td').nth(cellIndex).textContent()
+          return (text ?? '').trim()
+        },
+        { timeout, intervals: [200, 400, 600] },
+      )
+      .toContain(expected)
   }
 
   async fillUserForm(username: string, password: string, realName: string, status: number = 1) {
@@ -398,44 +382,74 @@ export class UsersPage extends BasePage {
     await this.page.locator('.el-dialog .el-radio__label').filter({ hasText: status === 1 ? '正常' : '禁用' }).first().click();
   }
 
-  async waitForSuccessMessage(timeout: number = 5000) {
-    await this.getSuccessMessage().waitFor({state: 'visible', timeout});
-  }
-
-  async getSuccessMessageText() {
-    await this.waitForSuccessMessage();
-    return await this.getSuccessMessage().textContent();
-  }
-
   async getRowCount() {
     return await this.page.locator('.el-table__body tr').count();
   }
-  
-  async getPageTitle() {
-    return await this.page.locator('.page-header .page-title').textContent();
+
+  /**
+   * 批量场景的业务结果断言：轮询等待当前列表中所有以 prefix 开头的行的
+   * 指定单元格文本都包含期望值（替代依赖成功 Toast 几秒窗口的判断）。
+   * 用于批量禁用/启用/恢复/删除后，验证状态列/删除列已真正变化。
+   * @param prefix 清理前缀（已 search 过滤后的列表应只剩该前缀行）
+   * @param cellIndex 列索引（状态列=4，删除列=5）
+   * @param expected 期望文本，如 '禁用' / '是'
+   * @param minCount 至少需命中的行数（默认 1），防止空列表误判通过
+   */
+  async expectCellTextContainByPrefix(
+    prefix: string,
+    cellIndex: number,
+    expected: string,
+    minCount = 1,
+    timeout = 10000,
+  ) {
+    await expect
+      .poll(
+        async () => {
+          const texts = await this.page
+            .locator('.el-table__body tr td:nth-child(3)')
+            .evaluateAll((cells) => cells.map((c) => (c.textContent ?? '').trim()))
+          const matched = texts.filter((t) => t.startsWith(prefix))
+          if (matched.length < minCount) return null
+          const cellTexts = await this.page
+            .locator('.el-table__body tr')
+            .evaluateAll((rows, idx) =>
+              rows.map((r) => (r.querySelectorAll('td')[idx]?.textContent ?? '').trim()),
+              cellIndex,
+            )
+          // 仅校验前缀命中的行（按列顺序一致，因为已是过滤后的列表）
+          let hit = 0
+          for (let i = 0; i < texts.length; i++) {
+            if (texts[i].startsWith(prefix)) {
+              if (!cellTexts[i].includes(expected)) return null
+              hit++
+            }
+          }
+          return hit
+        },
+        { timeout, intervals: [200, 400, 600] },
+      )
+      .toBeTruthy()
   }
 
-  async hasPageHeading() {
-    return await this.page.locator('.page-header .page-title').isVisible();
-  }
-
-  async hasSearchArea() {
-    return await this.searchArea.isVisible();
-  }
-
-  async hasActionsArea() {
-    return await this.actionsArea.isVisible();
-  }
-
-  async hasTable() {
-    return await this.table.isVisible();
-  }
-
-  async hasPagination() {
-    return await this.getPagination().isVisible();
-  }
-
-  async getUrl() {
-    return this.page.url();
+  /**
+   * 分配角色的业务结果断言：重新打开指定用户的分配角色对话框，
+   * 轮询等待目标角色 checkbox 已处于勾选状态（替代依赖成功 Toast 的判断）。
+   */
+  async expectRoleAssignedForUser(prefix: string, timeout = 10000) {
+    await this.findRowsByPrefixViaSearch(prefix)
+    const targetCount = await this.selectRowsByUsernamePrefix(prefix)
+    expect(targetCount).toBeGreaterThanOrEqual(1)
+    await this.getBatchAssignRoleButton().click()
+    const dialog = this.getFormDialog()
+    await expect(dialog).toBeVisible()
+    await expect(dialog).toContainText('分配角色')
+    await expect
+      .poll(async () => this.page.locator('.el-dialog .role-checkbox').first().isChecked(), {
+        timeout,
+        intervals: [200, 400, 600],
+      })
+      .toBe(true)
+    await this.clickConfirm()
+    await expect(dialog).toBeHidden({ timeout: 10000 })
   }
 }

@@ -161,7 +161,7 @@ export const userSchema: CrudSchema<AdminUserItem> = {
 
   // ---- 表单区 ----
   formFields: [
-    { prop: 'username', label: '用户名', type: 'input', maxlength: 20 },
+    { prop: 'username', label: '用户名', type: 'input', maxlength: 50 },
     {
       prop: 'password',
       label: '密码',
@@ -170,7 +170,7 @@ export const userSchema: CrudSchema<AdminUserItem> = {
       maxlength: 30,
       hidden: (_formData, isEdit) => isEdit,
     },
-    { prop: 'realName', label: '姓名', type: 'input', maxlength: 20 },
+    { prop: 'realName', label: '姓名', type: 'input', maxlength: 50 },
     {
       prop: 'status',
       label: '状态',
@@ -184,13 +184,13 @@ export const userSchema: CrudSchema<AdminUserItem> = {
   formRules: {
     username: [
       { required: true, message: '请输入用户名', trigger: 'blur' },
-      { min: 2, max: 20, message: '用户名长度为2-20个字符', trigger: 'blur' },
+      { min: 2, max: 50, message: '用户名长度为2-50个字符', trigger: 'blur' },
     ],
     password: [
       { required: true, message: '请输入密码', trigger: 'blur' },
       { min: 4, max: 30, message: '密码长度为4-30个字符', trigger: 'blur' },
     ],
-    realName: [{ max: 20, message: '姓名最多20个字符', trigger: 'blur' }],
+    realName: [{ max: 50, message: '姓名最多50个字符', trigger: 'blur' }],
     status: [{ required: true, message: '请选择状态', trigger: 'change' }],
   } as FormRules,
   defaultFormData: {

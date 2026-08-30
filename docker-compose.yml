@@ -145,6 +145,7 @@ services:
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_LIQUIBASE_DROP_FIRST: true
+      SPRING_PROFILES_ACTIVE: dev
       TZ: Asia/Shanghai
       JWT_SECRET: shop-secret-key
       JWT_EXPIRATION: 604800000

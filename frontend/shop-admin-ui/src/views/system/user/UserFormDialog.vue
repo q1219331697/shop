@@ -9,7 +9,7 @@
   >
     <el-form ref="formRef" :model="formData" :rules="rules" label-width="80px">
       <el-form-item label="用户名" prop="username">
-        <el-input v-model="formData.username" placeholder="请输入用户名" maxlength="20" />
+        <el-input v-model="formData.username" placeholder="请输入用户名" maxlength="50" />
       </el-form-item>
       <el-form-item v-if="!isEdit" label="密码" prop="password">
         <el-input
@@ -21,7 +21,7 @@
         />
       </el-form-item>
       <el-form-item label="姓名" prop="realName">
-        <el-input v-model="formData.realName" placeholder="请输入姓名" maxlength="20" />
+        <el-input v-model="formData.realName" placeholder="请输入姓名" maxlength="50" />
       </el-form-item>
       <el-form-item label="状态" prop="status">
         <el-radio-group v-model="formData.status">
@@ -71,13 +71,13 @@ const formData = reactive({ ...defaultFormData })
 const rules: FormRules = {
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 2, max: 20, message: '用户名长度为2-20个字符', trigger: 'blur' },
+    { min: 2, max: 50, message: '用户名长度为2-50个字符', trigger: 'blur' },
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 4, max: 30, message: '密码长度为4-30个字符', trigger: 'blur' },
   ],
-  realName: [{ max: 20, message: '姓名最多20个字符', trigger: 'blur' }],
+  realName: [{ max: 50, message: '姓名最多50个字符', trigger: 'blur' }],
   status: [{ required: true, message: '请选择状态', trigger: 'change' }],
 }
 

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shop.admin.mapper.AdminUserRoleMapper">
+
+    <!-- 物理删除指定用户名前缀的用户的角色关联（prefix 需以 e2e_ 开头，调用方/Service 已校验） -->
+    <delete id="deleteByUsernamePrefix">
+        DELETE ur FROM t_admin_user_role ur
+        INNER JOIN t_admin_user u ON ur.user_id = u.id
+        WHERE u.username LIKE CONCAT(#{prefix}, '%') ESCAPE '\\'
+    </delete>
+
+</mapper>

@@ -1,4 +1,10 @@
 // Role Management Page Object
+//
+// E2E 测试数据编码规则（务必遵守，禁止自定义前缀）：
+// 完整格式：e2e_<模块>_<workerId>_<s|b>_<案例简码>[_<序号>]_<时间戳>
+//   单条示例：e2e_r_000_s_dis_mtf74u4a
+//   批量示例：e2e_r_000_b_dis_0_mtf74u4a
+// 文件简码 r=角色，案例简码见 roles.spec.ts 文件头；workerId 为 3 位定长补零。
 import { expect } from '@playwright/test'
 import { BasePage } from './BasePage'
 
@@ -27,14 +33,14 @@ export class RolesPage extends BasePage {
     return this.page.locator('.search-bar .el-input__inner[placeholder="请输入角色名"]').first()
   }
 
-  getStatusNormalTag() {
-    // 状态列："正常" 使用 success 标签
-    return this.page.locator('.el-table__body .el-tag--success').first()
+  /** 指定角色名所在行的状态"正常"标签（限定在目标行内，避免并行下匹配到其他 worker 的行） */
+  getStatusNormalTag(roleName: string) {
+    return this.getRowByRoleName(roleName).locator('.el-tag--success').filter({ hasText: /正常/i }).first()
   }
 
-  getStatusDisabledTag() {
-    // 状态列："禁用" 使用 danger 标签，按文本"禁用"区分
-    return this.page.locator('.el-table__body .el-tag--danger').filter({ hasText: /禁用/i }).first()
+  /** 指定角色名所在行的状态"禁用"标签（限定在目标行内） */
+  getStatusDisabledTag(roleName: string) {
+    return this.getRowByRoleName(roleName).locator('.el-tag--danger').filter({ hasText: /禁用/i }).first()
   }
 
   getStatusSelect() {
@@ -95,16 +101,12 @@ export class RolesPage extends BasePage {
 
   /** 按角色名查找行索引（角色名在数据列第 2 列，即 td:nth-child(3)） */
   async findRowIndexByRoleName(roleName: string): Promise<number> {
-    const rows = this.page.locator('.el-table__body tr')
-    const count = await rows.count()
-    for (let i = 0; i < count; i++) {
-      const nameCell = rows.nth(i).locator('td').nth(2)
-      const text = await nameCell.textContent()
-      if (text && text.trim() === roleName) {
-        return i
-      }
-    }
-    return -1
+    // 原子化读取当前表格所有角色名，避免遍历时表格重渲染导致行数减少、
+    // 对已不存在的行调用 textContent 而阻塞等待超时（搜索刷新前后行数可能变化）
+    const roleNames = await this.page
+      .locator('.el-table__body tr td:nth-child(3)')
+      .evaluateAll((cells) => cells.map((c) => (c.textContent ?? '').trim()))
+    return roleNames.indexOf(roleName)
   }
 
   /** 等待指定角色名所在行出现（配合操作后刷新） */
@@ -113,6 +115,86 @@ export class RolesPage extends BasePage {
       .poll(async () => (await this.findRowIndexByRoleName(roleName)) >= 0, { timeout })
       .toBe(true)
     return this.findRowIndexByRoleName(roleName)
+  }
+
+  /**
+   * 通过搜索按角色名过滤并定位目标行，避免受列表分页影响（新角色可能不在第一页）。
+   *
+   * ⚠️ 外层 for 重试不可删除，原因常被误解：
+   * 内层 expect.poll 轮询的是 findRowIndexByRoleName()，而它只读取当前 DOM 列表，
+   * 不会再发起搜索请求。所以一旦首次 fill+click 的搜索请求因竞态未真正生效
+   * （点击时组件未 ready、请求被 debounce 吞掉等），内层轮询再久读到的都是同一份
+   * 错误列表。只有外层的「重新 fill + click」才能重新触发搜索并自愈。
+   *
+   * 实测该重试极少触发（几乎首次即命中），属于廉价的韧性保险：
+   * 成功路径零额外开销，仅在真的搜不到时才付出约 20s 代价。
+   * 注意它与 config 的 retries 不同：retries 重跑整个用例（贵，且当前为 0），
+   * 此处只重做单次搜索操作（便宜）。
+   */
+  async findRowByRoleNameViaSearch(roleName: string): Promise<number> {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      await this.getRoleNameInput().fill(roleName)
+      await this.getSearchButton().click()
+      try {
+        await expect
+          .poll(async () => (await this.findRowIndexByRoleName(roleName)) >= 0, {
+            timeout: 10000,
+            intervals: [200, 400, 600, 1000],
+          })
+          .toBe(true)
+        return await this.findRowIndexByRoleName(roleName)
+      } catch {
+        // 本轮搜索超时未出现目标：直接进入下一轮重试（重新 fill + 搜索），无需重置
+        await this.page.waitForTimeout(300)
+      }
+    }
+    throw new Error(`[searchAndLocate] 多次重试后仍未在列表中找到目标角色: ${roleName}`)
+  }
+
+  /**
+   * 批量场景：搜索共享前缀，轮询等待至少一行以该前缀开头的角色出现，返回命中行数。
+   * 外层 for 重试的必要性同 findRowByRoleNameViaSearch（内层轮询只读取列表不重新搜索），
+   * 详见该方法注释。
+   */
+  async findRowsByPrefixViaSearch(prefix: string): Promise<number> {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      await this.getRoleNameInput().fill(prefix)
+      await this.getSearchButton().click()
+      try {
+        await expect
+          .poll(async () => (await this.findRowCountByPrefix(prefix)) > 0, {
+            timeout: 10000,
+            intervals: [200, 400, 600, 1000],
+          })
+          .toBe(true)
+        return await this.findRowCountByPrefix(prefix)
+      } catch {
+        // 本轮搜索超时未出现目标：直接进入下一轮重试（重新 fill + 搜索），无需重置
+        await this.page.waitForTimeout(300)
+      }
+    }
+    throw new Error(`多次重试后仍未在列表中找到目标前缀角色: ${prefix}`)
+  }
+
+  /** 统计当前列表中以指定前缀开头的角色行数 */
+  async findRowCountByPrefix(prefix: string): Promise<number> {
+    const cells = await this.page
+      .locator('.el-table__body td:nth-child(3)')
+      .evaluateAll((tds) => tds.map((c) => (c.textContent ?? '').trim()))
+    return cells.filter((t) => t.startsWith(prefix)).length
+  }
+
+  /** 等待列表完全过滤为指定前缀的角色（确认搜索生效） */
+  async waitForFilterByPrefix(prefix: string, timeout = 10000) {
+    await expect
+      .poll(async () => {
+        const cells = this.page.locator('.el-table__body td:nth-child(3)')
+        const count = await cells.count()
+        if (count === 0) return false
+        const texts = await cells.allTextContents()
+        return texts.every((t) => t && t.trim().startsWith(prefix))
+      }, { timeout })
+      .toBe(true)
   }
 
   getRowButtonByAction(rowIndex: number, action: string) {
@@ -161,21 +243,13 @@ export class RolesPage extends BasePage {
     return this.page.locator('.el-message-box').filter({ hasText: '确定删除选中的' }).first()
   }
 
+  // 确认/取消按钮限定到当前确认框内部，避免并行下匹配到页面其他 MessageBox 的按钮导致点错
   getMessageBoxConfirmButton() {
-    return this.page.locator('.el-message-box__btns .el-button--primary').first()
+    return this.getMessageBox().locator('.el-message-box__btns .el-button--primary').first()
   }
 
   getMessageBoxCancelButton() {
-    return this.page.locator('.el-message-box__btns .el-button').last()
-  }
-
-  getSuccessMessage() {
-    // 取最后一个成功消息，匹配最新弹出的消息，避免匹配到登录等历史残留
-    return this.page.locator('.el-message--success').last()
-  }
-
-  getErrorMessage() {
-    return this.page.locator('.el-message--error').last()
+    return this.getMessageBox().locator('.el-message-box__btns .el-button').last()
   }
 
   async goto() {
@@ -222,13 +296,29 @@ export class RolesPage extends BasePage {
     await this.getTableHeaderCheckbox().check()
   }
 
-  /** 按角色名精确选中多行（复用种子测试角色，用于批量操作测试） */
+  /** 按角色名精确选中多行（自建目标角色，用于批量操作测试） */
   async selectRowsByRoleNames(roleNames: string[]): Promise<number> {
     let selected = 0
     for (const name of roleNames) {
-      const idx = await this.waitForRowByRoleName(name)
-      await this.getTableBodyCheckbox(idx).check()
+      await this.selectRowByRoleName(name)
       selected++
+    }
+    return selected
+  }
+
+  /** 选中当前列表中所有角色名以指定前缀开头的行（批量操作用，与用户管理 selectRowsByUsernamePrefix 一致） */
+  async selectRowsByRoleNamePrefix(prefix: string): Promise<number> {
+    await this.waitForFilterByPrefix(prefix)
+    // 原子化读取所有角色名，避免逐行 textContent 在列表重渲染时行数变化导致超时
+    const roleNames = await this.page
+      .locator('.el-table__body td:nth-child(3)')
+      .evaluateAll((cells) => cells.map((c) => (c.textContent ?? '').trim()))
+    let selected = 0
+    for (let i = 0; i < roleNames.length; i++) {
+      if (roleNames[i].startsWith(prefix)) {
+        await this.getTableBodyCheckbox(i).check()
+        selected++
+      }
     }
     return selected
   }
@@ -258,6 +348,113 @@ export class RolesPage extends BasePage {
     await this.getRowButtonByAction(rowIndex, 'Assign Permission').click()
   }
 
+  // ===== 按角色名定位行的操作（不依赖行索引，并行场景下目标行不受其他数据影响） =====
+
+  /**
+   * 返回包含指定角色名的表格行 locator（角色名在第 3 列，精确匹配）。
+   * 并行时列表可能包含其他 worker 的数据，但按角色名过滤可精确定位目标行。
+   */
+  getRowByRoleName(roleName: string) {
+    return this.page
+      .locator('.el-table__body tr')
+      .filter({ has: this.page.locator('td').nth(2).getByText(roleName, { exact: true }) })
+      .first()
+  }
+
+  /** 勾选指定角色所在行的复选框（列表重渲染时自动重试，避免 check 超时竞态） */
+  async selectRowByRoleName(roleName: string) {
+    const checkbox = this.getRowByRoleName(roleName).locator('.el-checkbox__input')
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        await checkbox.check({ timeout: 5000 })
+        return
+      } catch {
+        // 列表可能正在重渲染（操作后刷新），等待稳定后重试
+        await this.page.waitForTimeout(500)
+      }
+    }
+    throw new Error(`[selectRowByRoleName] 多次重试后仍无法勾选目标角色: ${roleName}`)
+  }
+
+  /** 点击指定角色所在行的"禁用" */
+  async clickRowDisableByRoleName(roleName: string) {
+    await this.getRowByRoleName(roleName).locator('.action-link').filter({ hasText: /禁用/i }).first().click()
+  }
+
+  /** 点击指定角色所在行的"启用" */
+  async clickRowEnableByRoleName(roleName: string) {
+    await this.getRowByRoleName(roleName).locator('.action-link').filter({ hasText: /启用/i }).first().click()
+  }
+
+  /** 读取指定角色所在行的指定单元格 */
+  getTableDataCellByRoleName(roleName: string, cellIndex: number) {
+    return this.getRowByRoleName(roleName).locator('td').nth(cellIndex)
+  }
+
+  /**
+   * 轮询等待指定角色所在行的指定单元格文本包含期望值（用于操作后状态断言，替代硬等待）。
+   * 并行下操作后列表可能重新渲染，直接读取可能拿到旧值，故轮询直到符合。
+   */
+  async expectCellTextContainByRoleName(
+    roleName: string,
+    cellIndex: number,
+    expected: string,
+    timeout = 10000,
+  ) {
+    await expect
+      .poll(
+        async () => {
+          const row = this.getRowByRoleName(roleName)
+          const count = await row.count()
+          if (count === 0) return ''
+          const text = await row.locator('td').nth(cellIndex).textContent()
+          return (text ?? '').trim()
+        },
+        { timeout, intervals: [200, 400, 600] },
+      )
+      .toContain(expected)
+  }
+
+  /**
+   * 批量场景的业务结果断言：轮询等待当前列表中所有以 prefix 开头的角色行的
+   * 指定单元格文本都包含期望值（替代依赖成功 Toast 几秒窗口的判断）。
+   * 用于批量禁用/启用后，验证状态列（第 4 列）已真正变化。
+   * @param prefix 清理前缀（已 search 过滤后的列表应只剩该前缀行）
+   * @param cellIndex 列索引（角色名=3，状态列=4）
+   * @param expected 期望文本，如 '禁用' / '正常'
+   * @param minCount 至少需命中的行数（默认 1），防止空列表误判通过
+   */
+  async expectCellTextContainByPrefix(
+    prefix: string,
+    cellIndex: number,
+    expected: string,
+    minCount = 1,
+    timeout = 10000,
+  ) {
+    await expect
+      .poll(
+        async () => {
+          const texts = await this.page
+            .locator('.el-table__body tr td:nth-child(3)')
+            .evaluateAll((cells) => cells.map((c) => (c.textContent ?? '').trim()))
+          const matched = texts.filter((t) => t.startsWith(prefix))
+          if (matched.length < minCount) return null
+          const cellTexts = await this.page
+            .locator('.el-table__body tr')
+            .evaluateAll((rows, idx) =>
+              rows.map((r) => (r.querySelectorAll('td')[idx]?.textContent ?? '').trim()),
+              cellIndex,
+            )
+          for (let i = 0; i < texts.length; i++) {
+            if (texts[i].startsWith(prefix) && !cellTexts[i].includes(expected)) return null
+          }
+          return matched.length
+        },
+        { timeout, intervals: [200, 400, 600] },
+      )
+      .toBeTruthy()
+  }
+
   /** 填写新增角色表单 */
   async fillRoleForm(roleName: string, description: string, sortOrder: number, status: number = 1) {
     await this.page.locator('.el-dialog input[placeholder="请输入角色名"]').first().fill(roleName)
@@ -272,15 +469,6 @@ export class RolesPage extends BasePage {
       .filter({ hasText: status === 1 ? '正常' : '禁用' })
       .first()
       .click()
-  }
-
-  async waitForSuccessMessage(timeout = 5000) {
-    await this.getSuccessMessage().waitFor({ state: 'visible', timeout })
-  }
-
-  async getSuccessMessageText() {
-    await this.waitForSuccessMessage()
-    return await this.getSuccessMessage().textContent()
   }
 
   async getRowCount() {

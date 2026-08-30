@@ -62,4 +62,13 @@ public interface AdminUserMapper extends BaseMapper<AdminUserEntity> {
      * @return 影响行数
      */
     int deleteByIdIgnoreDeleted(Long id);
+
+    /**
+     * 物理删除指定用户名前缀的测试用户（用于 E2E 测试数据清理）
+     * <p>prefix 需以 e2e_ 开头（调用方/Service 已校验），避免误删真实业务数据</p>
+     *
+     * @param prefix 已校验的用户名前缀（须以 e2e_ 开头）
+     * @return 影响行数
+     */
+    int deleteByUsernamePrefix(@Param("prefix") String prefix);
 }
