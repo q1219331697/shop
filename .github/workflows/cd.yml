@@ -45,7 +45,7 @@ jobs:
 
       # ---------- shop-admin 镜像 ----------
       - name: Build & Push shop-admin
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: docker/Dockerfile.admin
@@ -58,7 +58,7 @@ jobs:
 
       # ---------- shop-api 镜像 ----------
       - name: Build & Push shop-api
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: docker/Dockerfile.api
