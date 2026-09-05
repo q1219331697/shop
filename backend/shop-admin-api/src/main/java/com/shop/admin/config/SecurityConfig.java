@@ -3,6 +3,7 @@ package com.shop.admin.config;
 import com.shop.admin.security.AdminAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -13,13 +14,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 /**
  * Spring Security配置类
  * <p>
- * 所有路径统一放行，由AdminAuthFilter处理Bearer Token认证。
+ * 认证层：所有路径统一放行，由AdminAuthFilter处理Bearer Token认证（含白名单与fail-close）。
+ * 授权层：启用方法级安全，由Controller上的@PreAuthorize("hasAuthority('xxx')")进行权限校验。
  * </p>
  *
  * @since 1.0.0
  */
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final AdminAuthFilter adminAuthFilter;

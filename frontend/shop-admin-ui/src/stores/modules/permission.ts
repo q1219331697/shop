@@ -9,8 +9,8 @@ import dashboardRoutes from '@/router/modules/dashboard'
 
 /**
  * 后端菜单 component 字段到前端组件的映射
- * 后端存储格式如: views/system/user/index.vue
- * 前端实际路径如: @/views/system/user/index.vue
+ * 后端存储格式如: views/system/admin/index.vue
+ * 前端实际路径如: @/views/system/admin/index.vue
  */
 const componentModules = import.meta.glob('@/views/**/*.vue')
 
@@ -23,7 +23,7 @@ function resolveComponent(component: string | null | undefined) {
 
   console.log('[路由转换] 解析组件:', component)
 
-  // 后端返回的路径格式：views/system/user/index.vue
+  // 后端返回的路径格式：views/system/admin/index.vue
   // 使用绝对路径 /src/，确保打包后正确解析
   const fullVuePath = `/src/${component}`
   console.log('[路由转换] 完整路径:', fullVuePath)

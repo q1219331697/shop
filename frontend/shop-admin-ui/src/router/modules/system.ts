@@ -6,14 +6,14 @@ import type { RouteRecordRaw } from 'vue-router'
 const systemRoutes: RouteRecordRaw = {
   path: '/system',
   name: 'System',
-  redirect: '/system/user',
+  redirect: '/system/admin',
   meta: { title: '系统管理', icon: 'Setting' },
   children: [
     {
-      path: 'user',
-      name: 'SystemUser',
-      component: () => import('@/views/system/user/index.vue'),
-      meta: { title: '用户管理', icon: 'User' },
+      path: 'admin',
+      name: 'SystemAdmin',
+      component: () => import('@/views/system/admin/index.vue'),
+      meta: { title: '管理员管理', icon: 'User' },
     },
     {
       path: 'role',

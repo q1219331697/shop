@@ -2,8 +2,8 @@
 package com.shop.admin.controller;
 
 import com.shop.admin.entity.AdminPermissionEntity;
-import com.shop.admin.security.RequirePermission;
 import com.shop.admin.service.AdminPermissionService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.shop.common.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -54,7 +54,7 @@ public class PermissionController {
      *
      * @return 权限树形结构列表
      */
-    @RequirePermission("system:permission:query")
+    @PreAuthorize("hasAuthority('system:permission:query')")
     @Operation(summary = "获取权限树形结构")
     @GetMapping("/tree")
     public Result<List<AdminPermissionEntity>> tree() {
@@ -67,7 +67,7 @@ public class PermissionController {
      * @param id 权限ID
      * @return 权限详情
      */
-    @RequirePermission("system:permission:query")
+    @PreAuthorize("hasAuthority('system:permission:query')")
     @Operation(summary = "获取权限详情")
     @GetMapping("/{id}")
     public Result<AdminPermissionEntity> getById(@PathVariable Long id) {
@@ -80,7 +80,7 @@ public class PermissionController {
      * @param permission 权限信息
      * @return 创建结果
      */
-    @RequirePermission("system:permission:create")
+    @PreAuthorize("hasAuthority('system:permission:create')")
     @Operation(summary = "创建权限")
     @PostMapping
     public Result<Void> create(@RequestBody AdminPermissionEntity permission) {
@@ -94,7 +94,7 @@ public class PermissionController {
      * @param permission 权限信息
      * @return 更新结果
      */
-    @RequirePermission("system:permission:update")
+    @PreAuthorize("hasAuthority('system:permission:update')")
     @Operation(summary = "更新权限")
     @PutMapping("/{id}")
     public Result<Void> update(@PathVariable Long id, @RequestBody AdminPermissionEntity permission) {
@@ -108,7 +108,7 @@ public class PermissionController {
      * @param id 权限ID
      * @return 删除结果
      */
-    @RequirePermission("system:permission:delete")
+    @PreAuthorize("hasAuthority('system:permission:delete')")
     @Operation(summary = "删除权限")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {

@@ -2,8 +2,8 @@ package com.shop.admin.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.shop.admin.entity.AdminLoginLogEntity;
-import com.shop.admin.security.RequirePermission;
 import com.shop.admin.service.AdminLoginLogService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.shop.common.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -37,7 +37,7 @@ public class AdminLoginLogController {
      * @param params 查询参数：pageNum, pageSize, username, success, startTime, endTime
      * @return 登录日志分页数据
      */
-    @RequirePermission("system:loginlog:query")
+    @PreAuthorize("hasAuthority('system:loginlog:query')")
     @Operation(summary = "分页查询登录日志")
     @GetMapping
     public Result<IPage<AdminLoginLogEntity>> list(@RequestBody Map<String, Object> params) {

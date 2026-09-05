@@ -2,8 +2,8 @@ package com.shop.admin.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.shop.admin.security.RequirePermission;
 import com.shop.admin.vo.PageQueryVo;
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.shop.common.Result;
 import com.shop.entity.UserEntity;
 import com.shop.service.UserService;
@@ -19,12 +19,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 后台用户管理控制器
+ * 会员管理控制器
+ * <p>
+ * 管理 C 端用户（UserEntity），区别于后台管理员（AdminUserEntity），权限码统一使用 member:* 前缀。
+ * </p>
+ *
  * @since 1.0.0
  */
-@Tag(name = "用户管理", description = "用户管理接口")
+@Tag(name = "会员管理", description = "会员管理接口")
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/member")
 public class UserController {
 
     @Autowired
@@ -36,7 +40,7 @@ public class UserController {
      * @param queryVo 查询参数
      * @return 用户分页数据
      */
-    @RequirePermission("user:query")
+    @PreAuthorize("hasAuthority('member:query')")
     @Operation(summary = "分页查询用户列表")
     @GetMapping
     public Result<IPage<UserEntity>> list(PageQueryVo queryVo) {
@@ -50,7 +54,7 @@ public class UserController {
      * @param id 用户ID
      * @return 用户详情
      */
-    @RequirePermission("user:query")
+    @PreAuthorize("hasAuthority('member:query')")
     @Operation(summary = "获取用户详情")
     @GetMapping("/{id}")
     public Result<UserEntity> getById(@PathVariable Long id) {
@@ -64,7 +68,7 @@ public class UserController {
      * @param user 用户信息
      * @return 更新结果
      */
-    @RequirePermission("user:update")
+    @PreAuthorize("hasAuthority('member:update')")
     @Operation(summary = "更新用户信息")
     @PutMapping("/{id}")
     public Result<Void> update(@PathVariable Long id, @RequestBody UserEntity user) {
@@ -78,7 +82,7 @@ public class UserController {
      * @param id 用户ID
      * @return 删除结果
      */
-    @RequirePermission("user:delete")
+    @PreAuthorize("hasAuthority('member:delete')")
     @Operation(summary = "删除用户")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {

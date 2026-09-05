@@ -1,7 +1,7 @@
 package com.shop.admin.controller;
 
-import com.shop.admin.security.RequirePermission;
 import com.shop.admin.service.TestDataCleanupService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.shop.common.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -44,7 +44,7 @@ public class TestCleanupController {
      * @param prefix 清理前缀（必填，须以 e2e_ 开头）
      * @return 清理结果
      */
-    @RequirePermission("system:user:delete")
+    @PreAuthorize("hasAuthority('system:admin:delete')")
     @Operation(summary = "物理清理 E2E 测试残留数据")
     @DeleteMapping("/cleanup-e2e")
     public Result<Void> cleanupE2E(@RequestParam String prefix) {

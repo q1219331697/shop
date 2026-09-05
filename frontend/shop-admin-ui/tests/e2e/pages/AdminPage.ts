@@ -1,14 +1,14 @@
-// User Management Page Object
+// Admin User Management Page Object
 //
 // E2E 测试数据编码规则（务必遵守，禁止自定义前缀）：
 // 完整格式：e2e_<模块>_<workerId>_<s|b>_<案例简码>[_<序号>]_<时间戳>
 //   单条示例：e2e_u_000_s_dis_mtf74u4a
 //   批量示例：e2e_u_000_b_dis_0_mtf74u4a
-// 文件简码 u=用户，案例简码见 users.spec.ts 文件头；workerId 为 3 位定长补零。
+// 文件简码 u=管理员，案例简码见 admin.spec.ts 文件头；workerId 为 3 位定长补零。
 import { expect, type Page } from '@playwright/test'
 import { BasePage } from './BasePage';
 
-export class UsersPage extends BasePage {
+export class AdminPage extends BasePage {
   constructor(page: Page) {
     super(page);
   }
@@ -269,13 +269,14 @@ export class UsersPage extends BasePage {
       timeout: 15000,
     })
     const systemMenu = this.page.locator('.el-sub-menu__title', { hasText: '系统管理' }).first()
-    const userMenuItem = this.page.locator('.el-menu-item', { hasText: '用户管理' }).first()
+    // 管理员用户管理页面菜单文案为「管理员管理」，路由 /system/admin
+    const userMenuItem = this.page.locator('.el-menu-item', { hasText: '管理员管理' }).first()
     if (!(await userMenuItem.isVisible())) {
       await systemMenu.click()
     }
     await expect(userMenuItem).toBeVisible({ timeout: 10000 })
     await userMenuItem.click()
-    await expect(this.page).toHaveURL(/\/system\/user/, { timeout: 15000 })
+    await expect(this.page).toHaveURL(/\/system\/admin/, { timeout: 15000 })
   }
 
   async clickAdd() {

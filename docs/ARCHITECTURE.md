@@ -63,10 +63,10 @@ Shop 采用微服务架构，基于 Spring Boot + Vue 3 实现。
 | id | 主键 |
 | parent_id | 父菜单ID（0表示顶级菜单） |
 | permission_name | 权限名称 |
-| path | 路由路径（例如：/user） |
-| component | 前端组件路径（例如：views/system/user/index.vue） |
-| permission_code | 权限编码（例如：system:user:list） |
-| permission_type | 权限类型（1-菜单，2-按钮） |
+| path | 路由路径（例如：/system/admin） |
+| component | 前端组件路径（例如：views/system/admin/index.vue） |
+| permission_code | 权限编码（例如：system:admin:list） |
+| permission_type | 权限类型（1-目录，2-菜单，3-操作） |
 | sort_order | 排序 |
 | visible | 是否可见（0-隐藏，1-显示） |
 

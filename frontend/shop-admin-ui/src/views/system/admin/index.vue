@@ -2,7 +2,7 @@
   <!-- :methods 可覆盖内置 CRUD 行为，如：:methods="{ onCreate: handleCreate, onUpdate: handleUpdate, onDelete: handleDelete }" -->
   <CrudTable
     ref="crudTableRef"
-    :schema="userSchema"
+    :schema="adminUserSchema"
     :api="adminUserApi"
     :handlers="toolbarHandlers"
   >
@@ -44,7 +44,10 @@
 
 <script setup lang="ts">
 /**
- * 管理员用户管理 - 基于 CrudTable 的 CRUD 页面
+ * 管理员管理 - 基于 CrudTable 的 CRUD 页面
+ * <p>
+ * 管理后台账号（AdminUserEntity），区别于 C 端会员（UserEntity）。
+ * </p>
  */
 
 // ==================== 依赖引入 ====================
@@ -61,7 +64,7 @@ import { CrudTable } from '@/components/CrudTable'
 import AssignRoleDialog from './AssignRoleDialog.vue'
 
 // Schema 配置
-import { userSchema } from './schema'
+import { adminUserSchema } from './schema'
 
 // 类型
 import type { ActionContext } from '@/components/CrudTable'
@@ -96,7 +99,7 @@ const toolbarHandlers = {
 
 // ==================== 行操作 ====================
 
-/** 禁用用户 */
+/** 禁用管理员 */
 async function handleDisable(row: AdminUserItem) {
   try {
     await disableAdminUser(row.id)
@@ -107,7 +110,7 @@ async function handleDisable(row: AdminUserItem) {
   }
 }
 
-/** 启用用户 */
+/** 启用管理员 */
 async function handleEnable(row: AdminUserItem) {
   try {
     await enableAdminUser(row.id)
@@ -118,7 +121,7 @@ async function handleEnable(row: AdminUserItem) {
   }
 }
 
-/** 恢复用户 */
+/** 恢复管理员 */
 async function handleRestore(row: AdminUserItem) {
   try {
     await restoreAdminUser(row.id)

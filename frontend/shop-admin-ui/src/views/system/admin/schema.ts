@@ -1,5 +1,8 @@
 /**
- * 管理员用户 CRUD Schema 配置
+ * 管理员 CRUD Schema 配置
+ * <p>
+ * 管理后台账号（AdminUserEntity），区别于 C 端会员（UserEntity）。
+ * </p>
  */
 import type { CrudSchema, ActionContext } from '@/components/CrudTable'
 import type { AdminUserItem } from '@/api/admin-user'
@@ -40,8 +43,8 @@ const handleBatchEnable = (ctx: ActionContext<AdminUserItem>) =>
 const handleBatchRestore = (ctx: ActionContext<AdminUserItem>) =>
   handleBatchAction(ctx, (r) => r.deleted, batchRestoreAdminUser, '恢复成功')
 
-/** 管理员用户 CRUD Schema */
-export const userSchema: CrudSchema<AdminUserItem> = {
+/** 管理员 CRUD Schema */
+export const adminUserSchema: CrudSchema<AdminUserItem> = {
   name: '管理员',
   rowKey: 'id',
 

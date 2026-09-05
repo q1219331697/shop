@@ -5,8 +5,8 @@ import com.shop.admin.entity.AdminPermissionEntity;
 
 import com.shop.admin.entity.AdminUserEntity;
 import com.shop.admin.vo.AdminUserPermissionVo;
-import com.shop.admin.security.RequirePermission;
 import com.shop.admin.service.AdminPermissionService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.shop.admin.service.AdminRoleService;
 import com.shop.admin.service.AdminUserService;
 import com.shop.common.Result;
@@ -57,7 +57,7 @@ public class AdminUserController {
      * @param deleted 是否删除
      * @return 管理员分页数据
      */
-    @RequirePermission("system:user:list")
+    @PreAuthorize("hasAuthority('system:admin:list')")
     @Operation(summary = "分页查询管理员列表")
     @GetMapping
     public Result<IPage<AdminUserEntity>> list(
@@ -76,7 +76,7 @@ public class AdminUserController {
      * @param id 管理员ID
      * @return 管理员详情
      */
-    @RequirePermission("system:user:list")
+    @PreAuthorize("hasAuthority('system:admin:list')")
     @Operation(summary = "获取管理员详情")
     @GetMapping("/{id}")
     public Result<AdminUserEntity> getById(@PathVariable Long id) {
@@ -89,7 +89,7 @@ public class AdminUserController {
      * @param adminUser 管理员信息
      * @return 创建结果
      */
-    @RequirePermission("system:user:create")
+    @PreAuthorize("hasAuthority('system:admin:create')")
     @Operation(summary = "创建管理员")
     @PostMapping
     public Result<Void> create(@RequestBody AdminUserEntity adminUser) {
@@ -103,7 +103,7 @@ public class AdminUserController {
      * @param adminUser 管理员信息
      * @return 更新结果
      */
-    @RequirePermission("system:user:update")
+    @PreAuthorize("hasAuthority('system:admin:update')")
     @Operation(summary = "更新管理员信息")
     @PutMapping("/{id}")
     public Result<Void> update(@PathVariable Long id, @RequestBody AdminUserEntity adminUser) {
@@ -117,7 +117,7 @@ public class AdminUserController {
      * @param id 管理员ID
      * @return 删除结果
      */
-    @RequirePermission("system:user:delete")
+    @PreAuthorize("hasAuthority('system:admin:delete')")
     @Operation(summary = "删除管理员")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
@@ -130,7 +130,7 @@ public class AdminUserController {
      * @param params 包含ids列表
      * @return 删除结果
      */
-    @RequirePermission("system:user:delete")
+    @PreAuthorize("hasAuthority('system:admin:delete')")
     @Operation(summary = "批量删除管理员")
     @DeleteMapping("/batch")
     public Result<Void> batchDelete(@RequestBody Map<String, List<Long>> params) {
@@ -140,12 +140,12 @@ public class AdminUserController {
     /**
      * 为用户分配角色
      *
-     * @param userId 用户ID
+     * @param userId 管理员ID
      * @param params 包含roleIds列表
      * @return 分配结果
      */
-    @RequirePermission("system:user:update")
-    @Operation(summary = "为用户分配角色")
+    @PreAuthorize("hasAuthority('system:admin:update')")
+    @Operation(summary = "为管理员分配角色")
     @PostMapping("/{id}/roles")
     public Result<Void> assignRoles(@PathVariable("id") Long userId,
                                     @RequestBody Map<String, List<Long>> params) {
@@ -155,11 +155,11 @@ public class AdminUserController {
     /**
      * 获取用户的角色ID列表
      *
-     * @param userId 用户ID
+     * @param userId 管理员ID
      * @return 角色ID列表
      */
-    @RequirePermission("system:user:list")
-    @Operation(summary = "获取用户的角色ID列表")
+    @PreAuthorize("hasAuthority('system:admin:list')")
+    @Operation(summary = "获取管理员的角色ID列表")
     @GetMapping("/{id}/roles")
     public Result<List<Long>> getUserRoleIds(@PathVariable("id") Long userId) {
         return adminUserService.getUserRoleIds(userId);
@@ -171,7 +171,7 @@ public class AdminUserController {
      * @param id 管理员ID
      * @return 禁用结果
      */
-    @RequirePermission("system:user:update")
+    @PreAuthorize("hasAuthority('system:admin:update')")
     @Operation(summary = "禁用管理员")
     @PutMapping("/{id}/disable")
     public Result<Void> disable(@PathVariable Long id) {
@@ -184,7 +184,7 @@ public class AdminUserController {
      * @param id 管理员ID
      * @return 启用结果
      */
-    @RequirePermission("system:user:update")
+    @PreAuthorize("hasAuthority('system:admin:update')")
     @Operation(summary = "启用管理员")
     @PutMapping("/{id}/enable")
     public Result<Void> enable(@PathVariable Long id) {
@@ -197,7 +197,7 @@ public class AdminUserController {
      * @param id 管理员ID
      * @return 恢复结果
      */
-    @RequirePermission("system:user:update")
+    @PreAuthorize("hasAuthority('system:admin:update')")
     @Operation(summary = "恢复已删除的管理员")
     @PutMapping("/{id}/restore")
     public Result<Void> restore(@PathVariable Long id) {
@@ -210,7 +210,7 @@ public class AdminUserController {
      * @param params 包含ids列表
      * @return 禁用结果
      */
-    @RequirePermission("system:user:update")
+    @PreAuthorize("hasAuthority('system:admin:update')")
     @Operation(summary = "批量禁用管理员")
     @PutMapping("/batch-disable")
     public Result<Void> batchDisable(@RequestBody Map<String, List<Long>> params) {
@@ -223,7 +223,7 @@ public class AdminUserController {
      * @param params 包含ids列表
      * @return 启用结果
      */
-    @RequirePermission("system:user:update")
+    @PreAuthorize("hasAuthority('system:admin:update')")
     @Operation(summary = "批量启用管理员")
     @PutMapping("/batch-enable")
     public Result<Void> batchEnable(@RequestBody Map<String, List<Long>> params) {
@@ -236,7 +236,7 @@ public class AdminUserController {
      * @param params 包含ids列表
      * @return 恢复结果
      */
-    @RequirePermission("system:user:update")
+    @PreAuthorize("hasAuthority('system:admin:update')")
     @Operation(summary = "批量恢复已删除的管理员")
     @PutMapping("/batch-restore")
     public Result<Void> batchRestore(@RequestBody Map<String, List<Long>> params) {
@@ -249,7 +249,7 @@ public class AdminUserController {
      * @param request HTTP请求
      * @return 菜单树列表
      */
-    @Operation(summary = "获取当前登录用户的菜单树")
+    @Operation(summary = "获取当前登录管理员的菜单树")
     @GetMapping("/menus")
     public Result<List<AdminPermissionEntity>> getCurrentUserMenus(HttpServletRequest request) {
         Long adminUserId = (Long) request.getAttribute("adminUserId");
@@ -263,7 +263,7 @@ public class AdminUserController {
      * @param request HTTP请求
      * @return 权限编码列表
      */
-    @Operation(summary = "获取当前登录用户的权限编码列表")
+    @Operation(summary = "获取当前登录管理员的权限编码列表")
     @GetMapping("/permissions")
     public Result<List<String>> getCurrentUserPermissions(HttpServletRequest request) {
         Long adminUserId = (Long) request.getAttribute("adminUserId");
@@ -272,16 +272,16 @@ public class AdminUserController {
     }
 
     /**
-     * 获取指定用户的权限详情（角色+权限编码+菜单树）
+     * 获取指定管理员的权限详情（角色+权限编码+菜单树）
      * <p>
-     * 用于授权管理页面，查看用户拥有的角色和权限全貌
+     * 用于授权管理页面，查看管理员拥有的角色和权限全貌
      * </p>
      *
-     * @param id 用户ID
+     * @param id 管理员ID
      * @return 权限详情
      */
-    @RequirePermission("system:user:list")
-    @Operation(summary = "获取用户权限详情")
+    @PreAuthorize("hasAuthority('system:admin:list')")
+    @Operation(summary = "获取管理员权限详情")
     @GetMapping("/{id}/permission-detail")
     public Result<AdminUserPermissionVo> getUserPermissionDetail(@PathVariable Long id) {
         AdminUserEntity adminUser = adminUserService.getById(id);

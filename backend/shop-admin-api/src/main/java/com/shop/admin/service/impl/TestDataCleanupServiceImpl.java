@@ -1,5 +1,6 @@
 package com.shop.admin.service.impl;
 
+import com.shop.admin.mapper.AdminPermissionMapper;
 import com.shop.admin.mapper.AdminRoleMapper;
 import com.shop.admin.mapper.AdminRolePermissionMapper;
 import com.shop.admin.mapper.AdminUserMapper;
@@ -26,15 +27,18 @@ public class TestDataCleanupServiceImpl implements TestDataCleanupService {
     private final AdminRoleMapper roleMapper;
     private final AdminUserRoleMapper userRoleMapper;
     private final AdminRolePermissionMapper rolePermissionMapper;
+    private final AdminPermissionMapper permissionMapper;
 
     public TestDataCleanupServiceImpl(AdminUserMapper userMapper,
                                       AdminRoleMapper roleMapper,
                                       AdminUserRoleMapper userRoleMapper,
-                                      AdminRolePermissionMapper rolePermissionMapper) {
+                                      AdminRolePermissionMapper rolePermissionMapper,
+                                      AdminPermissionMapper permissionMapper) {
         this.userMapper = userMapper;
         this.roleMapper = roleMapper;
         this.userRoleMapper = userRoleMapper;
         this.rolePermissionMapper = rolePermissionMapper;
+        this.permissionMapper = permissionMapper;
     }
 
     @Override
@@ -55,8 +59,10 @@ public class TestDataCleanupServiceImpl implements TestDataCleanupService {
         int userDeleted = userMapper.deleteByUsernamePrefix(prefix);
         // 物理删除对应前缀角色
         int roleDeleted = roleMapper.deleteByRoleNamePrefix(prefix);
+        // 物理删除对应前缀权限（含子树，忽略逻辑删除标记）
+        permissionMapper.deleteByE2ENamePrefix(prefix);
 
-        log.info("E2E 测试数据清理完成(prefix={}): 用户角色关联[{}] 角色权限关联[{}] 用户[{}] 角色[{}]",
+        log.info("E2E 测试数据清理完成(prefix={}): 用户角色关联[{}] 角色权限关联[{}] 用户[{}] 角色[{}] 权限[已清理]",
                 prefix, userRoleDeleted, rolePermDeleted, userDeleted, roleDeleted);
         return Result.success();
     }

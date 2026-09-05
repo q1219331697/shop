@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
  * Token管理控制器
  * <p>
  * 提供Token心跳续期接口，用于前端定时发送请求触发后端滑动过期续期。
- * 该接口需要认证（携带有效Token），但不需要特定权限（无@RequirePermission注解），
+ * 该接口需要认证（携带有效Token），但不需要特定权限（无@PreAuthorize注解），
  * 确保任何已登录用户都能调用。
  * </p>
  *

@@ -5,8 +5,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.shop.admin.entity.AdminRoleEntity;
-import com.shop.admin.security.RequirePermission;
 import com.shop.admin.service.AdminRoleService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.shop.common.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -42,7 +42,7 @@ public class RoleController {
      * @param queryVo 查询参数
      * @return 角色分页数据
      */
-    @RequirePermission("system:role:list")
+    @PreAuthorize("hasAuthority('system:role:list')")
     @Operation(summary = "分页查询角色列表")
     @GetMapping
     public Result<IPage<AdminRoleEntity>> list(RolePageQueryVo queryVo) {
@@ -63,7 +63,7 @@ public class RoleController {
      *
      * @return 所有角色列表
      */
-    @RequirePermission("system:role:list")
+    @PreAuthorize("hasAuthority('system:role:list')")
     @Operation(summary = "查询所有角色")
     @GetMapping("/all")
     public Result<List<AdminRoleEntity>> all() {
@@ -76,7 +76,7 @@ public class RoleController {
      * @param id 角色ID
      * @return 角色详情
      */
-    @RequirePermission("system:role:list")
+    @PreAuthorize("hasAuthority('system:role:list')")
     @Operation(summary = "获取角色详情")
     @GetMapping("/{id}")
     public Result<AdminRoleEntity> getById(@PathVariable Long id) {
@@ -89,7 +89,7 @@ public class RoleController {
      * @param role 角色信息
      * @return 创建结果
      */
-    @RequirePermission("system:role:create")
+    @PreAuthorize("hasAuthority('system:role:create')")
     @Operation(summary = "创建角色")
     @PostMapping
     public Result<Void> create(@RequestBody AdminRoleEntity role) {
@@ -103,7 +103,7 @@ public class RoleController {
      * @param role 角色信息
      * @return 更新结果
      */
-    @RequirePermission("system:role:update")
+    @PreAuthorize("hasAuthority('system:role:update')")
     @Operation(summary = "更新角色")
     @PutMapping("/{id}")
     public Result<Void> update(@PathVariable Long id, @RequestBody AdminRoleEntity role) {
@@ -117,7 +117,7 @@ public class RoleController {
      * @param id 角色ID
      * @return 删除结果
      */
-    @RequirePermission("system:role:delete")
+    @PreAuthorize("hasAuthority('system:role:delete')")
     @Operation(summary = "删除角色")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
@@ -130,7 +130,7 @@ public class RoleController {
      * @param id 角色ID
      * @return 禁用结果
      */
-    @RequirePermission("system:role:update")
+    @PreAuthorize("hasAuthority('system:role:update')")
     @Operation(summary = "禁用角色")
     @PutMapping("/{id}/disable")
     public Result<Void> disable(@PathVariable Long id) {
@@ -143,7 +143,7 @@ public class RoleController {
      * @param id 角色ID
      * @return 启用结果
      */
-    @RequirePermission("system:role:update")
+    @PreAuthorize("hasAuthority('system:role:update')")
     @Operation(summary = "启用角色")
     @PutMapping("/{id}/enable")
     public Result<Void> enable(@PathVariable Long id) {
@@ -156,7 +156,7 @@ public class RoleController {
      * @param params 包含ids列表
      * @return 禁用结果
      */
-    @RequirePermission("system:role:update")
+    @PreAuthorize("hasAuthority('system:role:update')")
     @Operation(summary = "批量禁用角色")
     @PutMapping("/batch-disable")
     public Result<Void> batchDisable(@RequestBody Map<String, List<Long>> params) {
@@ -169,7 +169,7 @@ public class RoleController {
      * @param params 包含ids列表
      * @return 启用结果
      */
-    @RequirePermission("system:role:update")
+    @PreAuthorize("hasAuthority('system:role:update')")
     @Operation(summary = "批量启用角色")
     @PutMapping("/batch-enable")
     public Result<Void> batchEnable(@RequestBody Map<String, List<Long>> params) {
@@ -183,7 +183,7 @@ public class RoleController {
      * @param params 包含permissionIds列表
      * @return 分配结果
      */
-    @RequirePermission("system:role:assign")
+    @PreAuthorize("hasAuthority('system:role:assign')")
     @Operation(summary = "为角色分配权限")
     @PostMapping("/{id}/permissions")
     public Result<Void> assignPermissions(@PathVariable("id") Long roleId,
@@ -197,7 +197,7 @@ public class RoleController {
      * @param roleId 角色ID
      * @return 权限ID列表
      */
-    @RequirePermission("system:role:list")
+    @PreAuthorize("hasAuthority('system:role:list')")
     @Operation(summary = "获取角色的权限ID列表")
     @GetMapping("/{id}/permissions")
     public Result<List<Long>> getRolePermissionIds(@PathVariable("id") Long roleId) {

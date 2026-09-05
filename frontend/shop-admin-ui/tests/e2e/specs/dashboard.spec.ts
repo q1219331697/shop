@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { LoginPage } from '../pages/LoginPage'
 import { DashboardPage } from '../pages/DashboardPage'
-import { testUsers } from '../fixtures/users'
+import { testAdmin } from '../fixtures/admin'
 
 test.describe('仪表盘', () => {
   let loginPage: LoginPage
@@ -15,7 +15,7 @@ test.describe('仪表盘', () => {
 
   test('仪表盘页面标题正确', async ({ page }) => {
     await page.goto('/')
-    await loginPage.login(testUsers.admin.username, testUsers.admin.password)
+    await loginPage.login(testAdmin.admin.username, testAdmin.admin.password)
     await expect(page).toHaveURL(/.*dashboard/, { timeout: 15000 })
     // 并行 worker 下 dashboard 组件可能加载较慢，等待标题元素真正渲染后再断言
     await expect(page.locator('.dashboard h2')).toBeVisible({ timeout: 20000 })
@@ -25,7 +25,7 @@ test.describe('仪表盘', () => {
 
   test('仪表盘页面所有元素正确显示', async ({ page }) => {
     await page.goto('/')
-    await loginPage.login(testUsers.admin.username, testUsers.admin.password)
+    await loginPage.login(testAdmin.admin.username, testAdmin.admin.password)
     await expect(page).toHaveURL(/.*dashboard/, { timeout: 15000 })
 
     // 检查页面标题

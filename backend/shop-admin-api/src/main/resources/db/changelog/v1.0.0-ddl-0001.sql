@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS t_admin_permission (
     parent_id BIGINT NOT NULL DEFAULT 0 COMMENT '父权限ID',
     permission_name VARCHAR(50) NOT NULL COMMENT '权限名称',
     permission_code VARCHAR(100) NOT NULL COMMENT '权限编码',
-    permission_type TINYINT NOT NULL COMMENT '权限类型(1:菜单 2:按钮)',
+    permission_type TINYINT NOT NULL COMMENT '权限类型(1:目录 2:菜单 3:操作)',
     path VARCHAR(255) DEFAULT NULL COMMENT '路由路径',
     icon VARCHAR(100) DEFAULT NULL COMMENT '图标',
     component VARCHAR(255) DEFAULT NULL COMMENT '组件路径',

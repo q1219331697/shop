@@ -13,6 +13,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.lang.NonNull;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -20,7 +24,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 
 /**
  * 管理员认证过滤器
@@ -198,7 +204,11 @@ public class AdminAuthFilter extends OncePerRequestFilter {
     }
 
     /**
-     * 将管理员信息和权限列表放入请求属性
+     * 将管理员信息放入请求属性，并将权限写入SecurityContext
+     * <p>
+     * 权限以 GrantedAuthority 形式存入 SecurityContext，
+     * 供 @PreAuthorize("hasAuthority('xxx')") 进行方法级鉴权。
+     * </p>
      *
      * @param request HTTP请求
      * @param adminUserId 管理员ID
@@ -207,7 +217,15 @@ public class AdminAuthFilter extends OncePerRequestFilter {
     private void setAdminRequestAttributes(HttpServletRequest request, Long adminUserId, String username) {
         request.setAttribute("adminUserId", adminUserId);
         request.setAttribute("adminUsername", username);
-        request.setAttribute("adminPermissions", adminPermissionService.getPermissionCodesByUserId(adminUserId));
+
+        // 构建权限列表并写入SecurityContext
+        List<String> permissionCodes = adminPermissionService.getPermissionCodesByUserId(adminUserId);
+        List<GrantedAuthority> authorities = new ArrayList<>(permissionCodes.size());
+        for (String code : permissionCodes) {
+            authorities.add(new SimpleGrantedAuthority(code));
+        }
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(adminUserId, null, authorities));
     }
 
     /**

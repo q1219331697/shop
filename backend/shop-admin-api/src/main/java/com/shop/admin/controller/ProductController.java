@@ -1,8 +1,8 @@
 package com.shop.admin.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.shop.admin.security.RequirePermission;
 import com.shop.common.Result;
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.shop.entity.ProductEntity;
 import com.shop.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -39,7 +39,7 @@ public class ProductController {
      * @param params 查询参数：pageNum, pageSize, categoryId, keyword
      * @return 商品分页数据
      */
-    @RequirePermission("product:query")
+    @PreAuthorize("hasAuthority('product:query')")
     @Operation(summary = "分页查询商品列表")
     @GetMapping
     public Result<IPage<ProductEntity>> list(@RequestBody Map<String, Object> params) {
@@ -57,7 +57,7 @@ public class ProductController {
      * @param id 商品ID
      * @return 商品详情
      */
-    @RequirePermission("product:query")
+    @PreAuthorize("hasAuthority('product:query')")
     @Operation(summary = "获取商品详情")
     @GetMapping("/{id}")
     public Result<ProductEntity> getById(@PathVariable Long id) {
@@ -70,7 +70,7 @@ public class ProductController {
      * @param product 商品信息
      * @return 添加结果
      */
-    @RequirePermission("product:create")
+    @PreAuthorize("hasAuthority('product:create')")
     @Operation(summary = "添加商品")
     @PostMapping
     public Result<Void> add(@RequestBody ProductEntity product) {
@@ -84,7 +84,7 @@ public class ProductController {
      * @param product 商品信息
      * @return 更新结果
      */
-    @RequirePermission("product:update")
+    @PreAuthorize("hasAuthority('product:update')")
     @Operation(summary = "更新商品")
     @PutMapping("/{id}")
     public Result<Void> update(@PathVariable Long id, @RequestBody ProductEntity product) {
@@ -98,7 +98,7 @@ public class ProductController {
      * @param id 商品ID
      * @return 删除结果
      */
-    @RequirePermission("product:delete")
+    @PreAuthorize("hasAuthority('product:delete')")
     @Operation(summary = "删除商品")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {

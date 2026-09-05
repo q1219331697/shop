@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { LoginPage } from '../pages/LoginPage'
-import { testUsers } from '../fixtures/users'
+import { testAdmin } from '../fixtures/admin'
 
 test.describe('登录认证', () => {
   let loginPage: LoginPage
@@ -25,7 +25,7 @@ test.describe('登录认证', () => {
   })
 
   test('用户登录成功后跳转到 dashboard', async ({ page }) => {
-    await loginPage.login(testUsers.admin.username, testUsers.admin.password)
+    await loginPage.login(testAdmin.admin.username, testAdmin.admin.password)
 
     // 等待跳转到 dashboard
     await expect(page).toHaveURL(/.*dashboard/, { timeout: 15000 })
@@ -34,7 +34,7 @@ test.describe('登录认证', () => {
   })
 
   test('显示登录错误信息', async ({ page }) => {
-    await loginPage.login(testUsers.invalid.username, testUsers.invalid.password)
+    await loginPage.login(testAdmin.invalid.username, testAdmin.invalid.password)
 
     // 等待错误消息容器可见
     await expect(page.locator('.el-message')).toBeVisible({ timeout: 5000 })
@@ -46,7 +46,7 @@ test.describe('登录认证', () => {
   })
 
   test('用户登出后跳转到登录页', async ({ page }) => {
-    await loginPage.login(testUsers.admin.username, testUsers.admin.password)
+    await loginPage.login(testAdmin.admin.username, testAdmin.admin.password)
     await expect(page).toHaveURL(/.*dashboard/, { timeout: 10000 })
 
     // 检查是否有登出按钮，可能需要从用户下拉菜单中点击

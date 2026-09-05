@@ -8,8 +8,8 @@
   >
     <div v-loading="loading" class="role-assign-content">
       <p class="role-user-info">
-        管理员：<strong>{{ currentUser?.username }}</strong>
-        <span v-if="currentUser?.realName">（{{ currentUser.realName }}）</span>
+        管理员：<strong>{{ currentAdminUser?.username }}</strong>
+        <span v-if="currentAdminUser?.realName">（{{ currentAdminUser.realName }}）</span>
       </p>
       <el-checkbox-group v-model="selectedRoleIds">
         <el-checkbox
@@ -51,7 +51,7 @@ const emit = defineEmits<{
 }>()
 
 const visible = ref(false)
-const currentUser = ref<AdminUserItem | null>(null)
+const currentAdminUser = ref<AdminUserItem | null>(null)
 const loading = ref(false)
 const submitting = ref(false)
 const roleList = ref<RoleItem[]>([])
@@ -59,17 +59,20 @@ const selectedRoleIds = ref<number[]>([])
 
 /** 打开分配角色对话框 */
 function open(row: AdminUserItem) {
-  currentUser.value = row
+  currentAdminUser.value = row
   selectedRoleIds.value = []
   visible.value = true
 }
 
 /** 加载角色数据 */
 async function loadRoles() {
-  if (!currentUser.value) return
+  if (!currentAdminUser.value) return
   loading.value = true
   try {
-    const [roles, ids] = await Promise.all([getAllRoles(), getAdminRoleIds(currentUser.value.id)])
+    const [roles, ids] = await Promise.all([
+      getAllRoles(),
+      getAdminRoleIds(currentAdminUser.value.id),
+    ])
     roleList.value = roles
     selectedRoleIds.value = ids
   } catch {
@@ -82,10 +85,10 @@ async function loadRoles() {
 
 /** 提交分配角色 */
 async function handleSubmit() {
-  if (!currentUser.value) return
+  if (!currentAdminUser.value) return
   submitting.value = true
   try {
-    await assignAdminRoles(currentUser.value.id, selectedRoleIds.value)
+    await assignAdminRoles(currentAdminUser.value.id, selectedRoleIds.value)
     ElMessage.success('角色分配成功')
     visible.value = false
     emit('success')

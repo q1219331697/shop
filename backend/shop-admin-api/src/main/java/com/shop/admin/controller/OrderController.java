@@ -2,8 +2,8 @@ package com.shop.admin.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.shop.admin.security.RequirePermission;
 import com.shop.admin.vo.PageQueryVo;
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.shop.common.Result;
 import com.shop.entity.OrderEntity;
 import com.shop.service.OrderService;
@@ -37,7 +37,7 @@ public class OrderController {
      * @param queryVo 查询参数
      * @return 订单分页数据
      */
-    @RequirePermission("order:query")
+    @PreAuthorize("hasAuthority('order:query')")
     @Operation(summary = "分页查询所有订单")
     @GetMapping
     public Result<IPage<OrderEntity>> list(PageQueryVo queryVo) {
@@ -51,7 +51,7 @@ public class OrderController {
      * @param id 订单ID
      * @return 订单详情
      */
-    @RequirePermission("order:query")
+    @PreAuthorize("hasAnyAuthority('order:query', 'order:ship', 'order:refund')")
     @Operation(summary = "获取订单详情")
     @GetMapping("/{id}")
     public Result<OrderEntity> getById(@PathVariable Long id) {
@@ -65,7 +65,7 @@ public class OrderController {
      * @param params 包含status字段
      * @return 更新结果
      */
-    @RequirePermission("order:update")
+    @PreAuthorize("hasAnyAuthority('order:ship', 'order:refund', 'order:update')")
     @Operation(summary = "更新订单状态")
     @PutMapping("/{id}/status")
     public Result<Void> updateStatus(@PathVariable Long id, @RequestBody Map<String, Integer> params) {

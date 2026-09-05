@@ -298,10 +298,10 @@ public class AdminPermissionServiceImpl
             return Collections.emptyList();
         }
 
-        // 获取菜单类型的权限
+        // 获取菜单类型的权限（目录与菜单均可导航，操作类型不进入菜单树）
         LambdaQueryWrapper<AdminPermissionEntity> pWrapper = new LambdaQueryWrapper<>();
         pWrapper.in(AdminPermissionEntity::getId, permissionIds);
-        pWrapper.eq(AdminPermissionEntity::getPermissionType, 1);
+        pWrapper.in(AdminPermissionEntity::getPermissionType, 1, 2);
         pWrapper.eq(AdminPermissionEntity::getStatus, 1);
         pWrapper.eq(AdminPermissionEntity::getVisible, 1);
         pWrapper.orderByAsc(AdminPermissionEntity::getSortOrder);

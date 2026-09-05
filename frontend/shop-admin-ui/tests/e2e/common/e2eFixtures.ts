@@ -116,7 +116,7 @@ export type E2ETestType = TestType<
 
 /**
  * 工厂：为指定 admin 凭据生成扩展后的 test（含 isolatedPrefix fixture）。
- * 各 spec 顶部：const test = createE2ETest(testUsers.admin)  // users
+ * 各 spec 顶部：const test = createE2ETest(testAdmin.admin)  // admin
  *              const test = createE2ETest(testRoles.admin)  // roles
  *
  * 用工厂而非 test.use({ adminCredentials })：admin 在 import 处强制传入，类型系统保证不可能漏配；
