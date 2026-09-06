@@ -36,15 +36,11 @@
  * 分配角色对话框
  * 状态内聚：通过 open(row) 打开
  */
-import { ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import {
-  assignAdminRoles,
-  getAdminRoleIds,
-  getAllRoles,
-  type AdminUserItem,
-  type RoleItem,
-} from '@/api/admin-user'
+import { ref, watch } from 'vue'
+
+import type { AdminUserItem, RoleItem } from '@/api'
+// API 通过自动导入的 api 聚合对象使用（无需 import）
 
 const emit = defineEmits<{
   (e: 'success'): void
@@ -70,8 +66,8 @@ async function loadRoles() {
   loading.value = true
   try {
     const [roles, ids] = await Promise.all([
-      getAllRoles(),
-      getAdminRoleIds(currentAdminUser.value.id),
+      api.role.all(),
+      api.adminUser.getRoleIds(currentAdminUser.value.id),
     ])
     roleList.value = roles
     selectedRoleIds.value = ids
@@ -88,7 +84,7 @@ async function handleSubmit() {
   if (!currentAdminUser.value) return
   submitting.value = true
   try {
-    await assignAdminRoles(currentAdminUser.value.id, selectedRoleIds.value)
+    await api.adminUser.assignRoles(currentAdminUser.value.id, selectedRoleIds.value)
     ElMessage.success('角色分配成功')
     visible.value = false
     emit('success')

@@ -1,12 +1,13 @@
 import { test as base, expect } from '@playwright/test'
 import type {
-  Page,
   PlaywrightTestArgs,
   PlaywrightTestOptions,
   PlaywrightWorkerArgs,
   PlaywrightWorkerOptions,
   TestType,
 } from '@playwright/test'
+
+import { auth, cleanupUrl, loginAsAdmin } from './apiClient'
 
 /**
  * E2E 测试「数据生命周期」共享模块（等价于 Java 测试基类的横切逻辑）。
@@ -70,34 +71,6 @@ export interface AdminCredentials {
   password: string
 }
 
-/** 获取 admin 登录请求头（用于通过 API 准备/清理测试数据）。admin 由各 spec 显式传入。 */
-export async function getAdminHeaders(
-  page: Page,
-  admin: AdminCredentials,
-): Promise<{ Authorization: string }> {
-  const loginResp = await page.request.post('/api/public/login', {
-    data: { username: admin.username, password: admin.password },
-    timeout: API_TIMEOUT,
-  })
-  const loginData = await loginResp.json()
-  const token = loginData.data as string
-  return { Authorization: `Bearer ${token}` }
-}
-
-/** 通过清理接口物理删除指定前缀的 E2E 测试数据（幂等，可安全重复调用）。
- *  接收「已登录的 headers」而非 admin，便于调用方一次登录后清多个前缀。 */
-export async function cleanupByPrefix(
-  page: Page,
-  headers: { Authorization: string },
-  prefix: string,
-): Promise<void> {
-  await page.request.delete('/api/internal/test/cleanup-e2e', {
-    headers,
-    params: { prefix },
-    timeout: API_TIMEOUT,
-  })
-}
-
 // ======================== 用例级自动清理 fixture ========================
 
 /** 用例级隔离前缀注册器：调用即生成含 workerId 的前缀，并登记为「用例结束后待清理」 */
@@ -105,6 +78,8 @@ export type IsolatedPrefixFn = (casePrefix: string) => string
 
 /** 本模块向用例注入的 fixture 集合 */
 export interface E2EFixtures {
+  /** 自动 fixture：以 admin 登录，取得造数/清理所需的 Token */
+  apiReady: undefined
   isolatedPrefix: IsolatedPrefixFn
 }
 
@@ -124,6 +99,14 @@ export type E2ETestType = TestType<
  */
 export function createE2ETest(admin: AdminCredentials): E2ETestType {
   return base.extend<E2EFixtures>({
+    // 自动 fixture：用例开始前登录 admin，Token 由 apiClient 保存，供造数/清理使用
+    apiReady: [
+      async ({ request }, use) => {
+        await loginAsAdmin(request, admin)
+        await use()
+      },
+      { auto: true },
+    ],
     isolatedPrefix: async ({ page }, use, testInfo) => {
       // 本用例已登记的待清理前缀（闭包局部，天然按用例隔离，fullyParallel 下无共享状态）
       const registered: string[] = []
@@ -141,21 +124,10 @@ export function createE2ETest(admin: AdminCredentials): E2ETestType {
         return
       }
 
-      // 登录一次、复用同一 headers 清理全部已注册前缀，避免多前缀触发多次登录
-      let headers: { Authorization: string }
-      try {
-        headers = await getAdminHeaders(page, admin)
-      } catch (error) {
-        console.warn(
-          `[e2e-cleanup] 获取 admin token 失败，跳过清理：${registered.join(', ')}`,
-          error,
-        )
-        return
-      }
-
+      // 已登录（Token 由 apiClient 保存），清理全部已注册前缀
       for (const prefix of registered) {
         try {
-          await cleanupByPrefix(page, headers, prefix)
+          await page.request.delete(cleanupUrl(prefix), { headers: auth() })
         } catch (error) {
           // 清理是「善后」而非「断言」：异常绝不能抛出，否则会把已 passed 的用例翻成 failed，
           // 把后端清理接口抖动误报成业务缺陷。残留由下一轮 beforeAll 兜底清除。

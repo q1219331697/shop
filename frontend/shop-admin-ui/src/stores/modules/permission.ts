@@ -4,7 +4,8 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { RouteRecordRaw } from 'vue-router'
-import { getUserMenus, type PermissionItem } from '@/api/permission'
+
+import type { PermissionItem } from '@/api'
 import dashboardRoutes from '@/router/modules/dashboard'
 
 /**
@@ -125,7 +126,7 @@ export const usePermissionStore = defineStore('permission', () => {
   async function generateRoutes(): Promise<RouteRecordRaw[]> {
     try {
       console.log('[路由转换] 开始获取用户菜单...')
-      const menus = await getUserMenus()
+      const menus = await api.permission.menus()
       console.log('[路由转换] 获取到菜单数据:', menus)
 
       // 收集所有权限编码

@@ -16,9 +16,9 @@ public interface AdminPermissionService extends IService<AdminPermissionEntity> 
     /**
      * 创建权限
      * @param permission 权限信息
-     * @return 创建结果
+     * @return 新创建权限的 ID
      */
-    Result<Void> createPermission(AdminPermissionEntity permission);
+    Result<Long> createPermission(AdminPermissionEntity permission);
 
     /**
      * 更新权限

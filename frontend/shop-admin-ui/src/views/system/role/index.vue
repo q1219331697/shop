@@ -1,6 +1,6 @@
 <template>
   <!-- :methods 可覆盖内置 CRUD 行为，如：:methods="{ onCreate: handleCreate, onUpdate: handleUpdate, onDelete: handleDelete }" -->
-  <CrudTable ref="crudTableRef" :schema="roleSchema" :api="roleApi" :handlers="toolbarHandlers">
+  <CrudTable ref="crudTableRef" :schema="roleSchema" :api="api.role" :handlers="toolbarHandlers">
     <!-- 行操作追加：禁用/启用/分配权限 -->
     <template #row-actions-extra="{ row }">
       <el-button
@@ -42,25 +42,27 @@
 // ==================== 依赖引入 ====================
 
 // Vue 核心
+import { Lock, Unlock, Key } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 import { ref } from 'vue'
 
+// API 聚合对象（显式导入，避免依赖 auto-import 在该视图未注入）
+import { api } from '@/api'
+
 // Element Plus
-import { ElMessage } from 'element-plus'
-import { Lock, Unlock, Key } from '@element-plus/icons-vue'
 
 // 业务组件
+import type { RoleItem } from '@/api'
 import { CrudTable } from '@/components/CrudTable'
+import type { ActionContext } from '@/components/CrudTable'
+
 import AssignPermissionDialog from './AssignPermissionDialog.vue'
 
 // Schema 配置
 import { roleSchema } from './schema'
 
 // 类型
-import type { ActionContext } from '@/components/CrudTable'
-import type { RoleItem } from '@/api/role'
-
-// API
-import { roleApi, disableRole, enableRole } from '@/api/role'
+// API 通过自动导入的 api 聚合对象使用（无需 import）
 
 // ==================== 组件引用 ====================
 
@@ -88,26 +90,18 @@ const toolbarHandlers = {
 
 // ==================== 行操作 ====================
 
-/** 禁用角色 */
+/** 禁用角色（错误提示由 http.ts 拦截器统一弹出，无需 try/catch） */
 async function handleDisable(row: RoleItem) {
-  try {
-    await disableRole(row.id)
-    ElMessage.success('禁用成功')
-    refreshList()
-  } catch {
-    /* 请求工具已处理 */
-  }
+  await api.role.disable(row.id)
+  ElMessage.success('禁用成功')
+  refreshList()
 }
 
 /** 启用角色 */
 async function handleEnable(row: RoleItem) {
-  try {
-    await enableRole(row.id)
-    ElMessage.success('启用成功')
-    refreshList()
-  } catch {
-    /* 请求工具已处理 */
-  }
+  await api.role.enable(row.id)
+  ElMessage.success('启用成功')
+  refreshList()
 }
 </script>
 

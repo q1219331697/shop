@@ -1,17 +1,17 @@
 /**
  * 角色管理 CRUD Schema 配置
  */
-import type { CrudSchema, ActionContext } from '@/components/CrudTable'
-import type { RoleItem } from '@/api/role'
 import type { FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
-import { batchDisableRole, batchEnableRole } from '@/api/role'
+
+import type { RoleItem } from '@/api'
+import type { CrudSchema, ActionContext } from '@/components/CrudTable'
 
 /** 批量操作通用逻辑 */
 async function handleBatchAction(
   ctx: ActionContext<RoleItem>,
   filter: (r: RoleItem) => boolean,
-  action: (ids: string[]) => Promise<unknown>,
+  action: (ids: number[]) => Promise<unknown>,
   message: string,
 ) {
   const ids = ctx.selectedRows.filter(filter).map((r) => r.id)
@@ -26,11 +26,11 @@ async function handleBatchAction(
 
 /** 批量禁用 */
 const handleBatchDisable = (ctx: ActionContext<RoleItem>) =>
-  handleBatchAction(ctx, (r) => !r.deleted && r.status === 1, batchDisableRole, '禁用成功')
+  handleBatchAction(ctx, (r) => !r.deleted && r.status === 1, api.role.batchDisable, '禁用成功')
 
 /** 批量启用 */
 const handleBatchEnable = (ctx: ActionContext<RoleItem>) =>
-  handleBatchAction(ctx, (r) => !r.deleted && r.status === 0, batchEnableRole, '启用成功')
+  handleBatchAction(ctx, (r) => !r.deleted && r.status === 0, api.role.batchEnable, '启用成功')
 
 /** 角色管理 CRUD Schema */
 export const roleSchema: CrudSchema<RoleItem> = {

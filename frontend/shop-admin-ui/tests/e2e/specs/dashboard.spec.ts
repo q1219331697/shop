@@ -1,7 +1,8 @@
 import { test, expect } from '@playwright/test'
-import { LoginPage } from '../pages/LoginPage'
-import { DashboardPage } from '../pages/DashboardPage'
+
 import { testAdmin } from '../fixtures/admin'
+import { DashboardPage } from '../pages/DashboardPage'
+import { LoginPage } from '../pages/LoginPage'
 
 test.describe('仪表盘', () => {
   let loginPage: LoginPage

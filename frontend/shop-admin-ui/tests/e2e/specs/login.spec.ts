@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test'
-import { LoginPage } from '../pages/LoginPage'
+
 import { testAdmin } from '../fixtures/admin'
+import { LoginPage } from '../pages/LoginPage'
 
 test.describe('登录认证', () => {
   let loginPage: LoginPage

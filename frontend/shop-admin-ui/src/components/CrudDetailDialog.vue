@@ -85,7 +85,9 @@
  * - 字段级插槽 #detail-{slot|prop}
  */
 import { computed } from 'vue'
+
 import { formatDate } from '@/utils/date'
+
 import type { DetailField, RowData } from './CrudTable/types'
 
 const props = withDefaults(

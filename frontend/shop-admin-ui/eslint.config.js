@@ -1,10 +1,11 @@
 import js from '@eslint/js'
-import tseslint from 'typescript-eslint'
-import pluginVue from 'eslint-plugin-vue'
 import prettierConfig from 'eslint-config-prettier'
+import pluginImportX from 'eslint-plugin-import-x'
 import prettierPlugin from 'eslint-plugin-prettier'
 import pluginUnicorn from 'eslint-plugin-unicorn'
-import pluginImportX from 'eslint-plugin-import-x'
+import pluginVue from 'eslint-plugin-vue'
+import tseslint from 'typescript-eslint'
+
 import requireDialogCloseOnClickModal from './eslint-rules/require-dialog-close-on-click-modal.js'
 
 export default tseslint.config(
@@ -40,6 +41,8 @@ export default tseslint.config(
         sessionStorage: 'readonly',
         window: 'readonly',
         document: 'readonly',
+        // 自动导入的接口聚合对象（unplugin-auto-import 配置）
+        api: 'readonly',
       },
     },
   },
@@ -59,6 +62,26 @@ export default tseslint.config(
     },
     rules: {
       'import-x/no-unresolved': 'error',
+      // 社区惯例的 import 排序：外部包 → 别名(@/) → 相对(../) → 同级(./) → 入口(./)
+      // 组间空行、组内字母序（大小写不敏感）。
+      'import-x/order': [
+        'error',
+        {
+          groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
+          'newlines-between': 'always',
+          alphabetize: { order: 'asc', caseInsensitive: true },
+          pathGroups: [{ pattern: '@/**', group: 'internal', position: 'before' }],
+        },
+      ],
+    },
+  },
+
+  // 测试文件：Playwright 运行时经 esbuild 解析相对路径（含跨入 src 的 ../../src/api），
+  // 而 import-x 的 TS resolver 因 tests 不在 tsconfig include 中无法解析，故对测试关闭 no-unresolved。
+  {
+    files: ['tests/**/*.ts'],
+    rules: {
+      'import-x/no-unresolved': 'off',
     },
   },
 

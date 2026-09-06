@@ -37,11 +37,16 @@
  *    若 Toast 断言排在业务断言之前，它一旦超时就会阻断后者，
  *    导致真正可靠的判据永远执行不到——这是必须避免的顺序陷阱。
  */
-import { Page } from '@playwright/test'
+import type { Page } from '@playwright/test'
+
+import { endpoints } from '../../../src/api/endpoints'
+import type { RoleItem } from '../../../src/api/role'
+import type { IPageResult } from '../../../src/api/types'
+import { apiUrl, auth, cleanupUrl, loginAsAdmin, unwrap } from '../common/apiClient'
+import { createE2ETest, expect, workerIdPadded } from '../common/e2eFixtures'
+import { testRoles } from '../fixtures/roles'
 import { LoginPage } from '../pages/LoginPage'
 import { RolesPage } from '../pages/RolesPage'
-import { testRoles } from '../fixtures/roles'
-import { createE2ETest, expect, API_TIMEOUT, workerIdPadded, getAdminHeaders } from '../common/e2eFixtures'
 
 // roles 模块用 testRoles.admin；createE2ETest 在编译期强制传入 admin，避免漏配
 const test = createE2ETest(testRoles.admin)
@@ -63,26 +68,22 @@ async function createTestRole(
   realName: string,
   status = 1,
 ): Promise<string> {
-  const headers = await getAdminHeaders(page, testRoles.admin)
   // 用完整时间戳保证唯一：casePrefix(含workerId/序号) + 完整毫秒时间戳，跨批次/跨用例不可能重合
   const roleName = `${casePrefix}_${Date.now().toString(36)}`
-  await page.request.post('/api/role', {
-    headers,
+  // apiReady fixture 已登录，Token 由 apiClient 保存，用 auth() 带上 Authorization
+  await page.request.post(apiUrl(endpoints.role.create), {
     data: { roleName, description: realName, sortOrder: 99, status },
-    timeout: API_TIMEOUT,
+    headers: auth(),
   })
   // 轮询 API 确认角色已创建成功且可查询，避免创建后立即 UI 搜索时数据尚未提交导致搜不到
   await expect
     .poll(async () => {
-      const listResp = await page.request.get('/api/role', {
-        headers,
+      const resp = await page.request.get(apiUrl(endpoints.role.list), {
         params: { roleName, pageNum: 1, pageSize: 10 },
-        timeout: API_TIMEOUT,
+        headers: auth(),
       })
-      const listData = await listResp.json()
-      return (listData.data?.records ?? []).some(
-        (r: { roleName: string }) => r.roleName === roleName,
-      )
+      const result = await unwrap<IPageResult<RoleItem>>(resp)
+      return (result.records ?? []).some((r) => r.roleName === roleName)
     }, { timeout: 15000, intervals: [200, 400, 800] })
     .toBe(true)
   return roleName
@@ -135,8 +136,6 @@ test.describe('角色管理', () => {
     await expect(page).toHaveURL((url) => new URL(url).pathname === '/dashboard', {
       timeout: 25000,
     })
-    // 等待路由加载完成（动态路由生成）
-    await page.waitForLoadState('networkidle')
     // 通过侧边栏菜单导航到角色管理页面（SPA 内跳转，避免整页刷新导致 token 失效被踢回登录页）
     await rolesPage.navigateViaMenu()
     // 等待表格加载
@@ -151,18 +150,12 @@ test.describe('角色管理', () => {
   // ⚠️ 清理范围必须是 e2e_r_<workerId>_（本 worker 专属），不能是全量 e2e_r_：
   // 并行下每个 worker 都会执行一次 beforeAll，若清理全量，
   // 后启动的 worker 会删掉先启动 worker 正在使用的数据，并发越大破坏越严重。
-  test.beforeAll(async ({ request }) => {
-    const loginResp = await request.post('/api/public/login', {
-      data: { username: testRoles.admin.username, password: testRoles.admin.password },
-      timeout: API_TIMEOUT,
-    })
-    const loginData = await loginResp.json()
-    const token = loginData.data as string
-    await request.delete('/api/internal/test/cleanup-e2e', {
-      headers: { Authorization: `Bearer ${token}` },
-      params: { prefix: `e2e_r_${workerIdPadded()}_` },
-      timeout: API_TIMEOUT,
-    })
+  test.beforeAll(async ({ browser }) => {
+    // beforeAll 只能用 worker 级 fixture，故自行开上下文取 request；登录后清理本 worker 残留
+    const ctx = await browser.newContext()
+    await loginAsAdmin(ctx.request, testRoles.admin)
+    await ctx.request.delete(cleanupUrl(`e2e_r_${workerIdPadded()}_`), { headers: auth() })
+    await ctx.close()
   })
 
   // 测试套件执行后兜底清理本模块残留（各用例已自行清理，此处仅兜底）

@@ -3,10 +3,11 @@
  */
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { login as loginApi, logout as logoutApi } from '@/api/auth'
+
+import type { LoginParams } from '@/api'
+import { startAutoRefreshToken, stopAutoRefreshToken } from '@/api/auth'
+import { invalidatePermissionTreeCache } from '@/utils/permissionTree'
 import { setToken, removeToken } from '@/utils/storage'
-import { startAutoRefreshToken, stopAutoRefreshToken } from '@/utils/http'
-import type { LoginParams } from '@/api/types'
 
 export const useUserStore = defineStore('user', () => {
   const token = ref<string>('')
@@ -15,7 +16,7 @@ export const useUserStore = defineStore('user', () => {
   /** 登录 */
   async function login(params: LoginParams) {
     try {
-      const loginToken = await loginApi(params)
+      const loginToken = await api.auth.login(params)
 
       // HTTP 拦截器已处理响应：
       // - 成功时直接返回 data（token 字符串）
@@ -28,6 +29,9 @@ export const useUserStore = defineStore('user', () => {
 
       // 将 Token 写入 Cookie，后续请求从 Cookie 读取并通过 Header 发送
       setToken(loginToken)
+
+      // 切换账号：失效权限树缓存，避免串用上一账号的数据
+      invalidatePermissionTreeCache()
 
       // 启动 Token 自动刷新，确保 Token 永不过期
       startAutoRefreshToken()
@@ -42,7 +46,7 @@ export const useUserStore = defineStore('user', () => {
   /** 退出登录 */
   async function logout() {
     try {
-      await logoutApi()
+      await api.auth.logout()
     } catch (error) {
       console.error('登出失败:', error)
     } finally {
@@ -57,6 +61,8 @@ export const useUserStore = defineStore('user', () => {
     removeToken()
     // 停止 Token 自动刷新
     stopAutoRefreshToken()
+    // 失效权限树缓存，确保下次登录重新拉取
+    invalidatePermissionTreeCache()
   }
 
   return {

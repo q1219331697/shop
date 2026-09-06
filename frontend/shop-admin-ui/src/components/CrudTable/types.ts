@@ -1,8 +1,8 @@
 /**
  * CrudTable 类型定义
  */
-import type { Component } from 'vue'
 import type { FormRules } from 'element-plus'
+import type { Component } from 'vue'
 
 /** 行数据类型 - 动态键值对象，用于表格行、表单数据等场景 */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

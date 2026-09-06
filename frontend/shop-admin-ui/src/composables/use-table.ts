@@ -2,8 +2,9 @@
  * 表格通用逻辑
  */
 import { ref, reactive, toRaw } from 'vue'
-import type { PageParams, PageResult } from '@/api/types'
 import type { Ref } from 'vue'
+
+import type { PageParams, PageResult } from '@/api'
 
 interface UseTableOptions<T, P> {
   /** 请求方法 */

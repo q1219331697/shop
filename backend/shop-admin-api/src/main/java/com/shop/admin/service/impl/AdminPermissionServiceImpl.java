@@ -55,7 +55,7 @@ public class AdminPermissionServiceImpl
     }
 
     @Override
-    public Result<Void> createPermission(AdminPermissionEntity permission) {
+    public Result<Long> createPermission(AdminPermissionEntity permission) {
         log.info("创建权限请求, permissionName: {}, permissionCode: {}",
                 permission.getPermissionName(), permission.getPermissionCode());
 
@@ -93,7 +93,7 @@ public class AdminPermissionServiceImpl
         } else {
             log.error("创建权限失败, permissionCode: {}", permission.getPermissionCode());
         }
-        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "创建权限失败");
+        return success ? Result.success(permission.getId()) : Result.error(ResultCodeEnum.OPERATION_FAILED, "创建权限失败");
     }
 
     @Override

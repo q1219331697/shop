@@ -121,13 +121,12 @@
  * <CrudTable :schema="roleSchema" @action="onCustomAction" />
  */
 import { computed, onMounted } from 'vue'
-import PageContainer from './PageContainer.vue'
-import SearchBar from './SearchBar.vue'
-import ActionBar from './ActionBar.vue'
-import DataArea from './DataArea.vue'
-import CrudFormDialog from './CrudFormDialog.vue'
-import CrudDetailDialog from './CrudDetailDialog.vue'
+
 import { useCrud } from '@/composables/use-crud'
+
+import ActionBar from './ActionBar.vue'
+import CrudDetailDialog from './CrudDetailDialog.vue'
+import CrudFormDialog from './CrudFormDialog.vue'
 import type {
   CrudApi,
   CrudSchema,
@@ -136,6 +135,9 @@ import type {
   ActionItem,
   CrudMethods,
 } from './CrudTable/types'
+import DataArea from './DataArea.vue'
+import PageContainer from './PageContainer.vue'
+import SearchBar from './SearchBar.vue'
 
 const props = defineProps<{
   /** CRUD Schema 配置 */

@@ -4,15 +4,12 @@
  * 管理后台账号（AdminUserEntity），区别于 C 端会员（UserEntity）。
  * </p>
  */
-import type { CrudSchema, ActionContext } from '@/components/CrudTable'
-import type { AdminUserItem } from '@/api/admin-user'
 import type { FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
-import {
-  batchDisableAdminUser,
-  batchEnableAdminUser,
-  batchRestoreAdminUser,
-} from '@/api/admin-user'
+
+import type { AdminUserItem } from '@/api'
+import type { CrudSchema, ActionContext } from '@/components/CrudTable'
+// API 通过自动导入的 api 聚合对象使用（无需 import）
 
 /** 批量操作通用逻辑 */
 async function handleBatchAction(
@@ -33,15 +30,15 @@ async function handleBatchAction(
 
 /** 批量禁用 */
 const handleBatchDisable = (ctx: ActionContext<AdminUserItem>) =>
-  handleBatchAction(ctx, (r) => !r.deleted && r.status === 1, batchDisableAdminUser, '禁用成功')
+  handleBatchAction(ctx, (r) => !r.deleted && r.status === 1, api.adminUser.batchDisable, '禁用成功')
 
 /** 批量启用 */
 const handleBatchEnable = (ctx: ActionContext<AdminUserItem>) =>
-  handleBatchAction(ctx, (r) => !r.deleted && r.status === 0, batchEnableAdminUser, '启用成功')
+  handleBatchAction(ctx, (r) => !r.deleted && r.status === 0, api.adminUser.batchEnable, '启用成功')
 
 /** 批量恢复 */
 const handleBatchRestore = (ctx: ActionContext<AdminUserItem>) =>
-  handleBatchAction(ctx, (r) => r.deleted, batchRestoreAdminUser, '恢复成功')
+  handleBatchAction(ctx, (r) => r.deleted, api.adminUser.batchRestore, '恢复成功')
 
 /** 管理员 CRUD Schema */
 export const adminUserSchema: CrudSchema<AdminUserItem> = {

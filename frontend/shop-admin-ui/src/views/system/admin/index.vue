@@ -3,7 +3,7 @@
   <CrudTable
     ref="crudTableRef"
     :schema="adminUserSchema"
-    :api="adminUserApi"
+    :api="api.adminUser"
     :handlers="toolbarHandlers"
   >
     <!-- 行操作追加：禁用/启用/恢复/分配角色 -->
@@ -53,25 +53,27 @@
 // ==================== 依赖引入 ====================
 
 // Vue 核心
+import { Lock, Unlock, RefreshRight, Key } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 import { ref } from 'vue'
 
+// API 聚合对象（显式导入，避免依赖 auto-import 在该视图未注入）
+import { api } from '@/api'
+
 // Element Plus
-import { ElMessage } from 'element-plus'
-import { Lock, Unlock, RefreshRight, Key } from '@element-plus/icons-vue'
 
 // 业务组件
+import type { AdminUserItem } from '@/api'
 import { CrudTable } from '@/components/CrudTable'
+import type { ActionContext } from '@/components/CrudTable'
+
 import AssignRoleDialog from './AssignRoleDialog.vue'
 
 // Schema 配置
 import { adminUserSchema } from './schema'
 
 // 类型
-import type { ActionContext } from '@/components/CrudTable'
-import type { AdminUserItem } from '@/api/admin-user'
-
-// API
-import { adminUserApi, disableAdminUser, enableAdminUser, restoreAdminUser } from '@/api/admin-user'
+// API 通过自动导入的 api 聚合对象使用（无需 import）
 
 // ==================== 组件引用 ====================
 
@@ -102,7 +104,7 @@ const toolbarHandlers = {
 /** 禁用管理员 */
 async function handleDisable(row: AdminUserItem) {
   try {
-    await disableAdminUser(row.id)
+    await api.adminUser.disable(row.id)
     ElMessage.success('禁用成功')
     refreshList()
   } catch {
@@ -113,7 +115,7 @@ async function handleDisable(row: AdminUserItem) {
 /** 启用管理员 */
 async function handleEnable(row: AdminUserItem) {
   try {
-    await enableAdminUser(row.id)
+    await api.adminUser.enable(row.id)
     ElMessage.success('启用成功')
     refreshList()
   } catch {
@@ -124,7 +126,7 @@ async function handleEnable(row: AdminUserItem) {
 /** 恢复管理员 */
 async function handleRestore(row: AdminUserItem) {
   try {
-    await restoreAdminUser(row.id)
+    await api.adminUser.restore(row.id)
     ElMessage.success('恢复成功')
     refreshList()
   } catch {

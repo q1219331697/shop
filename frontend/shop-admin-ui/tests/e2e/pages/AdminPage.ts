@@ -6,6 +6,7 @@
 //   批量示例：e2e_u_000_b_dis_0_mtf74u4a
 // 文件简码 u=管理员，案例简码见 admin.spec.ts 文件头；workerId 为 3 位定长补零。
 import { expect, type Page } from '@playwright/test'
+
 import { BasePage } from './BasePage';
 
 export class AdminPage extends BasePage {

@@ -4,6 +4,8 @@
  * 权限为树形结构（无分页），无法直接套用 CrudSchema 的分页表格，
  * 因此只沉淀搜索/表单/详情/工具栏配置，由页面自行组装树形表格。
  */
+import type { FormRules } from 'element-plus'
+
 import type {
   ActionItem,
   DetailField,
@@ -11,7 +13,6 @@ import type {
   SearchField,
   TagMap,
 } from '@/components/CrudTable'
-import type { FormRules } from 'element-plus'
 
 /** 权限类型标签映射：1-目录，2-菜单，3-操作 */
 export const PERMISSION_TYPE_TAG_MAP: TagMap = {

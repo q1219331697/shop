@@ -1,73 +1,46 @@
-import { testPermissions } from '../fixtures/permissions'
-import { PermissionsPage } from '../pages/PermissionsPage'
-import { LoginPage } from '../pages/LoginPage'
-import {
-  createE2ETest,
-  getAdminHeaders,
-  cleanupByPrefix,
-  workerIdPadded,
-  expect,
-} from '../common/e2eFixtures'
+import type { Page } from '@playwright/test'
 
-interface PermissionNode {
-  id?: number
-  permissionName?: string
-  children?: PermissionNode[]
-}
+import { endpoints } from '../../../src/api/endpoints'
+import type { PermissionItem } from '../../../src/api/permission'
+import { apiUrl, auth, cleanupUrl, loginAsAdmin, unwrap } from '../common/apiClient'
+import { createE2ETest, workerIdPadded, expect } from '../common/e2eFixtures'
+import { testPermissions } from '../fixtures/permissions'
+import { LoginPage } from '../pages/LoginPage'
+import { PermissionsPage } from '../pages/PermissionsPage'
 
 const test = createE2ETest(testPermissions.admin)
 
 // 容忍 dev server 偶发编译导致的首屏/接口慢（环境波动，非用例逻辑问题）
 test.setTimeout(120000)
 
-/** 通过 API 创建一条权限（admin 令牌），返回创建的实体（含 id） */
+/**
+ * 通过 API 创建一条权限（admin 令牌由 apiReady fixture 登录后保存在 apiClient）。
+ * 后端创建接口直接返回新权限 ID，无需再经权限树反查。
+ */
 async function createPermissionViaApi(
-  page: import('@playwright/test').Page,
-  headers: { Authorization: string },
-  body: Record<string, unknown>,
+  page: Page,
+  body: Partial<PermissionItem>,
 ): Promise<{ id: number }> {
-  const resp = await page.request.post('/api/permission', {
-    headers,
+  const resp = await page.request.post(apiUrl(endpoints.permission.create), {
     data: body,
-    timeout: 30000,
+    headers: auth(),
   })
-  const json = await resp.json()
-  if (json.code !== '000000' && json.code !== 0 && json.code !== 200) {
-    throw new Error(`创建权限失败: ${JSON.stringify(json)}`)
-  }
-  // 创建接口 data 为 null，需通过 tree 反查 id
-  const treeResp = await page.request.get('/api/permission/tree', { headers, timeout: 30000 })
-  const treeJson = await treeResp.json()
-  const id = findIdByName(treeJson.data as PermissionNode[], body.permissionName as string)
-  if (!id) {
-    throw new Error(`创建后未找到权限: ${body.permissionName}`)
-  }
-  return { id }
-}
-
-/** 递归在权限树中按名称查找 id */
-function findIdByName(nodes: PermissionNode[], name: string): number | null {
-  for (const n of nodes ?? []) {
-    if (n.permissionName === name) return (n.id as number) ?? null
-    const found = findIdByName(n.children ?? [], name)
-    if (found) return found
-  }
-  return null
+  return { id: await unwrap<number>(resp) }
 }
 
 test.beforeAll(async ({ browser }) => {
   const ctx = await browser.newContext()
   const page = await ctx.newPage()
-  const headers = await getAdminHeaders(page, testPermissions.admin)
-  // 按 worker 前缀清理本 worker 的残留权限数据（幂等）
-  await cleanupByPrefix(page, headers, `e2e_p_${workerIdPadded()}_`)
+  // 注入请求上下文，登录 admin，清理本 worker 残留权限数据
+  await loginAsAdmin(ctx.request, testPermissions.admin)
+  await ctx.request.delete(cleanupUrl(`e2e_p_${workerIdPadded()}_`), { headers: auth() })
   // 预热：登录后访问权限页，触发 Vite 对页面 chunk 的编译并缓存，避免用例内首屏偶发卡顿
   const loginPage = new LoginPage(page)
   await page.goto('/')
   try {
     await loginPage.login(testPermissions.admin.username, testPermissions.admin.password)
     await page.goto('/system/permission')
-    await page.waitForLoadState('networkidle')
+
   } catch {
     // 预热失败不影响用例（用例自身会重新加载）
   }
@@ -91,7 +64,7 @@ test.describe('权限管理页面', () => {
     await expect(page).toHaveURL((url) => new URL(url).pathname === '/dashboard', {
       timeout: 25000,
     })
-    await page.waitForLoadState('networkidle')
+
     // 通过侧边栏菜单导航到权限管理页面（SPA 内跳转，避免整页刷新导致 token 失效被踢回登录页）
     await permissionsPage.navigateViaMenu()
     await expect(permissionsPage.treeTable).toBeVisible({ timeout: 10000 })
@@ -141,9 +114,8 @@ test.describe('权限管理页面', () => {
     const parentName = `${prefix}_parent`
     const newName = `${prefix}_new`
 
-    const headers = await getAdminHeaders(page, testPermissions.admin)
     // 先 API 创建父级目录，用于验证新建后整棵树正确渲染
-    await createPermissionViaApi(page, headers, {
+    await createPermissionViaApi(page, {
       permissionName: parentName,
       permissionCode: `${prefix}_parent:code`,
       permissionType: 1,
@@ -183,8 +155,7 @@ test.describe('权限管理页面', () => {
     const prefix = isolatedPrefix('e2e_p_delete')
     const name = `${prefix}_del`
 
-    const headers = await getAdminHeaders(page, testPermissions.admin)
-    await createPermissionViaApi(page, headers, {
+    await createPermissionViaApi(page, {
       permissionName: name,
       permissionCode: `${prefix}_del:code`,
       permissionType: 2,

@@ -25,11 +25,13 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
 import { Fold, Expand, ArrowDown } from '@element-plus/icons-vue'
+import { useRouter } from 'vue-router'
+
 import { useAppStore } from '@/stores/modules/app'
-import { useUserStore } from '@/stores/modules/user'
 import { usePermissionStore } from '@/stores/modules/permission'
+import { useUserStore } from '@/stores/modules/user'
+
 import Breadcrumb from './Breadcrumb.vue'
 
 const router = useRouter()

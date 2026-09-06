@@ -1,8 +1,9 @@
 /**
  * 路由配置
  */
-import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import NProgress from 'nprogress'
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
+
 import 'nprogress/nprogress.css'
 import { setupGuards } from './guards'
 

@@ -35,11 +35,12 @@
  * 分配权限对话框
  * 状态内聚：通过 open(row) 打开，加载权限树并回显当前角色已选权限
  */
-import { nextTick, ref, watch } from 'vue'
 import type { ElTree } from 'element-plus'
 import { ElMessage } from 'element-plus'
-import { assignRolePermissions, getRolePermissionIds, type RoleItem } from '@/api/role'
-import { getPermissionTree, type PermissionItem } from '@/api/permission'
+import { nextTick, ref, watch } from 'vue'
+
+import type { RoleItem, PermissionItem } from '@/api'
+// API 通过自动导入的 api 聚合对象使用（无需 import）
 
 const emit = defineEmits<{
   (e: 'success'): void
@@ -70,8 +71,8 @@ async function loadPermissions() {
   loading.value = true
   try {
     const [tree, ids] = await Promise.all([
-      getPermissionTree(),
-      getRolePermissionIds(currentRole.value.id),
+      api.permission.tree(),
+      api.role.getPermissionIds(currentRole.value.id),
     ])
     permissionTree.value = tree
     await nextTick()
@@ -94,7 +95,7 @@ async function handleSubmit() {
       Number(k),
     )
     const permissionIds: number[] = [...checkedKeys, ...halfCheckedKeys]
-    await assignRolePermissions(currentRole.value.id, permissionIds)
+    await api.role.assignPermissions(currentRole.value.id, permissionIds)
     ElMessage.success('权限分配成功')
     visible.value = false
     emit('success')

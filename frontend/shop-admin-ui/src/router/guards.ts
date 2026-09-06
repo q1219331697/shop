@@ -1,12 +1,13 @@
 /**
  * 路由守卫
  */
-import type { Router } from 'vue-router'
 import NProgress from 'nprogress'
-import { hasTokenCookie } from '@/utils/storage'
-import { startAutoRefreshToken, stopAutoRefreshToken } from '@/utils/http'
+import type { Router } from 'vue-router'
+
+import { startAutoRefreshToken, stopAutoRefreshToken } from '@/api/auth'
 import { usePermissionStore } from '@/stores/modules/permission'
 import { useTabsStore } from '@/stores/modules/tabs'
+import { hasTokenCookie } from '@/utils/storage'
 
 const WHITE_LIST = ['/login']
 

@@ -195,9 +195,11 @@
  * 因此不使用 CrudTable 的分页表格，而是基于 useCrud 自由组装：
  * PageContainer + SearchBar + ActionBar + 树形表格 + 表单/详情对话框
  */
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
-import { ElMessage, ElMessageBox, ElTreeSelect } from 'element-plus'
 import { Delete, Edit, Plus, Refresh, Sort, View } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox, ElTreeSelect } from 'element-plus'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
+
+import type { PermissionItem, PermissionTreeResult } from '@/api'
 import {
   PageContainer,
   SearchBar,
@@ -205,17 +207,17 @@ import {
   CrudFormDialog,
   CrudDetailDialog,
 } from '@/components/CrudTable'
+import type { RowData, TagMap } from '@/components/CrudTable/types'
 import IconSelect from '@/components/IconSelect.vue'
 import { useCrud } from '@/composables/use-crud'
 import { formatDate } from '@/utils/date'
-import type { RowData, TagMap } from '@/components/CrudTable/types'
 import {
+  getPermissionList,
   flattenPermissionTree,
   invalidatePermissionTreeCache,
-  permissionApi,
-  type PermissionItem,
-  type PermissionTreeResult,
-} from '@/api/permission'
+} from '@/utils/permissionTree'
+
+// API 通过自动导入的 api 聚合对象使用（无需 import）
 import {
   PERMISSION_TYPE_TAG_MAP,
   STATUS_TAG_MAP,
@@ -260,13 +262,13 @@ function statusTag(value: unknown): [string, TagType] {
 // ==================== CRUD 核心 ====================
 
 /**
- * 列表请求包装：在 fetchData 内部已经调过的同一份全量树（permissionApi.list 内部已缓存），
+ * 列表请求包装：在 fetchData 内部已经调过的同一份全量树（getPermissionList 内部已缓存），
  * 这里把原始树同步到 permissionTree，避免再独立调用一次 getPermissionTree。
  */
 async function listApiWithTree(
-  params: Parameters<typeof permissionApi.list>[0],
+  params: Parameters<typeof getPermissionList>[0],
 ): Promise<PermissionTreeResult> {
-  const result = await permissionApi.list(params)
+  const result = await getPermissionList(params)
   if (result.rawTree) {
     permissionTree.value = result.rawTree
   }
@@ -298,10 +300,10 @@ const {
   detailData,
 } = useCrud<PermissionItem>({
   listApi: listApiWithTree,
-  detailApi: permissionApi.detail,
-  createApi: permissionApi.create,
-  updateApi: permissionApi.update,
-  deleteApi: permissionApi.delete,
+  detailApi: api.permission.detail,
+  createApi: api.permission.create,
+  updateApi: api.permission.update,
+  deleteApi: api.permission.delete,
   searchFields: permissionSearchFields,
   rowKey: 'id',
 })
@@ -466,7 +468,7 @@ async function handleToolbarDelete() {
       return
     }
     try {
-      await permissionApi.delete(row.id)
+      await api.permission.delete(row.id)
       ElMessage.success('删除成功')
       await fetchData()
     } catch {
@@ -489,7 +491,7 @@ async function handleDeleteRow(row: PermissionItem) {
     return
   }
   try {
-    await permissionApi.delete(row.id)
+    await api.permission.delete(row.id)
     ElMessage.success('删除成功')
     invalidatePermissionTreeCache()
     await fetchData()

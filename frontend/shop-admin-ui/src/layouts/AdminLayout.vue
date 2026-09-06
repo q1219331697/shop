@@ -13,8 +13,9 @@
 
 <script setup lang="ts">
 import { useAppStore } from '@/stores/modules/app'
-import Sidebar from './components/Sidebar.vue'
+
 import Navbar from './components/Navbar.vue'
+import Sidebar from './components/Sidebar.vue'
 import TabBar from './components/TabBar.vue'
 
 const appStore = useAppStore()

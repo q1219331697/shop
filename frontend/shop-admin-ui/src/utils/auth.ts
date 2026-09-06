@@ -1,8 +1,9 @@
 /**
  * 认证工具
  */
+import { startAutoRefreshToken, stopAutoRefreshToken } from '@/api/auth'
+
 import { hasTokenCookie, setToken, removeToken } from './storage'
-import { startAutoRefreshToken, stopAutoRefreshToken } from './http'
 
 export function isAuthenticated(): boolean {
   return hasTokenCookie()

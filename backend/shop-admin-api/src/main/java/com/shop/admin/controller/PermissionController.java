@@ -83,7 +83,7 @@ public class PermissionController {
     @PreAuthorize("hasAuthority('system:permission:create')")
     @Operation(summary = "创建权限")
     @PostMapping
-    public Result<Void> create(@RequestBody AdminPermissionEntity permission) {
+    public Result<Long> create(@RequestBody AdminPermissionEntity permission) {
         return adminPermissionService.createPermission(permission);
     }
 

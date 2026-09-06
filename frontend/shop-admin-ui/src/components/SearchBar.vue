@@ -141,8 +141,9 @@
  * - 区域级插槽 #search-extra
  * - 按钮插槽 #search-buttons
  */
-import { reactive, computed, onMounted, watch } from 'vue'
 import { Search, Refresh } from '@element-plus/icons-vue'
+import { reactive, computed, onMounted, watch } from 'vue'
+
 import type { SearchField, SearchSelect, SearchDateRange, RowData } from './CrudTable/types'
 
 const props = withDefaults(

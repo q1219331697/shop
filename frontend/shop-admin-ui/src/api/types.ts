@@ -1,6 +1,11 @@
 /**
- * API 通用类型定义
+ * API 通用类型与分页工具
+ *
+ * 只放跨模块复用的通用类型与工具；各业务域的专属类型见对应模块文件
+ * （auth / adminUser / role / permission），由 index.ts 统一再导出。
  */
+
+// ==================== 通用类型 ====================
 
 /** 通用分页请求参数 */
 export interface PageParams {
@@ -25,7 +30,14 @@ export interface IPageResult<T> {
   pages: number
 }
 
-/** 将 IPage 转换为 PageResult */
+/** 通用 API 响应 */
+export interface ApiResponse<T> {
+  code: string
+  message: string
+  data: T
+}
+
+/** 将 IPage 转换为 PageResult（后端返回 IPage，前端统一用 PageResult） */
 export function convertIPage<T>(ipage: IPageResult<T>): PageResult<T> {
   return {
     list: ipage.records,
@@ -34,19 +46,3 @@ export function convertIPage<T>(ipage: IPageResult<T>): PageResult<T> {
     pageSize: ipage.size,
   }
 }
-
-/** 通用 API 响应 */
-export interface ApiResponse<T> {
-  code: string
-  message: string
-  data: T
-}
-
-/** 登录请求 */
-export interface LoginParams {
-  username: string
-  password: string
-}
-
-/** 登录响应（后端 data 直接返回 token 字符串） */
-export type LoginResult = string

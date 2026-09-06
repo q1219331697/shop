@@ -36,11 +36,16 @@
  *    若 Toast 断言排在业务断言之前，它一旦超时就会阻断后者，
  *    导致真正可靠的判据永远执行不到——这是必须避免的顺序陷阱。
  */
-import { Page } from '@playwright/test'
-import { LoginPage } from '../pages/LoginPage'
-import { AdminPage } from '../pages/AdminPage'
+import type { Page } from '@playwright/test'
+
+import type { AdminUserItem } from '../../../src/api/adminUser'
+import { endpoints } from '../../../src/api/endpoints'
+import type { IPageResult } from '../../../src/api/types'
+import { apiUrl, auth, cleanupUrl, loginAsAdmin, unwrap } from '../common/apiClient'
+import { createE2ETest, expect, workerIdPadded } from '../common/e2eFixtures'
 import { testAdmin } from '../fixtures/admin'
-import { createE2ETest, expect, API_TIMEOUT, workerIdPadded, getAdminHeaders } from '../common/e2eFixtures'
+import { AdminPage } from '../pages/AdminPage'
+import { LoginPage } from '../pages/LoginPage'
 
 // admin 模块用 testAdmin.admin；createE2ETest 在编译期强制传入 admin，避免漏配
 const test = createE2ETest(testAdmin.admin)
@@ -64,48 +69,38 @@ async function createTestUser(
   status = 1,
   deleted = false,
 ): Promise<string> {
-  const headers = await getAdminHeaders(page, testAdmin.admin)
   // 用完整时间戳保证唯一：casePrefix(含workerId/序号) + 完整毫秒时间戳，跨批次/跨用例不可能重合
   // 用户名上限 50（数据库字段长度，前端校验已对齐 ≤50）；
   // 最长为批量 selectall（e2e_u_00_b_selectall_0_<时间戳>，约 31 字符），安全不超长
   const username = `${casePrefix}_${Date.now().toString(36)}`
-  await page.request.post('/api/adminUser', {
-    headers,
+  // apiReady fixture 已登录，Token 由 apiClient 保存，用 auth() 带上 Authorization
+  await page.request.post(apiUrl(endpoints.adminUser.create), {
     data: { username, password: 'testpass123', realName, status },
-    timeout: API_TIMEOUT,
+    headers: auth(),
   })
 
   // 需要已删除状态时，创建后立即调用删除接口
   if (deleted) {
-    const listResp = await page.request.get('/api/adminUser', {
-      headers,
+    const resp = await page.request.get(apiUrl(endpoints.adminUser.list), {
       params: { username, pageNum: 1, pageSize: 10 },
-      timeout: API_TIMEOUT,
+      headers: auth(),
     })
-    const listData = await listResp.json()
-    const record = (listData.data?.records ?? []).find(
-      (r: { username: string }) => r.username === username,
-    )
+    const result = await unwrap<IPageResult<AdminUserItem>>(resp)
+    const record = (result.records ?? []).find((r) => r.username === username)
     if (record?.id) {
-      await page.request.delete(`/api/adminUser/${record.id}`, {
-        headers,
-        timeout: API_TIMEOUT,
-      })
+      await page.request.delete(apiUrl(endpoints.adminUser.delete(record.id)), { headers: auth() })
     }
   }
 
   // 轮询 API 确认用户已创建且可查询，避免创建后立即 UI 搜索时数据未提交导致搜不到
   await expect
     .poll(async () => {
-      const listResp = await page.request.get('/api/adminUser', {
-        headers,
+      const resp = await page.request.get(apiUrl(endpoints.adminUser.list), {
         params: { username, pageNum: 1, pageSize: 10 },
-        timeout: API_TIMEOUT,
+        headers: auth(),
       })
-      const listData = await listResp.json()
-      return (listData.data?.records ?? []).some(
-        (r: { username: string }) => r.username === username,
-      )
+      const result = await unwrap<IPageResult<AdminUserItem>>(resp)
+      return (result.records ?? []).some((r) => r.username === username)
     }, { timeout: 15000, intervals: [200, 400, 800] })
     .toBe(true)
   return username
@@ -157,7 +152,6 @@ test.describe('管理员管理', () => {
     await expect(page).toHaveURL((url) => new URL(url).pathname === '/dashboard', {
       timeout: 25000,
     })
-    await page.waitForLoadState('networkidle')
     // 通过侧边栏菜单导航到用户管理页面（SPA 内跳转，避免整页刷新导致 token 失效）
     await adminPage.navigateViaMenu()
     await expect(adminPage.table).toBeVisible({ timeout: 10000 })
@@ -170,17 +164,12 @@ test.describe('管理员管理', () => {
   // ⚠️ 清理范围必须是 e2e_u_<workerId>_（本 worker 专属），不能是全量 e2e_u_：
   // 并行下每个 worker 都会执行一次 beforeAll，若清理全量，
   // 后启动的 worker 会删掉先启动 worker 正在使用的数据，并发越大破坏越严重。
-  test.beforeAll(async ({ request }) => {
-    const loginResp = await request.post('/api/public/login', {
-      data: { username: testAdmin.admin.username, password: testAdmin.admin.password },
-      timeout: API_TIMEOUT,
-    })
-    const loginData = await loginResp.json()
-    await request.delete('/api/internal/test/cleanup-e2e', {
-      headers: { Authorization: `Bearer ${loginData.data as string}` },
-      params: { prefix: `e2e_u_${workerIdPadded()}_` },
-      timeout: API_TIMEOUT,
-    })
+  test.beforeAll(async ({ browser }) => {
+    // beforeAll 只能用 worker 级 fixture，故自行开上下文取 request；登录后清理本 worker 残留
+    const ctx = await browser.newContext()
+    await loginAsAdmin(ctx.request, testAdmin.admin)
+    await ctx.request.delete(cleanupUrl(`e2e_u_${workerIdPadded()}_`), { headers: auth() })
+    await ctx.close()
   })
 
   // 套件运行后兜底清理本模块残留（各用例已自行清理，此处仅兜底）
