@@ -1,4 +1,4 @@
-import { Page, Locator, expect } from '@playwright/test'
+import { Locator, expect } from '@playwright/test'
 
 import { BasePage } from './BasePage'
 
@@ -7,10 +7,6 @@ import { BasePage } from './BasePage'
  * 权限以树形表格展示，支持搜索、新增、详情、删除。
  */
 export class PermissionsPage extends BasePage {
-  constructor(page: Page) {
-    super(page)
-  }
-
   /** 页面标题（面包屑中的「权限管理」链接） */
   pageTitle = this.page.getByRole('link', { name: '权限管理' })
 
@@ -131,7 +127,7 @@ export class PermissionsPage extends BasePage {
     parentName?: string
     name: string
     code: string
-    type: '目录' | '菜单' | '按钮'
+    type: '目录' | '菜单' | '操作'
     path?: string
     icon?: string
     component?: string

@@ -1,117 +1,34 @@
 /**
- * E2E 测试数据编码规则（务必严格遵守，禁止自定义前缀）：
+ * 角色管理 E2E 用例
  *
- * 完整格式：e2e_<模块>_<workerId>_<s|b>_<案例简码>[_<序号>]_<时间戳>
- *   单条示例：e2e_r_00_s_dis_mtf74u4a
- *   批量示例：e2e_r_00_b_dis_0_mtf74u4a   （_0 为批次内序号）
+ * 数据编码规则、造数工厂、清理机制与断言原则统一维护在
+ * tests/e2e/common/e2eFixtures.ts 与 tests/e2e/common/dataFactory.ts，本文件不重复维护，避免多处漂移。
  *
- * 各段含义：
- * - 模块：u=用户管理，r=角色管理
- * - workerId：定长补零（位数见 WORKER_ID_DIGITS，当前 2 位 → 00-99），
- *     由 withWorker() 自动插入，详见该函数注释
- * - s|b：单条用 _s_，批量用 _b_，明确区分单条/批量
- * - 案例简码：
+ * 本模块案例简码（单条 s / 批量 b）：
  *     单条(s)：detail / search / dis / en / add / del / edit / tag_n / tag_d（状态标签：正常 / 禁用）
+ *              assign_leaf（分配权限：单选最底层权限后回显不连带同级）
  *     批量(b)：list / selectall / page / dis / en / assign
- * - 序号：仅批量有，批次内第 i 条
- * - 时间戳：Date.now().toString(36)，保证跨批次/跨用例不重合
  *
  * - description 用中文用例名：E2E-禁用角色 / E2E-批量禁用 等
- * - sort_order 统一用 99（与 API 造数保持一致，便于核对库内临时数据）
+ * - sort_order 统一用 99（造数工厂已固定，便于核对库内临时数据）
  *
  * ⚠️ 角色名长度：数据库上限 50，但前端表单校验为 ≤30。
  *    API 造数不受前端校验约束，故批量 selectall（约 31 字符）可正常创建；
  *    但若要改用 UI 表单新增角色，必须控制在 30 字符以内。
- *
- * 禁止：e2e_user_ / e2e_role_ / e2e_ub 等非规范前缀
- *       （清理接口按前缀匹配，非规范前缀会导致造数后清理不干净）
- *
- * 用例结构统一为三段式：准备数据 → 执行案例 → 清理数据
- * （清理已下沉到 e2eFixtures 的 isolatedPrefix fixture，用例只需调用
- *  isolatedPrefix('e2e_r_xxx') 注册隔离前缀，用例通过后自动清理，无需手动造/清）
- *
- * ⚠️ 断言原则：以「业务结果」为唯一判据，不对成功 Toast 做断言。
- *    Toast 仅存活数秒，高负载/高并发下极易超时；且其轮询可能匹配到历史残留
- *    Toast 而误判成功。数据状态真实变化（状态列、删除标记、列表可查、
- *    对话框回显等）才是操作成功的可靠证据。
- *    若 Toast 断言排在业务断言之前，它一旦超时就会阻断后者，
- *    导致真正可靠的判据永远执行不到——这是必须避免的顺序陷阱。
  */
-import type { Page } from '@playwright/test'
-
-import { endpoints } from '../../../src/api/endpoints'
-import type { RoleItem } from '../../../src/api/role'
-import type { IPageResult } from '../../../src/api/types'
-import { apiUrl, auth, cleanupUrl, loginAsAdmin, unwrap } from '../common/apiClient'
-import { createE2ETest, expect, workerIdPadded } from '../common/e2eFixtures'
+import { auth, cleanupUrl, loginAsAdmin } from '../common/apiClient'
+import {
+  createBatchRoles,
+  createPermissionViaApi,
+  createTestRole,
+} from '../common/dataFactory'
+import { casePrefix, createE2ETest, expect, moduleCleanupPrefix } from '../common/e2eFixtures'
 import { testRoles } from '../fixtures/roles'
 import { LoginPage } from '../pages/LoginPage'
 import { RolesPage } from '../pages/RolesPage'
 
 // roles 模块用 testRoles.admin；createE2ETest 在编译期强制传入 admin，避免漏配
 const test = createE2ETest(testRoles.admin)
-
-/**
- * 通过 API 创建一个临时测试角色（准备数据用）。
- *
- * 命名规则（唯一入口，保证清理前缀与角色名同源）：
- * - 传入的 casePrefix 即角色名的基础前缀，也是后续清理所用的前缀
- * - 角色名 = casePrefix_<时间戳>，因此必定以 casePrefix 开头，清理按 casePrefix 匹配即可命中
- *
- * @param casePrefix 用例前缀（须含 workerId，用 withWorker() 生成，如 e2e_r_00_s_dis）
- * @param realName 描述（必填，每个用例必须传独有的中文用例名如 E2E-禁用角色，确保数据可区分）
- * @param status 1-正常，0-禁用
- */
-async function createTestRole(
-  page: Page,
-  casePrefix: string,
-  realName: string,
-  status = 1,
-): Promise<string> {
-  // 用完整时间戳保证唯一：casePrefix(含workerId/序号) + 完整毫秒时间戳，跨批次/跨用例不可能重合
-  const roleName = `${casePrefix}_${Date.now().toString(36)}`
-  // apiReady fixture 已登录，Token 由 apiClient 保存，用 auth() 带上 Authorization
-  await page.request.post(apiUrl(endpoints.role.create), {
-    data: { roleName, description: realName, sortOrder: 99, status },
-    headers: auth(),
-  })
-  // 轮询 API 确认角色已创建成功且可查询，避免创建后立即 UI 搜索时数据尚未提交导致搜不到
-  await expect
-    .poll(async () => {
-      const resp = await page.request.get(apiUrl(endpoints.role.list), {
-        params: { roleName, pageNum: 1, pageSize: 10 },
-        headers: auth(),
-      })
-      const result = await unwrap<IPageResult<RoleItem>>(resp)
-      return (result.records ?? []).some((r) => r.roleName === roleName)
-    }, { timeout: 15000, intervals: [200, 400, 800] })
-    .toBe(true)
-  return roleName
-}
-
-/**
- * 通过 API 批量创建共享前缀的临时测试角色（准备数据用）。
- *
- * 命名规则（与单条用例一致，前缀由案例明确传递）：prefix = withWorker(e2e_r_b_<案例简码>)，
- * 各角色名的序号拼在 prefix 之后（prefix_<序号>_<时间戳>），
- * 因此所有批量角色必定以 prefix 开头，一次清理即可命中全部。
- *
- * @param prefix 清理前缀（必填，含 workerId，用 withWorker() 生成，如 e2e_r_00_b_dis）
- * @param count 批量条数
- * @param realName 描述（必填，显式传用例名如 E2E-批量禁用，确保数据可区分）
- */
-async function createBatchRoles(
-  page: Page,
-  prefix: string,
-  count: number,
-  realName: string,
-  status = 1,
-): Promise<void> {
-  // 复用 createTestRole（内含 API 确认，确保数据已提交可查），序号拼入前缀实现归组
-  for (let i = 0; i < count; i++) {
-    await createTestRole(page, `${prefix}_${i}`, realName, status)
-  }
-}
 
 test.describe('角色管理', () => {
   // 每个测试用例通过 API 自建独立角色数据（批次号含 workerId+时间戳），
@@ -154,7 +71,7 @@ test.describe('角色管理', () => {
     // beforeAll 只能用 worker 级 fixture，故自行开上下文取 request；登录后清理本 worker 残留
     const ctx = await browser.newContext()
     await loginAsAdmin(ctx.request, testRoles.admin)
-    await ctx.request.delete(cleanupUrl(`e2e_r_${workerIdPadded()}_`), { headers: auth() })
+    await ctx.request.delete(cleanupUrl(moduleCleanupPrefix(testRoles.module)), { headers: auth() })
     await ctx.close()
   })
 
@@ -240,7 +157,7 @@ test.describe('角色管理', () => {
   })
 
   test('角色列表正确显示', async ({ page, isolatedPrefix }) => {
-    const prefix = isolatedPrefix('e2e_r_b_list')
+    const prefix = isolatedPrefix(casePrefix('r', 'b', 'list'))
     // ===== 准备数据 =====
     // 自建 2 条数据并搜索过滤，使列表内容与行数只由本用例决定，
     // 避免并行下遍历到其他 worker 的行导致遍历次数不一致
@@ -261,7 +178,7 @@ test.describe('角色管理', () => {
   })
 
   test('搜索功能正常工作', async ({ page, isolatedPrefix }) => {
-    const prefix = isolatedPrefix('e2e_r_s_search')
+    const prefix = isolatedPrefix(casePrefix('r', 's', 'search'))
     // ===== 准备数据 =====
     // 前缀由案例明确传递（与用户管理一致），描述用用例名
     await createTestRole(page, prefix, 'E2E-搜索功能', 1)
@@ -280,7 +197,7 @@ test.describe('角色管理', () => {
   })
 
   test('全选功能正常工作', async ({ page, isolatedPrefix }) => {
-    const prefix = isolatedPrefix('e2e_r_b_selectall')
+    const prefix = isolatedPrefix(casePrefix('r', 'b', 'selectall'))
     // ===== 准备数据 =====
     // 自建 2 条数据并先搜索过滤，使"全选"的作用范围只含本用例数据，
     // 避免并行下选中其他 worker 的数据导致选中范围不一致
@@ -311,7 +228,7 @@ test.describe('角色管理', () => {
     // API 调用量远高于其他用例；高并发下后端负载升高会更慢，
     // 故标记为 slow（超时放宽至 3 倍），保证任意并发数下都能稳定通过。
     test.slow()
-    const prefix = isolatedPrefix('e2e_r_b_page')
+    const prefix = isolatedPrefix(casePrefix('r', 'b', 'page'))
 
     // ===== 准备数据 =====
     // 自建 11 条数据（超过每页 10 条），保证无论串行/并行都必然存在第二页。
@@ -345,7 +262,7 @@ test.describe('角色管理', () => {
   })
 
   test('查看角色详情功能正常', async ({ page, isolatedPrefix }) => {
-    const prefix = isolatedPrefix('e2e_r_s_detail')
+    const prefix = isolatedPrefix(casePrefix('r', 's', 'detail'))
     // ===== 准备数据 =====
     // 自建数据并先搜索过滤，保证查看详情的目标是本用例的数据，
     // 避免并行下列表第一行是其他 worker 的数据导致结论不一致
@@ -371,7 +288,7 @@ test.describe('角色管理', () => {
   // 数据操作测试：每个用例自建独立角色数据（批次号含 workerId+时间戳），数据隔离，可并行
   test.describe('数据操作测试', () => {
     test('状态标签-正常角色正确显示', async ({ page, isolatedPrefix }) => {
-      const normalPrefix = isolatedPrefix('e2e_r_s_tag_n')
+      const normalPrefix = isolatedPrefix(casePrefix('r', 's', 'tag_n'))
       // ===== 准备数据 =====
       const normalRole = await createTestRole(page, normalPrefix, 'E2E-状态正常', 1)
 
@@ -383,7 +300,7 @@ test.describe('角色管理', () => {
     })
 
     test('状态标签-禁用角色正确显示', async ({ page, isolatedPrefix }) => {
-      const disabledPrefix = isolatedPrefix('e2e_r_s_tag_d')
+      const disabledPrefix = isolatedPrefix(casePrefix('r', 's', 'tag_d'))
       // ===== 准备数据 =====
       const disabledRole = await createTestRole(page, disabledPrefix, 'E2E-状态禁用', 0)
 
@@ -395,7 +312,7 @@ test.describe('角色管理', () => {
     })
 
     test('禁用角色功能正常工作', async ({ page, isolatedPrefix }) => {
-      const prefix = isolatedPrefix('e2e_r_s_dis')
+      const prefix = isolatedPrefix(casePrefix('r', 's', 'dis'))
       // ===== 准备数据 =====
       const targetRoleName = await createTestRole(page, prefix, 'E2E-禁用角色', 1)
 
@@ -415,7 +332,7 @@ test.describe('角色管理', () => {
     })
 
     test('启用角色功能正常工作', async ({ page, isolatedPrefix }) => {
-      const prefix = isolatedPrefix('e2e_r_s_en')
+      const prefix = isolatedPrefix(casePrefix('r', 's', 'en'))
       // ===== 准备数据 =====
       const targetRoleName = await createTestRole(page, prefix, 'E2E-启用角色', 0)
 
@@ -429,8 +346,8 @@ test.describe('角色管理', () => {
       await rolesPage.expectCellTextContainByRoleName(targetRoleName, 4, '正常')
     })
 
-    test('添加角色功能正常工作', async ({ page, isolatedPrefix }) => {
-      const prefix = isolatedPrefix('e2e_r_s_add')
+    test('添加角色功能正常工作', async ({ isolatedPrefix }) => {
+      const prefix = isolatedPrefix(casePrefix('r', 's', 'add'))
       // ===== 准备数据 =====
       const newRoleName = `${prefix}_${Date.now().toString(36)}`
 
@@ -450,7 +367,7 @@ test.describe('角色管理', () => {
     })
 
     test('删除角色功能正常工作', async ({ page, isolatedPrefix }) => {
-      const prefix = isolatedPrefix('e2e_r_s_del')
+      const prefix = isolatedPrefix(casePrefix('r', 's', 'del'))
       // ===== 准备数据 =====
       const tempRoleName = await createTestRole(page, prefix, 'E2E-删除角色', 1)
 
@@ -478,7 +395,7 @@ test.describe('角色管理', () => {
       // 高并发（本机 12 并发已超载）下后端响应变慢，30s 用例超时实测不够，
       // 故标记 slow（超时放宽至 3 倍）与翻页用例一致。
       test.slow()
-      const prefix = isolatedPrefix('e2e_r_s_edit')
+      const prefix = isolatedPrefix(casePrefix('r', 's', 'edit'))
 
       // ===== 准备数据 =====
       const targetRoleName = await createTestRole(page, prefix, 'E2E-编辑角色', 1)
@@ -535,7 +452,7 @@ test.describe('角色管理', () => {
   // 批量操作与权限分配测试：每个用例自建独立角色数据（批次号含 workerId+时间戳），可并行
   test.describe('批量操作与权限测试', () => {
     test('批量禁用角色功能正常工作', async ({ page, isolatedPrefix }) => {
-      const prefix = isolatedPrefix('e2e_r_b_dis')
+      const prefix = isolatedPrefix(casePrefix('r', 'b', 'dis'))
       // ===== 准备数据 =====
       await createBatchRoles(page, prefix, 2, 'E2E-批量禁用', 1)
 
@@ -552,7 +469,7 @@ test.describe('角色管理', () => {
     })
 
     test('批量启用角色功能正常工作', async ({ page, isolatedPrefix }) => {
-      const prefix = isolatedPrefix('e2e_r_b_en')
+      const prefix = isolatedPrefix(casePrefix('r', 'b', 'en'))
       // ===== 准备数据 =====
       await createBatchRoles(page, prefix, 1, 'E2E-批量启用', 0)
 
@@ -569,7 +486,7 @@ test.describe('角色管理', () => {
     })
 
     test('分配权限功能正常工作', async ({ page, isolatedPrefix }) => {
-      const prefix = isolatedPrefix('e2e_r_b_assign')
+      const prefix = isolatedPrefix(casePrefix('r', 'b', 'assign'))
       // ===== 准备数据 =====
       await createBatchRoles(page, prefix, 1, 'E2E-分配权限', 1)
 
@@ -588,6 +505,79 @@ test.describe('角色管理', () => {
       // 业务结果断言：对话框成功关闭，且目标角色仍在列表（未被误删/接口未报错）
       await expect(permDialog).toBeHidden({ timeout: 10000 })
       await rolesPage.findRowsByPrefixViaSearch(prefix)
+    })
+
+    test('单选最底层权限后重新打开只回显该权限', async ({ page, isolatedPrefix }) => {
+      const prefix = isolatedPrefix(casePrefix('r', 's', 'assign_leaf'))
+      // 权限数据同样自建：名称带 e2e_ 前缀，用例通过后随前缀一并清理，不依赖数据库种子
+      const permPrefix = isolatedPrefix(casePrefix('p', 's', 'assign_leaf'))
+
+      // ===== 准备数据 =====
+      // 自建一棵权限子树：1 个菜单 + 3 个同级的最底层操作节点
+      // （可见性 visible=0，仅作可分配权限，不进入侧边栏菜单与动态路由）
+      const menuId = await createPermissionViaApi(page, {
+        permissionName: `${permPrefix}_menu`,
+        permissionCode: `${permPrefix}_menu`,
+        permissionType: 2,
+        parentId: 0,
+        path: '/e2e/assign',
+        component: 'views/error/404.vue',
+        icon: 'Menu',
+        sortOrder: 999,
+        status: 1,
+        visible: 0,
+      })
+      const leafNames = [`${permPrefix}_leaf1`, `${permPrefix}_leaf2`, `${permPrefix}_leaf3`]
+      for (let i = 0; i < leafNames.length; i++) {
+        await createPermissionViaApi(page, {
+          permissionName: leafNames[i],
+          permissionCode: `${permPrefix}_leaf${i + 1}`,
+          permissionType: 3,
+          parentId: menuId,
+          sortOrder: i + 1,
+          status: 1,
+          visible: 0,
+        })
+      }
+      const [targetLeaf, ...siblingLeaves] = leafNames
+      const targetRoleName = await createTestRole(page, prefix, 'E2E-单选最底层权限', 1)
+
+      // ===== 执行案例 =====
+      // 第一次打开：只勾选 targetLeaf 这一个最底层操作节点（它有两个同级节点）
+      await rolesPage.findRowByRoleNameViaSearch(targetRoleName)
+      await rolesPage.selectRowByRoleName(targetRoleName)
+      await expect(rolesPage.getBatchAssignPermissionButton()).toBeEnabled({ timeout: 5000 })
+      await rolesPage.getBatchAssignPermissionButton().click()
+      const permDialog = rolesPage.getFormDialog()
+      await expect(permDialog).toBeVisible()
+      // 先断言目标节点可见，避免「节点不存在」被下面的未勾选断言误判为通过
+      await expect(rolesPage.getPermissionTreeNode(targetLeaf)).toBeVisible({ timeout: 15000 })
+      await rolesPage.togglePermissionNode(targetLeaf)
+      await expect
+        .poll(async () => rolesPage.isPermissionNodeChecked(targetLeaf), { timeout: 10000 })
+        .toBe(true)
+      await rolesPage.clickConfirm()
+      await expect(permDialog).toBeHidden({ timeout: 10000 })
+
+      // 第二次打开（回显）：目标节点仍为勾选，同级节点不得被连带勾选
+      // 缺陷形态：保存时把半选父节点一并入库，回显时 el-tree 将父节点视为全选，
+      // 从而级联勾选所有同级节点。
+      await rolesPage.findRowByRoleNameViaSearch(targetRoleName)
+      await rolesPage.selectRowByRoleName(targetRoleName)
+      await expect(rolesPage.getBatchAssignPermissionButton()).toBeEnabled({ timeout: 5000 })
+      await rolesPage.getBatchAssignPermissionButton().click()
+      await expect(permDialog).toBeVisible()
+      await expect(rolesPage.getPermissionTreeNode(targetLeaf)).toBeVisible({ timeout: 15000 })
+      await expect
+        .poll(async () => rolesPage.isPermissionNodeChecked(targetLeaf), { timeout: 15000 })
+        .toBe(true)
+      for (const sibling of siblingLeaves) {
+        await expect(rolesPage.getPermissionTreeNode(sibling)).toBeVisible({ timeout: 15000 })
+        await expect
+          .poll(async () => rolesPage.isPermissionNodeChecked(sibling), { timeout: 15000 })
+          .toBe(false)
+      }
+      await rolesPage.closeDialog()
     })
   })
 

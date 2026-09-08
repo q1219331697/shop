@@ -63,6 +63,28 @@ const withWorker = (prefix: string) => {
   return `${mod}_${workerIdPadded()}_${rest}`
 }
 
+// ======================== 前缀拼装（唯一入口，禁止在用例里手写前缀字符串） ========================
+
+/** 模块简码：u=管理员管理，r=角色管理，p=权限管理 */
+export type E2EModule = 'u' | 'r' | 'p'
+
+/** 单条 / 批量标识 */
+export type E2ECaseKind = 's' | 'b'
+
+/**
+ * 用例前缀：e2e_<模块>_<s|b>_<案例简码>（workerId 由 isolatedPrefix 自动注入）
+ * 例：casePrefix('r', 's', 'dis') → e2e_r_s_dis → 经 isolatedPrefix → e2e_r_00_s_dis
+ */
+export const casePrefix = (module: E2EModule, kind: E2ECaseKind, code: string): string =>
+  `e2e_${module}_${kind}_${code}`
+
+/**
+ * beforeAll 清理前缀：e2e_<模块>_<workerId>_
+ * 只清本 worker 残留（并行下清全量会删掉其他 worker 正在使用的数据）
+ */
+export const moduleCleanupPrefix = (module: E2EModule): string =>
+  `e2e_${module}_${workerIdPadded()}_`
+
 // ======================== admin 登录头与清理接口 ========================
 
 /** admin 凭据形状（由各 spec 的 fixtures 提供，解耦来源） */

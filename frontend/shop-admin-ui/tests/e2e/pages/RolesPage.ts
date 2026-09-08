@@ -4,7 +4,8 @@
 // 完整格式：e2e_<模块>_<workerId>_<s|b>_<案例简码>[_<序号>]_<时间戳>
 //   单条示例：e2e_r_000_s_dis_mtf74u4a
 //   批量示例：e2e_r_000_b_dis_0_mtf74u4a
-// 文件简码 r=角色，案例简码见 roles.spec.ts 文件头；workerId 为 3 位定长补零。
+// 文件简码 r=角色，案例简码见 roles.spec.ts 文件头；
+// workerId 位数见 common/e2eFixtures.ts 的 WORKER_ID_DIGITS（当前 2 位定长补零）。
 import { expect } from '@playwright/test'
 
 import { BasePage } from './BasePage'
@@ -235,8 +236,10 @@ export class RolesPage extends BasePage {
     return this.page.locator('.el-dialog__footer .el-button--primary').first()
   }
 
+  // 取消按钮按文本定位：页脚按钮顺序为「取 消」「确 定」，
+  // 用 .last() 会取到「确 定」，导致 clickCancel() 实际是再次提交
   getCancelButton() {
-    return this.page.locator('.el-dialog__footer .el-button').last()
+    return this.page.locator('.el-dialog__footer .el-button').filter({ hasText: /取\s*消/ }).first()
   }
 
   getMessageBox() {
@@ -251,6 +254,43 @@ export class RolesPage extends BasePage {
 
   getMessageBoxCancelButton() {
     return this.getMessageBox().locator('.el-message-box__btns .el-button').last()
+  }
+
+  /** 对话框右上角关闭按钮（用于不提交地关闭对话框） */
+  getDialogCloseButton() {
+    return this.page.locator('.el-dialog__headerbtn').first()
+  }
+
+  /** 对话框关闭（点右上角 X，不触发提交） */
+  async closeDialog() {
+    await this.getDialogCloseButton().click()
+  }
+
+  /**
+   * 分配权限对话框内、按节点名精确定位的权限树节点行。
+   * 用 .el-tree-node__content 而非 .el-tree-node：后者会包含子孙节点，按名称过滤会同时命中父节点。
+   */
+  getPermissionTreeNode(name: string) {
+    return this.page
+      .locator('.el-dialog .el-tree-node__content')
+      .filter({ has: this.page.getByText(name, { exact: true }) })
+      .first()
+  }
+
+  /** 权限树节点的复选框（勾选态体现在 class 上，故不用 check()/isChecked()） */
+  getPermissionNodeCheckbox(name: string) {
+    return this.getPermissionTreeNode(name).locator('.el-checkbox__input').first()
+  }
+
+  /** 勾选/取消勾选指定权限节点 */
+  async togglePermissionNode(name: string) {
+    await this.getPermissionNodeCheckbox(name).click()
+  }
+
+  /** 读取指定权限节点的勾选状态（is-checked 为全选，is-indeterminate 为半选） */
+  async isPermissionNodeChecked(name: string): Promise<boolean> {
+    const cls = (await this.getPermissionNodeCheckbox(name).getAttribute('class')) ?? ''
+    return cls.includes('is-checked')
   }
 
   async goto() {

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shop.admin.mapper.AdminPermissionMapper">
+
+    <!-- 物理删除 E2E 测试产生的权限数据（忽略逻辑删除标记），按权限名称前缀匹配整棵子树 -->
+    <delete id="deleteByE2ENamePrefix">
+        DELETE FROM t_admin_permission
+        WHERE permission_name LIKE CONCAT(#{prefix}, '%')
+    </delete>
+
+</mapper>

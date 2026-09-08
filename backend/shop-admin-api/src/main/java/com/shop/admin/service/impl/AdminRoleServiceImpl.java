@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -155,14 +156,22 @@ public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRole
             return Result.error(ResultCodeEnum.PARAM_ERROR, "角色不存在");
         }
 
+        // 前端会把「全选节点」与「半选父节点」一并提交，二者可能重复，此处去重并过滤空值
+        List<Long> distinctPermissionIds = permissionIds == null
+                ? Collections.emptyList()
+                : permissionIds.stream()
+                        .filter(Objects::nonNull)
+                        .distinct()
+                        .collect(Collectors.toList());
+
         // 删除原有权限关联
         LambdaQueryWrapper<AdminRolePermissionEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(AdminRolePermissionEntity::getRoleId, roleId);
         rolePermissionMapper.delete(wrapper);
 
         // 批量插入新的权限关联
-        if (permissionIds != null && !permissionIds.isEmpty()) {
-            List<AdminRolePermissionEntity> rpList = permissionIds.stream().map(permissionId -> {
+        if (!distinctPermissionIds.isEmpty()) {
+            List<AdminRolePermissionEntity> rpList = distinctPermissionIds.stream().map(permissionId -> {
                 AdminRolePermissionEntity rp = new AdminRolePermissionEntity();
                 rp.setRoleId(roleId);
                 rp.setPermissionId(permissionId);

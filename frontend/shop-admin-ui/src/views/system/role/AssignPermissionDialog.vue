@@ -59,6 +59,27 @@ const treeProps = {
   label: 'permissionName',
 }
 
+/**
+ * 收集权限树中所有叶子节点的 ID
+ *
+ * 父节点（目录/菜单）的勾选状态由 el-tree 依据子节点自动推导，
+ * 因此回显时只需要给出「被勾选的叶子节点」，父节点会自然呈现全选或半选。
+ */
+function collectLeafIds(nodes: PermissionItem[]): Set<number> {
+  const leafIds = new Set<number>()
+  const walk = (list: PermissionItem[]) => {
+    for (const node of list) {
+      if (node.children && node.children.length > 0) {
+        walk(node.children)
+      } else {
+        leafIds.add(Number(node.id))
+      }
+    }
+  }
+  walk(nodes)
+  return leafIds
+}
+
 /** 打开分配权限对话框 */
 function open(row: RoleItem) {
   currentRole.value = row
@@ -76,8 +97,12 @@ async function loadPermissions() {
     ])
     permissionTree.value = tree
     await nextTick()
-    // 回显已选权限（仅叶子节点，父节点由 check-strictly=false 自动联动）
-    treeRef.value?.setCheckedKeys(ids)
+    // 只回显叶子节点：非严格模式（check-strictly=false）下，若把父节点也交给 setCheckedKeys，
+    // el-tree 会把父节点视为「全选」并级联勾选其全部子节点，
+    // 表现为「只勾了一个最底层权限，重新打开却勾选了所有同级权限」。
+    // 父节点的全选/半选状态由 el-tree 依据已勾选的叶子节点自动推导，无需显式设置。
+    const leafIds = collectLeafIds(tree)
+    treeRef.value?.setCheckedKeys(ids.filter((id) => leafIds.has(Number(id))))
   } catch {
     permissionTree.value = []
   } finally {
@@ -94,7 +119,9 @@ async function handleSubmit() {
     const halfCheckedKeys: number[] = (treeRef.value?.getHalfCheckedKeys() ?? []).map((k) =>
       Number(k),
     )
-    const permissionIds: number[] = [...checkedKeys, ...halfCheckedKeys]
+    // 半选父节点必须一并提交：菜单树由父节点（目录/菜单）构建，缺失会导致菜单不展示。
+    // 半选父节点与全选子节点可能重复，故去重后再提交。
+    const permissionIds: number[] = [...new Set([...checkedKeys, ...halfCheckedKeys])]
     await api.role.assignPermissions(currentRole.value.id, permissionIds)
     ElMessage.success('权限分配成功')
     visible.value = false

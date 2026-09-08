@@ -4,16 +4,13 @@
 // 完整格式：e2e_<模块>_<workerId>_<s|b>_<案例简码>[_<序号>]_<时间戳>
 //   单条示例：e2e_u_000_s_dis_mtf74u4a
 //   批量示例：e2e_u_000_b_dis_0_mtf74u4a
-// 文件简码 u=管理员，案例简码见 admin.spec.ts 文件头；workerId 为 3 位定长补零。
-import { expect, type Page } from '@playwright/test'
+// 文件简码 u=管理员，案例简码见 admin.spec.ts 文件头；
+// workerId 位数见 common/e2eFixtures.ts 的 WORKER_ID_DIGITS（当前 2 位定长补零）。
+import { expect } from '@playwright/test'
 
 import { BasePage } from './BasePage';
 
 export class AdminPage extends BasePage {
-  constructor(page: Page) {
-    super(page);
-  }
-
   // ===== 页面区域 =====
   get pageContainer() {
     return this.page.locator('.page-container');
@@ -123,8 +120,13 @@ export class AdminPage extends BasePage {
     return this.page.locator('.el-dialog__footer .el-button--primary').first();
   }
 
+  // 取消按钮按文本定位：页脚按钮顺序为「取 消」「确 定」，
+  // 用 .last() 会取到「确 定」，导致 clickCancel() 实际是再次提交
   getCancelButton() {
-    return this.page.locator('.el-dialog__footer .el-button').last();
+    return this.page
+      .locator('.el-dialog__footer .el-button')
+      .filter({ hasText: /取\s*消/ })
+      .first();
   }
 
   getMessageBox() {

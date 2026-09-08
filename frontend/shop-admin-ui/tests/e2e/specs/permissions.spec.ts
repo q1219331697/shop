@@ -1,9 +1,13 @@
-import type { Page } from '@playwright/test'
-
-import { endpoints } from '../../../src/api/endpoints'
-import type { PermissionItem } from '../../../src/api/permission'
-import { apiUrl, auth, cleanupUrl, loginAsAdmin, unwrap } from '../common/apiClient'
-import { createE2ETest, workerIdPadded, expect } from '../common/e2eFixtures'
+import { auth, cleanupUrl, loginAsAdmin } from '../common/apiClient'
+import {
+  assignPermissionsToRole,
+  createPermissionTreeFixture,
+  createPermissionViaApi,
+  createTestRole,
+  findRoleIdByName,
+  getRolePermissionIds,
+} from '../common/dataFactory'
+import { casePrefix, createE2ETest, expect, moduleCleanupPrefix } from '../common/e2eFixtures'
 import { testPermissions } from '../fixtures/permissions'
 import { LoginPage } from '../pages/LoginPage'
 import { PermissionsPage } from '../pages/PermissionsPage'
@@ -13,27 +17,12 @@ const test = createE2ETest(testPermissions.admin)
 // 容忍 dev server 偶发编译导致的首屏/接口慢（环境波动，非用例逻辑问题）
 test.setTimeout(120000)
 
-/**
- * 通过 API 创建一条权限（admin 令牌由 apiReady fixture 登录后保存在 apiClient）。
- * 后端创建接口直接返回新权限 ID，无需再经权限树反查。
- */
-async function createPermissionViaApi(
-  page: Page,
-  body: Partial<PermissionItem>,
-): Promise<{ id: number }> {
-  const resp = await page.request.post(apiUrl(endpoints.permission.create), {
-    data: body,
-    headers: auth(),
-  })
-  return { id: await unwrap<number>(resp) }
-}
-
 test.beforeAll(async ({ browser }) => {
   const ctx = await browser.newContext()
   const page = await ctx.newPage()
   // 注入请求上下文，登录 admin，清理本 worker 残留权限数据
   await loginAsAdmin(ctx.request, testPermissions.admin)
-  await ctx.request.delete(cleanupUrl(`e2e_p_${workerIdPadded()}_`), { headers: auth() })
+  await ctx.request.delete(cleanupUrl(moduleCleanupPrefix(testPermissions.module)), { headers: auth() })
   // 预热：登录后访问权限页，触发 Vite 对页面 chunk 的编译并缓存，避免用例内首屏偶发卡顿
   const loginPage = new LoginPage(page)
   await page.goto('/')
@@ -70,47 +59,54 @@ test.describe('权限管理页面', () => {
     await expect(permissionsPage.treeTable).toBeVisible({ timeout: 10000 })
   })
 
-  test('页面加载展示权限树与标题', async ({ page }) => {
-
+  test('页面加载展示权限树与标题', async () => {
     await expect(permissionsPage.pageTitle).toHaveText('权限管理')
     await expect(permissionsPage.treeTable).toBeVisible()
-    // 种子数据「系统管理」顶级目录应存在
+    // 种子基础权限「系统管理」顶级目录应存在（只读断言，不依赖本用例造数）
     await permissionsPage.expectNodeVisible('系统管理')
   })
 
-  test('按名称搜索过滤权限树', async ({ page }) => {
+  test('按名称搜索过滤权限树', async ({ page, isolatedPrefix }) => {
+    const prefix = isolatedPrefix(casePrefix('p', 's', 'search'))
+    // 自建数据：搜索目标为用例自己创建的目录节点，不依赖种子权限
+    const { dirName } = await createPermissionTreeFixture(page, prefix)
 
-    await permissionsPage.searchByKeyword('系统管理')
-    await permissionsPage.expectNodeVisible('系统管理')
+    await permissionsPage.searchByKeyword(dirName)
+    await permissionsPage.expectNodeVisible(dirName)
+
+    // 搜索一个不存在的名称，应过滤为空（验证搜索确有过滤能力）
+    await permissionsPage.searchByKeyword(`${dirName}_none`)
+    await permissionsPage.expectNodeHidden(dirName)
 
     await permissionsPage.resetSearch()
-    await permissionsPage.expectNodeVisible('权限管理')
+    await permissionsPage.expectNodeVisible(dirName)
   })
 
-  test('类型列正确显示目录/菜单/操作', async ({ page }) => {
+  test('类型列正确显示目录/菜单/操作', async ({ page, isolatedPrefix }) => {
+    const prefix = isolatedPrefix(casePrefix('p', 's', 'type'))
+    // 自建一棵三类型子树：目录 → 菜单 → 操作
+    const { dirName, menuName, actionName } = await createPermissionTreeFixture(page, prefix)
 
-    // 「系统管理」是目录（type=1），类型列显示「目录」
-    const systemRow = permissionsPage.rowByName('系统管理')
-    await expect(systemRow).toContainText('目录')
+    // 按共用前缀搜索，一次命中三个节点
+    await permissionsPage.searchByKeyword(prefix)
 
-    // 「管理员管理」是菜单（type=2），类型列显示「菜单」
-    const adminRow = permissionsPage.rowByName('管理员管理')
-    await expect(adminRow).toContainText('菜单')
-
-    // 「权限列表」是操作（type=3），类型列显示「操作」
-    const listRow = permissionsPage.rowByName('权限列表')
-    await expect(listRow).toContainText('操作')
+    await expect(permissionsPage.rowByName(dirName)).toContainText('目录')
+    await expect(permissionsPage.rowByName(menuName)).toContainText('菜单')
+    await expect(permissionsPage.rowByName(actionName)).toContainText('操作')
   })
 
-  test('查看权限详情', async ({ page }) => {
+  test('查看权限详情', async ({ page, isolatedPrefix }) => {
+    const prefix = isolatedPrefix(casePrefix('p', 's', 'detail'))
+    const { dirName } = await createPermissionTreeFixture(page, prefix)
 
-    await permissionsPage.openDetail('系统管理')
-    await expect(permissionsPage.detailDialog).toContainText('系统管理')
+    await permissionsPage.searchByKeyword(dirName)
+    await permissionsPage.openDetail(dirName)
+    await expect(permissionsPage.detailDialog).toContainText(dirName)
     await permissionsPage.closeDetail()
   })
 
   test('新建权限并出现在权限树', async ({ page, isolatedPrefix }) => {
-    const prefix = isolatedPrefix('e2e_p_create')
+    const prefix = isolatedPrefix(casePrefix('p', 's', 'create'))
     const parentName = `${prefix}_parent`
     const newName = `${prefix}_new`
 
@@ -152,7 +148,7 @@ test.describe('权限管理页面', () => {
   })
 
   test('删除权限节点', async ({ page, isolatedPrefix }) => {
-    const prefix = isolatedPrefix('e2e_p_delete')
+    const prefix = isolatedPrefix(casePrefix('p', 's', 'delete'))
     const name = `${prefix}_del`
 
     await createPermissionViaApi(page, {
@@ -179,8 +175,41 @@ test.describe('权限管理页面', () => {
     await permissionsPage.expectNodeHidden(name)
   })
 
-  test('新建权限时必填校验', async ({ page }) => {
+  test('新建权限可授权给独立角色', async ({ page, isolatedPrefix }) => {
+    const prefix = isolatedPrefix(casePrefix('p', 's', 'grant'))
+    const permName = `${prefix}_perm`
 
+    // 1) 用例自建权限（不依赖种子）
+    const permId = await createPermissionViaApi(page, {
+      permissionName: permName,
+      permissionCode: `${prefix}_perm:code`,
+      permissionType: 3,
+      parentId: 0,
+      sortOrder: 999,
+      status: 1,
+      visible: 1,
+    })
+
+    // 2) 用例自建独立角色（归属权限管理模块前缀，随本用例清理）
+    const roleName = await createTestRole(page, `${prefix}_role`, 'E2E-权限授权')
+    const roleId = await findRoleIdByName(page, roleName)
+    if (!roleId) {
+      throw new Error(`[e2e] 独立角色创建后未查到：${roleName}`)
+    }
+
+    // 3) 授权给角色（API 按 ID 精确授权，无 UI 竞争）
+    await assignPermissionsToRole(page, roleId, [permId])
+
+    // 4) 断言角色权限列表已包含该权限（轮询确认写入生效）
+    await expect
+      .poll(async () => (await getRolePermissionIds(page, roleId)).includes(permId), {
+        timeout: 15000,
+        intervals: [200, 400, 800],
+      })
+      .toBe(true)
+  })
+
+  test('新建权限时必填校验', async () => {
     await permissionsPage.openCreateDialog()
     // 不填写任何内容直接提交，应触发必填校验
     await permissionsPage.submitCreate()
