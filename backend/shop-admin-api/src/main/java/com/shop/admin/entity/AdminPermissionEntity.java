@@ -1,17 +1,24 @@
 package com.shop.admin.entity;
 
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.shop.admin.validation.ValidationGroups;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-
-import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * 后台权限实体类
@@ -46,18 +53,29 @@ public class AdminPermissionEntity implements Serializable {
      * 权限名称
      */
     @Schema(description = "权限名称")
+    @NotBlank(message = "请输入权限名称",
+            groups = {ValidationGroups.OnCreate.class, ValidationGroups.OnUpdate.class})
+    @Size(max = 50, message = "权限名称长度不能超过50",
+            groups = {ValidationGroups.OnCreate.class, ValidationGroups.OnUpdate.class})
     private String permissionName;
 
     /**
      * 权限编码，唯一标识，如 admin:user:list
      */
     @Schema(description = "权限编码")
+    @NotBlank(message = "请输入权限编码",
+            groups = {ValidationGroups.OnCreate.class, ValidationGroups.OnUpdate.class})
+    @Size(max = 100, message = "权限编码长度不能超过100",
+            groups = {ValidationGroups.OnCreate.class, ValidationGroups.OnUpdate.class})
+    @Pattern(regexp = "^[A-Za-z][A-Za-z0-9:_-]*$", message = "权限编码以字母开头",
+            groups = {ValidationGroups.OnCreate.class, ValidationGroups.OnUpdate.class})
     private String permissionCode;
 
     /**
-     * 权限类型：1-菜单，2-按钮
+     * 类型：1-目录，2-菜单，3-操作
      */
-    @Schema(description = "类型：1-菜单，2-按钮")
+    @Schema(description = "类型：1-目录，2-菜单，3-操作")
+    @NotNull(message = "请选择权限类型", groups = {ValidationGroups.OnCreate.class, ValidationGroups.OnUpdate.class})
     private Integer permissionType;
 
     /**

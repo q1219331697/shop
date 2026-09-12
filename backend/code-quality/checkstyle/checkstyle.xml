@@ -34,6 +34,13 @@
         <property name="message" value="Line has trailing spaces."/>
     </module>
 
+    <!-- 文件开始不允许有空行（文件首行不能是空行或纯空白行） -->
+    <module name="RegexpMultiline">
+        <property name="format" value="\A[ \t]*\r?\n"/>
+        <property name="matchAcrossLines" value="true"/>
+        <property name="message" value="文件开始不要空行"/>
+    </module>
+
     <module name="TreeWalker">
         <!-- 检查命名规范 -->
         <module name="ConstantName">
@@ -58,10 +65,25 @@
         </module>
 
         <!-- 检查导入 -->
+        <!-- 禁止 * 通配导入（比 OpenJDK 的「最多 1 个」更严，全禁） -->
         <module name="AvoidStarImport"/>
         <module name="IllegalImport"/>
         <module name="RedundantImport"/>
         <module name="UnusedImports"/>
+        <!-- import 顺序：分组顺序 java -> javax -> jakarta -> org -> com -> 其余，
+             组内按 ASCII 字母序；静态导入统一置于底部；组间必须空一行、组内不允许空行 -->
+        <module name="ImportOrder">
+            <property name="groups" value="java,javax,jakarta,org,com"/>
+            <property name="ordered" value="true"/>
+            <property name="separated" value="true"/>
+            <property name="option" value="bottom"/>
+            <property name="staticGroups" value="java,javax,jakarta,org,com"/>
+            <property name="sortStaticImportsAlphabetically" value="true"/>
+        </module>
+        <!-- package / import / static import 语句禁止换行（OpenJDK 风格） -->
+        <module name="NoLineWrap">
+            <property name="tokens" value="PACKAGE_DEF, IMPORT, STATIC_IMPORT"/>
+        </module>
         <!-- 禁止使用全限定类名，应使用import语句 -->
         <!-- 检测变量声明中的全限定类名：com.xxx.ClassName var = -->
         <module name="Regexp">
@@ -197,6 +219,32 @@
         </module>
         <module name="JavadocVariable">
             <property name="scope" value="public"/>
+        </module>
+
+        <!-- 后端文件强制规范：类/接口/枚举 Javadoc 必须包含 @author 与 @since 标签，
+             并遵循 Oracle Javadoc 行业标准：顺序为 @author 在前、@since 在后；
+             排版为「描述与标签组之间空一行，标签组内部紧凑（标签之间不空行）」 -->
+        <module name="Regexp">
+            <property name="format" value="@author shop"/>
+            <property name="message" value="后端文件必须在类 Javadoc 中包含 @author shop"/>
+            <property name="illegalPattern" value="false"/>
+        </module>
+        <module name="Regexp">
+            <property name="format" value="@since 1\.0\.0"/>
+            <property name="message" value="后端文件必须在类 Javadoc 中包含 @since 1.0.0"/>
+            <property name="illegalPattern" value="false"/>
+        </module>
+        <!-- @author（标签组首标签）前必须与上方描述空一行 -->
+        <module name="Regexp">
+            <property name="format" value="\n\s*\*\s*\n\s*\*\s*@author shop"/>
+            <property name="message" value="@author 标签前必须与上方注释空一行"/>
+            <property name="illegalPattern" value="false"/>
+        </module>
+        <!-- @since 必须位于 @author 之后（Oracle 行业标准顺序；标签组内部紧凑，不强制标签间空行） -->
+        <module name="Regexp">
+            <property name="format" value="@author shop[\s\S]*?@since 1\.0\.0"/>
+            <property name="message" value="@since 必须位于 @author 之后（Oracle Javadoc 行业标准顺序）"/>
+            <property name="illegalPattern" value="false"/>
         </module>
 
         <!-- 检查常见编码问题 -->

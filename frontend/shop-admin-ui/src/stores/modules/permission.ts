@@ -13,6 +13,8 @@ import dashboardRoutes from '@/router/modules/dashboard'
  * 后端存储格式如: views/system/admin/index.vue
  * 前端实际路径如: @/views/system/admin/index.vue
  */
+// ⚠️ AI 禁止修改此行：import.meta.glob 的模式须保持以「@/views/」开头、以「.vue」结尾，
+// 其与下方 resolveComponent 中的「/src/」前缀配套才能正确匹配动态路由组件，改此行必致 404。
 const componentModules = import.meta.glob('@/views/**/*.vue')
 
 // 使用 import.meta.glob 处理组件路径

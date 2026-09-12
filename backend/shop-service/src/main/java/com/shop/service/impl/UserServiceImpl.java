@@ -1,5 +1,7 @@
 package com.shop.service.impl;
 
+import org.springframework.stereotype.Service;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.shop.common.Result;
@@ -7,11 +9,13 @@ import com.shop.common.ResultCodeEnum;
 import com.shop.entity.UserEntity;
 import com.shop.mapper.UserMapper;
 import com.shop.service.UserService;
+
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 /**
  * 用户服务实现类
+ *
+ * @author shop
  * @since 1.0.0
  */
 @Slf4j

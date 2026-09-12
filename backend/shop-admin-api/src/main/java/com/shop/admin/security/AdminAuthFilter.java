@@ -1,16 +1,17 @@
 package com.shop.admin.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.shop.admin.entity.AdminUserEntity;
-import com.shop.admin.service.AdminPermissionService;
-import com.shop.admin.service.AdminUserService;
-import com.shop.common.Result;
-import com.shop.common.ResultCodeEnum;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.http.MediaType;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,12 +22,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.shop.admin.entity.AdminUserEntity;
+import com.shop.admin.service.AdminPermissionService;
+import com.shop.admin.service.AdminUserService;
+import com.shop.common.Result;
+import com.shop.common.ResultCodeEnum;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 管理员认证过滤器
@@ -36,6 +39,7 @@ import java.util.List;
  * 2. HTTP Basic认证 - Swagger UI授权弹窗输入用户名密码，验证后自动生成Token写入Redis
  * </p>
  *
+ * @author shop
  * @since 1.0.0
  */
 @Slf4j

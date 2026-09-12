@@ -1,14 +1,15 @@
 package com.shop.util;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
-
-import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.crypto.SecretKey;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 
 /**
  * JWT工具类
@@ -17,6 +18,7 @@ import java.util.Map;
  * 纯工具类，通过构造函数传入密钥和过期时间，不依赖Spring容器
  * </p>
  *
+ * @author shop
  * @since 1.0.0
  */
 public class JwtUtil {

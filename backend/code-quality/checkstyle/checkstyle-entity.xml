@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+        "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+        "https://checkstyle.org/dtds/configuration_1_3.dtd">
+
+<!--
+    实体类字段 Javadoc 专项规则（仅对 **/entity/**/*.java 生效，见 pom.xml 中 entity-field-javadoc execution）
+    要求：实体类的所有字段（含 private）必须带有多行 Javadoc（/** ... */）。
+    说明：serialVersionUID 由 Checkstyle 自动豁免，无需 Javadoc。
+-->
+
+<module name="Checker">
+    <property name="charset" value="UTF-8"/>
+
+    <module name="TreeWalker">
+        <!-- 实体类字段必须有 Javadoc（scope=private 含全部私有字段） -->
+        <module name="JavadocVariable">
+            <property name="scope" value="private"/>
+        </module>
+    </module>
+</module>

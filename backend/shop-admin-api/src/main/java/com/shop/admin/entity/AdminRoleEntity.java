@@ -1,16 +1,21 @@
 package com.shop.admin.entity;
 
+import java.io.Serializable;
+import java.time.LocalDateTime;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.shop.admin.validation.ValidationGroups;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-
-import java.io.Serializable;
-import java.time.LocalDateTime;
 
 /**
  * 后台角色实体类
@@ -39,12 +44,18 @@ public class AdminRoleEntity implements Serializable {
      * 角色名称，唯一
      */
     @Schema(description = "角色名称")
+    @NotBlank(message = "请输入角色名",
+            groups = {ValidationGroups.OnCreate.class, ValidationGroups.OnUpdate.class})
+    @Size(max = 30, message = "角色名长度不能超过30",
+            groups = {ValidationGroups.OnCreate.class, ValidationGroups.OnUpdate.class})
     private String roleName;
 
     /**
      * 角色描述
      */
     @Schema(description = "角色描述")
+    @Size(max = 200, message = "角色描述长度不能超过200",
+            groups = {ValidationGroups.OnCreate.class, ValidationGroups.OnUpdate.class})
     private String description;
 
     /**

@@ -22,6 +22,7 @@ import java.util.Optional;
  * <p>
  *   前端通过 resultCode.ts 常量精准匹配码值，新增码值需同步更新
  *
+ * @author shop
  * @since 1.0.0
  */
 public enum ResultCodeEnum {

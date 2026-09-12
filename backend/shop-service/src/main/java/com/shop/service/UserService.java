@@ -6,6 +6,8 @@ import com.shop.entity.UserEntity;
 
 /**
  * 用户服务接口
+ *
+ * @author shop
  * @since 1.0.0
  */
 public interface UserService extends IService<UserEntity> {

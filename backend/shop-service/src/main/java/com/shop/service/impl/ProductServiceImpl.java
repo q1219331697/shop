@@ -1,5 +1,10 @@
 package com.shop.service.impl;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -11,14 +16,13 @@ import com.shop.entity.ProductEntity;
 import com.shop.mapper.ProductMapper;
 import com.shop.service.CategoryService;
 import com.shop.service.ProductService;
+
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 /**
  * 商品服务实现类
+ *
+ * @author shop
  * @since 1.0.0
  */
 @Slf4j

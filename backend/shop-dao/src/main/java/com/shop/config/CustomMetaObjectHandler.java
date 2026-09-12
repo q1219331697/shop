@@ -1,13 +1,17 @@
 package com.shop.config;
 
-import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
+import java.time.LocalDateTime;
+
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
+import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 
 /**
  * 自定义元对象处理器，用于自动填充创建时间、更新时间等字段
+ *
+ * @author shop
+ * @since 1.0.0
  */
 @Component
 public class CustomMetaObjectHandler implements MetaObjectHandler {

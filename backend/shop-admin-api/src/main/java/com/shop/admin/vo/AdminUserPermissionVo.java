@@ -1,13 +1,13 @@
-
 package com.shop.admin.vo;
-
-import com.shop.admin.entity.AdminPermissionEntity;
-import com.shop.admin.entity.AdminRoleEntity;
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
 
 import java.io.Serializable;
 import java.util.List;
+
+import com.shop.admin.entity.AdminPermissionEntity;
+import com.shop.admin.entity.AdminRoleEntity;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 
 /**
  * 用户权限详情VO
@@ -15,6 +15,7 @@ import java.util.List;
  * 用于授权管理页面，展示用户的角色列表和权限编码列表
  * </p>
  *
+ * @author shop
  * @since 1.0.0
  */
 @Data

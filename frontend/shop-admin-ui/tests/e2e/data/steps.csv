@@ -1,0 +1,1290 @@
+﻿用例ID,序号,操作,定位方式,定位值,输入值,预期,预期类型,说明
+TC-ADM-01,1,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-01,2,expectVisible,css,.page-container,-,-,-,页面容器存在
+TC-ADM-01,3,expectVisible,css,.search-bar,-,-,-,搜索区存在
+TC-ADM-01,4,expectVisible,css,.action-bar,-,-,-,按钮区存在
+TC-ADM-01,5,expectVisible,css,.data-area,-,-,-,数据区存在
+TC-ADM-01,6,expectVisible,css,.el-table,-,-,-,表格存在
+TC-ADM-02,1,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-02,2,expectVisible,css,.search-bar .el-input__inner[placeholder='请输入用户名'],-,-,-,用户名输入框
+TC-ADM-02,3,expectVisible,css,.search-bar .el-input__inner[placeholder='请输入姓名'],-,-,-,姓名输入框
+TC-ADM-02,4,expectCount,css,.search-bar .el-select,-,2,-,状态与删除状态选择框
+TC-ADM-02,5,expectVisible,css,.search-bar .el-button:has-text('搜索'),-,-,-,搜索按钮
+TC-ADM-02,6,expectVisible,css,.search-bar .el-button:has-text('重置'),-,-,-,重置按钮
+TC-ADM-03,1,setupApi,userCreate,desc=E2E-搜索功能;status=1,-,-,-,造1条用户
+TC-ADM-03,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-03,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,搜索框输入用户名
+TC-ADM-03,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-03,5,expectCount,css,.el-table__body tr,-,1,-,命中1行
+TC-ADM-03,6,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName}_notexist,-,-,搜索框输入不存在用户名
+TC-ADM-03,7,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-03,8,expectCount,css,.el-table__body tr,-,0,-,无命中
+TC-ADM-04,1,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-04,2,expectVisible,css,.action-bar .el-button:has-text('新增'),-,-,-,新增按钮
+TC-ADM-04,3,expectVisible,css,.action-bar .el-button:has-text('编辑'),-,-,-,编辑按钮
+TC-ADM-04,4,expectVisible,css,.action-bar .el-button:has-text('删除'),-,-,-,删除按钮
+TC-ADM-04,5,expectVisible,css,.action-bar .el-button:has-text('禁用'),-,-,-,批量禁用按钮
+TC-ADM-04,6,expectVisible,css,.action-bar .el-button:has-text('启用'),-,-,-,批量启用按钮
+TC-ADM-04,7,expectVisible,css,.action-bar .el-button:has-text('恢复'),-,-,-,批量恢复按钮
+TC-ADM-04,8,expectVisible,css,.action-bar .el-button:has-text('分配角色'),-,-,-,分配角色按钮
+TC-ADM-05,1,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-05,2,deselectAll,-,-,-,-,-,取消全选
+TC-ADM-05,3,expectEnabled,css,.action-bar .el-button:has-text('禁用'),-,-,disabled,批量禁用禁用
+TC-ADM-05,4,expectEnabled,css,.action-bar .el-button:has-text('启用'),-,-,disabled,批量启用禁用
+TC-ADM-05,5,expectEnabled,css,.action-bar .el-button:has-text('恢复'),-,-,disabled,批量恢复禁用
+TC-ADM-05,6,expectEnabled,css,.action-bar .el-button:has-text('分配角色'),-,-,disabled,分配角色禁用
+TC-ADM-06,1,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-06,2,deselectAll,-,-,-,-,-,取消全选
+TC-ADM-06,3,expectEnabled,css,.action-bar .el-button:has-text('删除'),-,-,disabled,删除按钮禁用
+TC-ADM-07,1,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-07,2,expectVisible,css,.el-table__header .el-checkbox__input,-,-,-,表头复选框
+TC-ADM-08,1,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-08,2,expectVisible,css,.el-pagination,-,-,-,分页器
+TC-ADM-08,3,expectVisible,css,.el-pagination button.btn-prev,-,-,-,上一页
+TC-ADM-08,4,expectVisible,css,.el-pagination button.btn-next,-,-,-,下一页
+TC-ADM-09,1,setupApi,userBatch,count=2;desc=E2E-列表显示;status=1;deleted=false,-,-,-,造2条用户
+TC-ADM-09,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-09,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userPrefix},-,-,搜索框输入前缀
+TC-ADM-09,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-09,5,expectCount,css,.el-table__body tr,-,2,-,列表显示2行
+TC-ADM-10,1,setupApi,userBatch,count=2;desc=E2E-全选功能;status=1;deleted=false,-,-,-,造2条用户
+TC-ADM-10,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-10,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userPrefix},-,-,搜索框输入前缀
+TC-ADM-10,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-10,5,selectAll,-,-,-,-,-,全选
+TC-ADM-10,6,expectChecked,css,.el-table__header .el-checkbox__input,-,true,-,表头勾选
+TC-ADM-10,7,deselectAll,-,-,-,-,-,取消全选
+TC-ADM-10,8,expectChecked,css,.el-table__header .el-checkbox__input,-,false,-,表头未勾选
+TC-ADM-11,1,setupApi,userBatch,count=11;desc=E2E-翻页功能;status=1;deleted=false,-,-,-,造11条用户
+TC-ADM-11,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-11,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userPrefix},-,-,搜索框输入前缀
+TC-ADM-11,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-11,5,expectCount,css,.el-table__body tr,-,10,-,第1页10行
+TC-ADM-11,6,click,css,.el-pagination button.btn-next,-,-,-,下一页
+TC-ADM-11,7,expectCount,css,.el-table__body tr,-,1,-,第2页1行
+TC-ADM-11,8,click,css,.el-pagination button.btn-prev,-,-,-,上一页
+TC-ADM-11,9,expectCount,css,.el-table__body tr,-,10,-,回到第1页10行
+TC-ADM-12,1,setupApi,userCreate,desc=E2E-状态正常;status=1,-,-,-,造1条用户
+TC-ADM-12,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-12,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,搜索框输入用户名
+TC-ADM-12,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-12,5,expectCell,-,${userName},4,正常,text,状态列正常
+TC-ADM-13,1,setupApi,userCreate,desc=E2E-状态禁用;status=0,-,-,-,造1条用户
+TC-ADM-13,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-13,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,搜索框输入用户名
+TC-ADM-13,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-13,5,expectCell,-,${userName},4,禁用,text,状态列禁用
+TC-ADM-14,1,setupApi,userCreate,desc=E2E-已删除;status=1;deleted=true,-,-,-,造1条已删除用户
+TC-ADM-14,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-14,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,搜索框输入用户名
+TC-ADM-14,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-14,5,expectCell,-,${userName},5,是,text,删除列已删除
+TC-ADM-15,1,setupApi,userCreate,desc=E2E-未删除;status=1;deleted=false,-,-,-,造1条用户
+TC-ADM-15,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-15,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,搜索框输入用户名
+TC-ADM-15,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-15,5,expectCell,-,${userName},5,否,text,删除列未删除
+TC-ADM-16,1,setupApi,userGen,-,-,-,-,生成用户名前缀
+TC-ADM-16,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-16,3,click,css,.action-bar .el-button:has-text('新增'),-,-,-,点击新增
+TC-ADM-16,4,expectVisible,css,.el-dialog,-,-,-,对话框出现
+TC-ADM-16,5,fill,css,.el-dialog input[placeholder='请输入用户名'],${newUserName},-,-,填用户名
+TC-ADM-16,6,fill,css,.el-dialog input[placeholder='请输入密码'],testpass123,-,-,填密码
+TC-ADM-16,7,fill,css,.el-dialog input[placeholder='请输入姓名'],E2E-添加用户,-,-,填姓名
+TC-ADM-16,8,click,css,.el-dialog .el-radio__label:has-text('正常'),-,-,-,选正常
+TC-ADM-16,9,click,css,.el-dialog__footer .el-button--primary,-,-,-,确认
+TC-ADM-16,10,expectHidden,css,.el-dialog,-,-,-,对话框关闭
+TC-ADM-16,11,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${newUserName},-,-,搜索框输入新用户名
+TC-ADM-16,12,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-16,13,expectVisible,css,.el-table__body tr:has-text('${newUserName}'),-,-,-,列表含新用户
+TC-ADM-17,1,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-17,2,click,css,.action-bar .el-button:has-text('新增'),-,-,-,点击新增
+TC-ADM-17,3,expectVisible,css,.el-dialog,-,-,-,对话框出现
+TC-ADM-17,4,click,css,.el-dialog__footer button.el-button--primary,-,-,-,直接提交(用户名为空)
+TC-ADM-17,5,expectText,css,.el-dialog,-,请输入用户名,text,必填校验提示
+TC-ADM-18,1,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-18,2,click,css,.action-bar .el-button:has-text('新增'),-,-,-,点击新增
+TC-ADM-18,3,expectVisible,css,.el-dialog,-,-,-,对话框出现
+TC-ADM-18,4,type,css,.el-dialog input[placeholder='请输入用户名'],e2e-TC-ADM-18-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,-,-,填50字符用户名(最大值)
+TC-ADM-18,5,fill,css,.el-dialog input[placeholder='请输入密码'],testpass123,-,-,填密码
+TC-ADM-18,6,click,css,.el-dialog .el-radio__label:has-text('正常'),-,-,-,选正常状态
+TC-ADM-18,7,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交
+TC-ADM-18,8,expectHidden,css,.el-dialog,-,-,-,对话框关闭
+TC-ADM-18,9,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],e2e-TC-ADM-18-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,-,-,搜索框输入用户名
+TC-ADM-18,10,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-18,11,expectVisible,css,.el-table__body tr:has-text('e2e-TC-ADM-18-'),-,-,-,列表含新用户
+TC-ADM-19,1,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-19,2,click,css,.action-bar .el-button:has-text('新增'),-,-,-,点击新增
+TC-ADM-19,3,expectVisible,css,.el-dialog,-,-,-,对话框出现
+TC-ADM-19,4,type,css,.el-dialog input[placeholder='请输入用户名'],e2e-TC-ADM-19-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,-,-,输入60字符(超长)
+TC-ADM-19,5,fill,css,.el-dialog input[placeholder='请输入密码'],testpass123,-,-,填密码
+TC-ADM-19,6,click,css,.el-dialog .el-radio__label:has-text('正常'),-,-,-,选正常状态
+TC-ADM-19,7,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交
+TC-ADM-19,8,expectHidden,css,.el-dialog,-,-,-,对话框关闭
+TC-ADM-19,9,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],e2e-TC-ADM-19-,-,-,搜索框输入前缀
+TC-ADM-19,10,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-19,11,expectVisible,css,.el-table__body tr:has-text('e2e-TC-ADM-19-'),-,-,-,列表含新用户(截断为50)
+TC-ADM-20,1,apiReject,user,-,username=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,用户名长度不能超过50,-,后端拒绝超长用户名
+TC-ADM-21,1,apiReject,user,-,username=,请输入用户名,-,后端拒绝空用户名
+TC-ADM-22,1,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-22,2,click,css,.action-bar .el-button:has-text('新增'),-,-,-,点击新增
+TC-ADM-22,3,expectVisible,css,.el-dialog,-,-,-,对话框出现
+TC-ADM-22,4,fill,css,.el-dialog input[placeholder='请输入用户名'],e2e-TC-ADM-22-abc,-,-,填用户名
+TC-ADM-22,5,click,css,.el-dialog__footer button.el-button--primary,-,-,-,直接提交(密码为空)
+TC-ADM-22,6,expectText,css,.el-dialog,-,请输入密码,text,必填校验提示
+TC-ADM-23,1,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-23,2,setupApi,userGen,-,-,-,-,生成用户名前缀
+TC-ADM-23,3,click,css,.action-bar .el-button:has-text('新增'),-,-,-,点击新增
+TC-ADM-23,4,expectVisible,css,.el-dialog,-,-,-,对话框出现
+TC-ADM-23,5,fill,css,.el-dialog input[placeholder='请输入用户名'],${newUserName},-,-,填用户名
+TC-ADM-23,6,type,css,.el-dialog input[placeholder='请输入密码'],test,-,-,填4字符密码(最小值)
+TC-ADM-23,7,click,css,.el-dialog .el-radio__label:has-text('正常'),-,-,-,选正常状态
+TC-ADM-23,8,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交
+TC-ADM-23,9,expectHidden,css,.el-dialog,-,-,-,对话框关闭
+TC-ADM-23,10,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${newUserName},-,-,搜索用户名
+TC-ADM-23,11,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-23,12,expectVisible,css,.el-table__body tr:has-text('${newUserName}'),-,-,-,列表含新用户
+TC-ADM-24,1,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-24,2,setupApi,userGen,-,-,-,-,生成用户名前缀
+TC-ADM-24,3,click,css,.action-bar .el-button:has-text('新增'),-,-,-,点击新增
+TC-ADM-24,4,expectVisible,css,.el-dialog,-,-,-,对话框出现
+TC-ADM-24,5,fill,css,.el-dialog input[placeholder='请输入用户名'],${newUserName},-,-,填用户名
+TC-ADM-24,6,type,css,.el-dialog input[placeholder='请输入密码'],pppppppppppppppppppppppppppppp,-,-,填30字符密码(最大值)
+TC-ADM-24,7,click,css,.el-dialog .el-radio__label:has-text('正常'),-,-,-,选正常状态
+TC-ADM-24,8,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交
+TC-ADM-24,9,expectHidden,css,.el-dialog,-,-,-,对话框关闭
+TC-ADM-24,10,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${newUserName},-,-,搜索用户名
+TC-ADM-24,11,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-24,12,expectVisible,css,.el-table__body tr:has-text('${newUserName}'),-,-,-,列表含新用户
+TC-ADM-25,1,apiReject,user,-,password=,请输入密码,-,后端拒绝空密码
+TC-ADM-26,1,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-26,2,setupApi,userGen,-,-,-,-,生成用户名前缀
+TC-ADM-26,3,click,css,.action-bar .el-button:has-text('新增'),-,-,-,点击新增
+TC-ADM-26,4,expectVisible,css,.el-dialog,-,-,-,对话框出现
+TC-ADM-26,5,fill,css,.el-dialog input[placeholder='请输入用户名'],${newUserName},-,-,填用户名
+TC-ADM-26,6,fill,css,.el-dialog input[placeholder='请输入密码'],testpass123,-,-,填密码
+TC-ADM-26,7,type,css,.el-dialog input[placeholder='请输入姓名'],rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr,-,-,填50字符姓名(最大值)
+TC-ADM-26,8,click,css,.el-dialog .el-radio__label:has-text('正常'),-,-,-,选正常状态
+TC-ADM-26,9,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交
+TC-ADM-26,10,expectHidden,css,.el-dialog,-,-,-,对话框关闭
+TC-ADM-26,11,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${newUserName},-,-,搜索用户名
+TC-ADM-26,12,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-26,13,expectVisible,css,.el-table__body tr:has-text('${newUserName}'),-,-,-,列表含新用户
+TC-ADM-27,1,apiReject,user,-,realName=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,姓名长度不能超过50,-,后端拒绝超长姓名(>50)
+TC-ADM-28,1,apiReject,user,-,password=abc,密码长度需在4-30位之间,-,后端拒绝短密码(<4)
+TC-ADM-29,1,apiReject,user,-,password=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,密码长度需在4-30位之间,-,后端拒绝超长密码(>30)
+TC-ADM-30,1,setupApi,userCreate,desc=E2E-编辑用户;status=1,-,-,-,造1条用户
+TC-ADM-30,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-30,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,搜索框输入用户名
+TC-ADM-30,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-30,5,selectRow,-,${userName},-,-,-,勾选用户
+TC-ADM-30,6,click,css,.action-bar .el-button:has-text('编辑'),-,-,-,点击编辑
+TC-ADM-30,7,expectVisible,css,.el-dialog,-,-,-,对话框出现
+TC-ADM-30,8,fill,css,.el-dialog input[placeholder='请输入姓名'],E2E-编辑后,-,-,填姓名
+TC-ADM-30,9,expectValue,css,.el-dialog input[placeholder='请输入姓名'],-,E2E-编辑后,-,姓名已填入
+TC-ADM-30,10,click,css,.el-dialog__footer .el-button--primary,-,-,-,确认
+TC-ADM-30,11,expectHidden,css,.el-dialog,-,-,-,对话框关闭
+TC-ADM-30,12,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,重新搜索
+TC-ADM-30,13,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-30,14,expectCell,-,${userName},3,E2E-编辑后,text,姓名已更新
+TC-ADM-31,1,setupApi,userCreate,desc=E2E-编辑校验;status=1,-,-,-,造1条用户
+TC-ADM-31,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-31,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,搜索框输入用户名
+TC-ADM-31,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-31,5,selectRow,-,${userName},-,-,-,勾选用户
+TC-ADM-31,6,click,css,.action-bar .el-button:has-text('编辑'),-,-,-,点击编辑
+TC-ADM-31,7,expectVisible,css,.el-dialog,-,-,-,对话框出现
+TC-ADM-31,8,fill,css,.el-dialog input[placeholder='请输入用户名'],,-,-,清空用户名
+TC-ADM-31,9,click,css,.el-dialog__footer .el-button--primary,-,-,-,提交
+TC-ADM-31,10,expectText,css,.el-dialog,-,请输入用户名,text,必填校验提示
+TC-ADM-32,1,setupApi,userCreate,desc=E2E-编辑校验;status=1,-,-,-,造1条用户
+TC-ADM-32,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-32,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,搜索框输入用户名
+TC-ADM-32,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-32,5,selectRow,-,${userName},-,-,-,勾选用户
+TC-ADM-32,6,click,css,.action-bar .el-button:has-text('编辑'),-,-,-,点击编辑
+TC-ADM-32,7,expectVisible,css,.el-dialog,-,-,-,对话框出现
+TC-ADM-32,8,fill,css,.el-dialog input[placeholder='请输入用户名'],e2e-TC-ADM-32-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,-,-,填50字符用户名(最大值)
+TC-ADM-32,9,click,css,.el-dialog__footer .el-button--primary,-,-,-,提交
+TC-ADM-32,10,expectHidden,css,.el-dialog,-,-,-,对话框关闭
+TC-ADM-32,11,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],e2e-TC-ADM-32-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,-,-,搜索新用户名
+TC-ADM-32,12,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-32,13,expectVisible,css,.el-table__body tr:has-text('e2e-TC-ADM-32-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'),-,-,-,列表含编辑后用户
+TC-ADM-33,1,setupApi,userCreate,desc=E2E-编辑校验;status=1,-,-,-,造1条用户
+TC-ADM-33,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-33,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,搜索框输入用户名
+TC-ADM-33,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-33,5,selectRow,-,${userName},-,-,-,勾选用户
+TC-ADM-33,6,click,css,.action-bar .el-button:has-text('编辑'),-,-,-,点击编辑
+TC-ADM-33,7,expectVisible,css,.el-dialog,-,-,-,对话框出现
+TC-ADM-33,8,fill,css,.el-dialog input[placeholder='请输入用户名'],-,-,-,清空原用户名
+TC-ADM-33,9,type,css,.el-dialog input[placeholder='请输入用户名'],e2e-TC-ADM-33-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,-,-,输入60字符(超长-前端maxlength截断为50)
+TC-ADM-33,10,click,css,.el-dialog__footer .el-button--primary,-,-,-,提交
+TC-ADM-33,11,expectHidden,css,.el-dialog,-,-,-,对话框关闭
+TC-ADM-33,12,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],e2e-TC-ADM-33-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,-,-,搜索框输入截断后用户名(50)
+TC-ADM-33,13,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-33,14,expectVisible,css,.el-table__body tr:has-text('e2e-TC-ADM-33-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'),-,-,-,列表含编辑后用户(截断为50)
+TC-ADM-34,1,setupApi,userCreate,desc=E2E-编辑校验;status=1,-,-,-,造1条用户
+TC-ADM-34,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-34,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,搜索框输入用户名
+TC-ADM-34,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-34,5,selectRow,-,${userName},-,-,-,勾选用户
+TC-ADM-34,6,click,css,.action-bar .el-button:has-text('编辑'),-,-,-,点击编辑
+TC-ADM-34,7,expectVisible,css,.el-dialog,-,-,-,对话框出现
+TC-ADM-34,8,fill,css,.el-dialog input[placeholder='请输入姓名'],e2e-TC-ADM-34-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,-,-,填50字符姓名(最大值)
+TC-ADM-34,9,click,css,.el-dialog__footer .el-button--primary,-,-,-,确认
+TC-ADM-34,10,expectHidden,css,.el-dialog,-,-,-,对话框关闭
+TC-ADM-34,11,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,重新搜索
+TC-ADM-34,12,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-34,13,expectCell,-,${userName},3,e2e-TC-ADM-34-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,text,姓名已更新
+TC-ADM-35,1,setupApi,userCreate,desc=E2E-编辑校验;status=1,-,-,-,造1条用户
+TC-ADM-35,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-35,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,搜索框输入用户名
+TC-ADM-35,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-35,5,selectRow,-,${userName},-,-,-,勾选用户
+TC-ADM-35,6,click,css,.action-bar .el-button:has-text('编辑'),-,-,-,点击编辑
+TC-ADM-35,7,expectVisible,css,.el-dialog,-,-,-,对话框出现
+TC-ADM-35,8,type,css,.el-dialog input[placeholder='请输入姓名'],e2e-TC-ADM-35-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,-,-,输入60字符(超长)
+TC-ADM-35,9,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交
+TC-ADM-35,10,expectHidden,css,.el-dialog,-,-,-,对话框关闭
+TC-ADM-35,11,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,重新搜索
+TC-ADM-35,12,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-35,13,expectCell,-,${userName},3,e2e-TC-ADM-35-,text,姓名已更新(截断为50)
+TC-ADM-36,1,setupApi,userCreate,desc=E2E-编辑校验;status=1,-,-,-,造1条用户
+TC-ADM-36,2,apiReject,user,-,id=${userId};realName=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,姓名长度不能超过50,-,后端拒绝超长姓名(>50编辑)
+TC-ADM-37,1,setupApi,userCreate,desc=E2E-编辑校验;status=1,-,-,-,造1条用户
+TC-ADM-37,2,apiReject,user,-,id=${userId};password=abc,密码长度需在4-30位之间,-,后端拒绝短密码(<4编辑)
+TC-ADM-38,1,setupApi,userCreate,desc=E2E-编辑校验;status=1,-,-,-,造1条用户
+TC-ADM-38,2,apiReject,user,-,id=${userId};password=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,密码长度需在4-30位之间,-,后端拒绝超长密码(>30编辑)
+TC-ADM-39,1,setupApi,userCreate,desc=E2E-查看详情;status=1;deleted=false,-,-,-,造1条用户
+TC-ADM-39,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-39,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,搜索框输入用户名
+TC-ADM-39,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-39,5,selectRow,-,${userName},-,-,-,勾选用户
+TC-ADM-39,6,clickRow,-,${userName},详情,-,-,打开详情
+TC-ADM-39,7,expectText,css,.el-dialog,-,${userName},text,对话框含用户名
+TC-ADM-40,1,setupApi,userCreate,desc=E2E-删除用户;status=1,-,-,-,造1条用户
+TC-ADM-40,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-40,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,搜索框输入用户名
+TC-ADM-40,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-40,5,selectRow,-,${userName},-,-,-,勾选用户
+TC-ADM-40,6,click,css,.action-bar .el-button:has-text('删除'),-,-,-,点击删除
+TC-ADM-40,7,click,css,.el-message-box__btns .el-button--primary,-,-,-,确认删除
+TC-ADM-40,8,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,重新搜索
+TC-ADM-40,9,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-40,10,expectCell,-,${userName},5,是,text,删除标记为是
+TC-ADM-41,1,setupApi,userBatch,count=2;desc=E2E-批量删除;status=1,-,-,-,造2条用户
+TC-ADM-41,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-41,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userPrefix},-,-,搜索框输入前缀
+TC-ADM-41,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-41,5,selectAll,-,-,-,-,-,全选
+TC-ADM-41,6,click,css,.action-bar .el-button:has-text('删除'),-,-,-,点击删除
+TC-ADM-41,7,click,css,.el-message-box__btns .el-button--primary,-,-,-,确认删除
+TC-ADM-41,8,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userPrefix},-,-,重新搜索
+TC-ADM-41,9,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-41,10,expectCell,-,${user0},5,是,text,用户0删除
+TC-ADM-41,11,expectCell,-,${user1},5,是,text,用户1删除
+TC-ADM-42,1,setupApi,userBatch,count=2;desc=E2E-批量禁用;status=1,-,-,-,造2条用户
+TC-ADM-42,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-42,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userPrefix},-,-,搜索框输入前缀
+TC-ADM-42,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-42,5,selectAll,-,-,-,-,-,全选
+TC-ADM-42,6,click,css,.action-bar .el-button:has-text('禁用'),-,-,-,批量禁用
+TC-ADM-42,7,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userPrefix},-,-,重新搜索
+TC-ADM-42,8,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-42,9,expectCell,-,${user0},4,禁用,text,用户0禁用
+TC-ADM-42,10,expectCell,-,${user1},4,禁用,text,用户1禁用
+TC-ADM-43,1,setupApi,userCreate,desc=E2E-禁用用户;status=1,-,-,-,造1条用户
+TC-ADM-43,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-43,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,搜索框输入用户名
+TC-ADM-43,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-43,5,selectRow,-,${userName},-,-,-,勾选用户
+TC-ADM-43,6,clickRow,-,${userName},禁用,-,-,点击禁用
+TC-ADM-43,7,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,重新搜索
+TC-ADM-43,8,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-43,9,expectCell,-,${userName},4,禁用,text,状态变禁用
+TC-ADM-44,1,setupApi,userBatch,count=1;desc=E2E-批量启用;status=0,-,-,-,造1条禁用用户
+TC-ADM-44,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-44,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userPrefix},-,-,搜索框输入前缀
+TC-ADM-44,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-44,5,selectAll,-,-,-,-,-,全选
+TC-ADM-44,6,click,css,.action-bar .el-button:has-text('启用'),-,-,-,批量启用
+TC-ADM-44,7,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userPrefix},-,-,重新搜索
+TC-ADM-44,8,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-44,9,expectCell,-,${user0},4,正常,text,用户0启用
+TC-ADM-45,1,setupApi,userCreate,desc=E2E-启用用户;status=0,-,-,-,造1条禁用用户
+TC-ADM-45,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-45,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,搜索框输入用户名
+TC-ADM-45,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-45,5,selectRow,-,${userName},-,-,-,勾选用户
+TC-ADM-45,6,clickRow,-,${userName},启用,-,-,点击启用
+TC-ADM-45,7,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,重新搜索
+TC-ADM-45,8,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-45,9,expectCell,-,${userName},4,正常,text,状态变正常
+TC-ADM-46,1,setupApi,userBatch,count=1;desc=E2E-批量恢复;status=1;deleted=true,-,-,-,造1条已删除用户
+TC-ADM-46,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-46,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userPrefix},-,-,搜索框输入前缀
+TC-ADM-46,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-46,5,selectAll,-,-,-,-,-,全选
+TC-ADM-46,6,click,css,.action-bar .el-button:has-text('恢复'),-,-,-,批量恢复
+TC-ADM-46,7,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userPrefix},-,-,重新搜索
+TC-ADM-46,8,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-46,9,expectCell,-,${user0},5,否,text,用户0恢复
+TC-ADM-47,1,setupApi,userCreate,desc=E2E-恢复用户;status=1;deleted=true,-,-,-,造1条已删除用户
+TC-ADM-47,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-47,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,搜索框输入用户名
+TC-ADM-47,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-47,5,selectRow,-,${userName},-,-,-,勾选用户
+TC-ADM-47,6,clickRow,-,${userName},恢复,-,-,点击恢复
+TC-ADM-47,7,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,重新搜索
+TC-ADM-47,8,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-47,9,expectCell,-,${userName},5,否,text,删除列变否
+TC-ADM-48,1,setupApi,userBatch,count=1;desc=E2E-分配角色;status=1,-,-,-,造1条用户
+TC-ADM-48,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ADM-48,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userPrefix},-,-,搜索框输入前缀
+TC-ADM-48,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-48,5,selectRow,-,${user0},-,-,-,勾选用户
+TC-ADM-48,6,click,css,.action-bar .el-button:has-text('分配角色'),-,-,-,分配角色
+TC-ADM-48,7,expectText,css,.el-dialog,-,分配角色,text,标题分配角色
+TC-ADM-48,8,click,css,.el-dialog .role-checkbox >> nth=0,-,-,-,勾选首个角色
+TC-ADM-48,9,click,css,.el-dialog__footer .el-button--primary,-,-,-,确认
+TC-ADM-48,10,expectHidden,css,.el-dialog,-,-,-,对话框关闭
+TC-ADM-48,11,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userPrefix},-,-,重新搜索
+TC-ADM-48,12,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-48,13,selectRow,-,${user0},-,-,-,勾选用户
+TC-ADM-48,14,click,css,.action-bar .el-button:has-text('分配角色'),-,-,-,重新分配角色
+TC-ADM-48,15,expectChecked,css,.el-dialog .role-checkbox >> nth=0,-,true,-,角色已回显勾选
+TC-ADM-48,16,click,css,.el-dialog__footer .el-button--primary,-,-,-,确认关闭
+TC-DASH-01,1,goto,-,/login,-,-,-,打开登录页
+TC-DASH-01,2,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-DASH-01,3,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-DASH-01,4,click,css,.login-btn,-,-,-,点击登录按钮
+TC-DASH-01,5,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-DASH-01,6,expectText,css,.dashboard h2,-,仪表盘,text,标题为仪表盘
+TC-DASH-02,1,goto,-,/login,-,-,-,打开登录页
+TC-DASH-02,2,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-DASH-02,3,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-DASH-02,4,click,css,.login-btn,-,-,-,点击登录按钮
+TC-DASH-02,5,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-DASH-02,6,expectText,css,.dashboard h2,-,仪表盘,text,标题
+TC-DASH-02,7,expectCount,css,.stat-card,-,4,-,统计卡片4个
+TC-DASH-02,8,expectCount,css,.stat-card .stat-icon,-,4,-,图标4个
+TC-DASH-02,9,expectCount,css,.stat-card .stat-label,-,4,-,标签4个
+TC-DASH-02,10,expectText,css,.stat-card--blue .stat-value,-,1,024,"text,商品数"
+TC-DASH-02,11,expectText,css,.stat-card--green .stat-value,-,256,text,订单数
+TC-DASH-02,12,expectText,css,.stat-card--orange .stat-value,-,8,192,"text,用户数"
+TC-DASH-02,13,expectText,css,.stat-card--purple .stat-value,-,¥,text,营收
+TC-LOG-01,1,goto,-,/login,-,-,-,打开登录页
+TC-LOG-01,2,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-LOG-01,3,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-LOG-01,4,click,css,.login-btn,-,-,-,点击登录按钮
+TC-LOG-01,5,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-LOG-02,1,goto,-,/login,-,-,-,打开登录页
+TC-LOG-02,2,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-LOG-02,3,fill,placeholder,请输入密码,wrong,-,-,输入错误密码
+TC-LOG-02,4,click,css,.login-btn,-,-,-,点击登录按钮
+TC-LOG-02,5,expectText,css,.el-message__content,-,密码错误,text,后端返回错误提示
+TC-LOG-03,1,goto,-,/login,-,-,-,打开登录页
+TC-LOG-03,2,fill,placeholder,请输入用户名,-,-,-,用户名为空
+TC-LOG-03,3,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-LOG-03,4,click,css,.login-btn,-,-,-,点击登录按钮
+TC-LOG-03,5,expectText,css,.el-form-item__error,-,请输入用户名,text,客户端表单校验提示
+TC-LOG-04,1,goto,-,/login,-,-,-,打开登录页
+TC-LOG-04,2,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-LOG-04,3,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-LOG-04,4,click,css,.login-btn,-,-,-,点击登录按钮
+TC-LOG-04,5,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-LOG-04,6,click,css,.user-info,-,-,-,点击用户区展开下拉菜单
+TC-LOG-04,7,click,text,退出登录,-,-,-,点击退出登录
+TC-LOG-04,8,expectURL,-,-,-,/login,url,跳回登录页
+TC-PERM-01,1,goto,-,/login,-,-,-,打开登录页
+TC-PERM-01,2,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-PERM-01,3,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-PERM-01,4,click,css,.login-btn,-,-,-,点击登录按钮
+TC-PERM-01,5,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-PERM-01,6,goto,-,/system/permission,-,-,-,进入权限管理页
+TC-PERM-01,7,expectURL,-,-,-,/system/permission,url,路由正确
+TC-PERM-01,8,expectText,css,.el-breadcrumb,-,权限管理,text,面包屑标题
+TC-PERM-01,9,expectVisible,css,.el-table,-,-,-,权限树表格可见
+TC-PERM-01,10,expectVisible,css,.el-table__row:has-text('系统管理'),-,-,-,种子节点系统管理可见
+TC-PERM-02,1,goto,-,/login,-,-,-,打开登录页
+TC-PERM-02,2,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-PERM-02,3,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-PERM-02,4,click,css,.login-btn,-,-,-,点击登录按钮
+TC-PERM-02,5,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-PERM-02,6,goto,-,/system/permission,-,-,-,进入权限管理页
+TC-PERM-02,7,setupApi,permTree,-,-,-,-,造权限子树
+TC-PERM-02,8,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-02,9,fill,placeholder,请输入权限名称,${dirName},-,-,搜索目录节点
+TC-PERM-02,10,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-02,11,expectVisible,css,.el-table__row:has-text('${dirName}'),-,-,-,目录节点可见
+TC-PERM-02,12,fill,placeholder,请输入权限名称,${dirName}_none,-,-,搜索不存在名称
+TC-PERM-02,13,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-02,14,expectCount,css,.el-table__row:has-text('${dirName}_none'),-,0,-,不存在名称结果为空
+TC-PERM-02,15,click,css,button:has-text('重置'),-,-,-,重置搜索
+TC-PERM-02,16,expectVisible,css,.el-table__row:has-text('${dirName}'),-,-,-,重置后目录节点再现
+TC-PERM-03,1,goto,-,/login,-,-,-,打开登录页
+TC-PERM-03,2,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-PERM-03,3,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-PERM-03,4,click,css,.login-btn,-,-,-,点击登录按钮
+TC-PERM-03,5,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-PERM-03,6,goto,-,/system/permission,-,-,-,进入权限管理页
+TC-PERM-03,7,setupApi,permTree,-,-,-,-,造权限子树
+TC-PERM-03,8,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-03,9,fill,placeholder,请输入权限名称,${treePrefix},-,-,按前缀搜索三节点
+TC-PERM-03,10,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-03,11,expectText,css,.el-table__row:has-text('${dirName}'),-,目录,text,目录节点类型显示目录
+TC-PERM-03,12,expectText,css,.el-table__row:has-text('${menuName}'),-,菜单,text,菜单节点类型显示菜单
+TC-PERM-03,13,expectText,css,.el-table__row:has-text('${actionName}'),-,操作,text,操作节点类型显示操作
+TC-PERM-04,1,goto,-,/login,-,-,-,打开登录页
+TC-PERM-04,2,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-PERM-04,3,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-PERM-04,4,click,css,.login-btn,-,-,-,点击登录按钮
+TC-PERM-04,5,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-PERM-04,6,goto,-,/system/permission,-,-,-,进入权限管理页
+TC-PERM-04,7,setupApi,permCreate,type=1;path=/e2e/parent;component=views/test/parent/index.vue;icon=Folder,-,-,-,造父级目录
+TC-PERM-04,8,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-04,9,fill,placeholder,请输入权限名称,${createdName},-,-,搜索父级
+TC-PERM-04,10,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-04,11,expectVisible,css,.el-table__row:has-text('${createdName}'),-,-,-,父级可见
+TC-PERM-04,12,click,css,button.el-button--primary:has-text('新增'),-,-,-,打开新建对话框
+TC-PERM-04,13,expectVisible,css,.el-dialog,-,-,-,对话框可见
+TC-PERM-04,14,fill,css,.el-dialog input[placeholder='请输入权限名称'],${nodePrefix}-new,-,-,填子节点名
+TC-PERM-04,15,fill,css,.el-dialog input[placeholder='如 system:user:list'],${nodeCode},-,-,填子节点编码
+TC-PERM-04,16,click,css,.el-form-item:has(.el-form-item__label:text-is('权限类型')) .el-radio:has-text('菜单'),-,-,-,选菜单类型
+TC-PERM-04,17,fill,css,.el-dialog input[placeholder='如 /system/admin'],/e2e/new,-,-,填路径
+TC-PERM-04,18,fill,css,.el-dialog input[placeholder='如 views/system/admin/index.vue'],views/test/new/index.vue,-,-,填组件路径
+TC-PERM-04,19,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交新建
+TC-PERM-04,20,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-04,21,fill,placeholder,请输入权限名称,${nodePrefix}-new,-,-,搜索子节点
+TC-PERM-04,22,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-04,23,expectVisible,css,.el-table__row:has-text('${nodePrefix}-new'),-,-,-,子节点出现在树中
+TC-PERM-05,1,goto,-,/login,-,-,-,打开登录页
+TC-PERM-05,2,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-PERM-05,3,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-PERM-05,4,click,css,.login-btn,-,-,-,点击登录按钮
+TC-PERM-05,5,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-PERM-05,6,goto,-,/system/permission,-,-,-,进入权限管理页
+TC-PERM-05,7,click,css,button.el-button--primary:has-text('新增'),-,-,-,打开新建对话框
+TC-PERM-05,8,expectVisible,css,.el-dialog,-,-,-,对话框可见
+TC-PERM-05,9,click,css,.el-dialog__footer button.el-button--primary,-,-,-,直接提交
+TC-PERM-05,10,expectText,css,.el-dialog,-,请输入权限名称,text,必填校验提示
+TC-PERM-05,11,expectText,css,.el-dialog,-,请输入权限编码,text,必填校验提示
+TC-PERM-06,1,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-PERM-06,2,goto,-,/system/permission,-,-,-,进入权限管理页
+TC-PERM-06,3,expectVisible,css,.el-table,-,-,-,等待表格加载
+TC-PERM-06,4,click,css,button.el-button--primary:has-text('新增'),-,-,-,打开新建对话框
+TC-PERM-06,5,expectVisible,css,.el-dialog,-,-,-,对话框出现
+TC-PERM-06,6,type,css,.el-dialog input[placeholder='请输入权限名称'],e2e-TC-PERM-06-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,-,-,填50字符权限名称(最大值)
+TC-PERM-06,7,fill,css,.el-dialog input[placeholder='如 system:user:list'],e2e-TC-PERM-06-code,-,-,填权限编码
+TC-PERM-06,8,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交新建
+TC-PERM-06,9,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-06,10,fill,placeholder,请输入权限名称,e2e-TC-PERM-06-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,-,-,搜索权限名称
+TC-PERM-06,11,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-06,12,expectVisible,css,.el-table__row:has-text('e2e-TC-PERM-06-'),-,-,-,节点出现在树中
+TC-PERM-07,1,apiReject,permission,-,permissionName=,请输入权限名称,-,后端拒绝空权限名称
+TC-PERM-08,1,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-PERM-08,2,goto,-,/system/permission,-,-,-,进入权限管理页
+TC-PERM-08,3,expectVisible,css,.el-table,-,-,-,等待表格加载
+TC-PERM-08,4,click,css,button.el-button--primary:has-text('新增'),-,-,-,打开新建对话框
+TC-PERM-08,5,expectVisible,css,.el-dialog,-,-,-,对话框出现
+TC-PERM-08,6,fill,css,.el-dialog input[placeholder='请输入权限名称'],e2e-TC-PERM-08-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,-,-,填权限名称
+TC-PERM-08,7,type,css,.el-dialog input[placeholder='如 system:user:list'],e2e-TC-PERM-08-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,-,-,填100字符权限编码(最大值)
+TC-PERM-08,8,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交新建
+TC-PERM-08,9,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-08,10,fill,placeholder,请输入权限名称,e2e-TC-PERM-08-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,-,-,搜索权限名称
+TC-PERM-08,11,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-08,12,expectVisible,css,.el-table__row:has-text('e2e-TC-PERM-08-'),-,-,-,节点出现在树中
+TC-PERM-09,1,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-PERM-09,2,goto,-,/system/permission,-,-,-,进入权限管理页
+TC-PERM-09,3,expectVisible,css,.el-table,-,-,-,等待表格加载
+TC-PERM-09,4,click,css,button.el-button--primary:has-text('新增'),-,-,-,打开新建对话框
+TC-PERM-09,5,expectVisible,css,.el-dialog,-,-,-,对话框出现
+TC-PERM-09,6,fill,css,.el-dialog input[placeholder='请输入权限名称'],e2e-TC-PERM-09-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,-,-,填权限名称
+TC-PERM-09,7,type,css,.el-dialog input[placeholder='如 system:user:list'],e2e-TC-PERM-09-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,-,-,输入120字符(超长)
+TC-PERM-09,8,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交新建
+TC-PERM-09,9,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-09,10,fill,placeholder,请输入权限名称,e2e-TC-PERM-09-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,-,-,搜索权限名称
+TC-PERM-09,11,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-09,12,expectVisible,css,.el-table__row:has-text('e2e-TC-PERM-09-'),-,-,-,节点出现在树中(前端maxlength仅录入100)
+TC-PERM-10,1,apiReject,permission,-,permissionCode=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,权限编码长度不能超过100,-,后端拒绝超长权限编码
+TC-PERM-11,1,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-PERM-11,2,goto,-,/system/permission,-,-,-,进入权限管理页
+TC-PERM-11,3,expectVisible,css,.el-table,-,-,-,等待表格加载
+TC-PERM-11,4,click,css,button.el-button--primary:has-text('新增'),-,-,-,打开新建对话框
+TC-PERM-11,5,expectVisible,css,.el-dialog,-,-,-,对话框出现
+TC-PERM-11,6,fill,css,.el-dialog input[placeholder='请输入权限名称'],e2e-TC-PERM-11-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,-,-,填权限名称
+TC-PERM-11,7,fill,css,.el-dialog input[placeholder='如 system:user:list'],1abc,-,-,填非法编码(数字开头)
+TC-PERM-11,8,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交
+TC-PERM-11,9,expectText,css,.el-dialog,-,权限编码以字母开头,text,格式校验提示
+TC-PERM-12,1,apiReject,permission,-,permissionCode=1abc,权限编码以字母开头,-,后端拒绝格式非法权限编码
+TC-PERM-13,1,apiReject,permission,-,permissionCode=,请输入权限编码,-,后端拒绝空权限编码
+TC-PERM-14,1,apiReject,permission,-,permissionName=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,权限名称长度不能超过50,-,后端拒绝超长权限名称(>50)
+TC-PERM-15,1,setupApi,permCreate,type=2,-,-,-,造待编辑权限(菜单)
+TC-PERM-15,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-PERM-15,3,goto,-,/system/permission,-,-,-,进入权限管理页
+TC-PERM-15,4,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-15,5,fill,placeholder,请输入权限名称,${createdName},-,-,搜索节点
+TC-PERM-15,6,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-15,7,click,css,.el-table__row:has-text('${createdName}') button:has-text('编辑'),-,-,-,点击编辑
+TC-PERM-15,8,expectVisible,css,.el-dialog,-,-,-,编辑对话框可见
+TC-PERM-15,9,fill,css,.el-dialog input[placeholder='如 /system/admin'],-,-,-,清空路径(替换原值)
+TC-PERM-15,10,type,css,.el-dialog input[placeholder='如 /system/admin'],aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,-,-,填255字符路径(最大值)
+TC-PERM-15,11,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交保存
+TC-PERM-15,12,expectHidden,css,.el-dialog,-,-,-,对话框关闭(保存成功)
+TC-PERM-15,13,fill,placeholder,请输入权限名称,${createdName},-,-,搜索节点
+TC-PERM-15,14,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-15,15,expectVisible,css,.el-table__row:has-text('${createdName}'),-,-,-,节点出现在树中(路径255已存)
+TC-PERM-16,1,setupApi,permCreate,type=2,-,-,-,造待编辑权限(菜单)
+TC-PERM-16,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-PERM-16,3,goto,-,/system/permission,-,-,-,进入权限管理页
+TC-PERM-16,4,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-16,5,fill,placeholder,请输入权限名称,${createdName},-,-,搜索节点
+TC-PERM-16,6,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-16,7,click,css,.el-table__row:has-text('${createdName}') button:has-text('编辑'),-,-,-,点击编辑
+TC-PERM-16,8,expectVisible,css,.el-dialog,-,-,-,编辑对话框可见
+TC-PERM-16,9,fill,css,.el-dialog input[placeholder='如 /system/admin'],-,-,-,清空路径(替换原值)
+TC-PERM-16,10,type,css,.el-dialog input[placeholder='如 /system/admin'],aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,-,-,输入260字符(超长-前端maxlength截断为255)
+TC-PERM-16,11,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交保存
+TC-PERM-16,12,expectHidden,css,.el-dialog,-,-,-,对话框关闭(保存成功)
+TC-PERM-16,13,fill,placeholder,请输入权限名称,${createdName},-,-,搜索节点
+TC-PERM-16,14,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-16,15,click,css,.el-table__row:has-text('${createdName}') button:has-text('编辑'),-,-,-,点击编辑
+TC-PERM-16,16,expectVisible,css,.el-dialog,-,-,-,编辑对话框可见
+TC-PERM-16,17,expectValue,css,.el-dialog input[placeholder='如 /system/admin'],-,aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,-,截断为255字符
+TC-PERM-17,1,setupApi,permCreate,type=2,-,-,-,造待编辑权限(菜单)
+TC-PERM-17,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-PERM-17,3,goto,-,/system/permission,-,-,-,进入权限管理页
+TC-PERM-17,4,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-17,5,fill,placeholder,请输入权限名称,${createdName},-,-,搜索节点
+TC-PERM-17,6,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-17,7,click,css,.el-table__row:has-text('${createdName}') button:has-text('编辑'),-,-,-,点击编辑
+TC-PERM-17,8,expectVisible,css,.el-dialog,-,-,-,编辑对话框可见
+TC-PERM-17,9,fill,css,.el-dialog input[placeholder='如 views/system/admin/index.vue'],-,-,-,清空组件路径(替换原值)
+TC-PERM-17,10,type,css,.el-dialog input[placeholder='如 views/system/admin/index.vue'],aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,-,-,填255字符组件路径(最大值)
+TC-PERM-17,11,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交保存
+TC-PERM-17,12,expectHidden,css,.el-dialog,-,-,-,对话框关闭(保存成功)
+TC-PERM-17,13,fill,placeholder,请输入权限名称,${createdName},-,-,搜索节点
+TC-PERM-17,14,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-17,15,expectVisible,css,.el-table__row:has-text('${createdName}'),-,-,-,节点出现在树中(组件路径255已存)
+TC-PERM-18,1,setupApi,permCreate,type=2,-,-,-,造待编辑权限(菜单)
+TC-PERM-18,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-PERM-18,3,goto,-,/system/permission,-,-,-,进入权限管理页
+TC-PERM-18,4,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-18,5,fill,placeholder,请输入权限名称,${createdName},-,-,搜索节点
+TC-PERM-18,6,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-18,7,click,css,.el-table__row:has-text('${createdName}') button:has-text('编辑'),-,-,-,点击编辑
+TC-PERM-18,8,expectVisible,css,.el-dialog,-,-,-,编辑对话框可见
+TC-PERM-18,9,fill,css,.el-dialog input[placeholder='如 views/system/admin/index.vue'],-,-,-,清空组件路径(替换原值)
+TC-PERM-18,10,type,css,.el-dialog input[placeholder='如 views/system/admin/index.vue'],aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,-,-,输入260字符(超长-前端maxlength截断为255)
+TC-PERM-18,11,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交保存
+TC-PERM-18,12,expectHidden,css,.el-dialog,-,-,-,对话框关闭(保存成功)
+TC-PERM-18,13,fill,placeholder,请输入权限名称,${createdName},-,-,搜索节点
+TC-PERM-18,14,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-18,15,click,css,.el-table__row:has-text('${createdName}') button:has-text('编辑'),-,-,-,点击编辑
+TC-PERM-18,16,expectVisible,css,.el-dialog,-,-,-,编辑对话框可见
+TC-PERM-18,17,expectValue,css,.el-dialog input[placeholder='如 views/system/admin/index.vue'],-,aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,-,截断为255字符
+TC-PERM-19,1,setupApi,permCreate,type=2,-,-,-,造待编辑权限
+TC-PERM-19,2,goto,-,/login,-,-,-,打开登录页
+TC-PERM-19,3,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-PERM-19,4,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-PERM-19,5,click,css,.login-btn,-,-,-,点击登录按钮
+TC-PERM-19,6,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-PERM-19,7,goto,-,/system/permission,-,-,-,进入权限管理页
+TC-PERM-19,8,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-19,9,fill,placeholder,请输入权限名称,${createdName},-,-,搜索节点
+TC-PERM-19,10,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-19,11,expectVisible,css,.el-table__row:has-text('${createdName}'),-,-,-,节点可见
+TC-PERM-19,12,click,css,.el-table__row:has-text('${createdName}') button:has-text('编辑'),-,-,-,点击编辑
+TC-PERM-19,13,expectVisible,css,.el-dialog,-,-,-,编辑对话框可见
+TC-PERM-19,14,fill,css,.el-dialog input[placeholder='请输入权限名称'],${nodePrefix}-edit,-,-,改权限名称
+TC-PERM-19,15,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交
+TC-PERM-19,16,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-19,17,fill,placeholder,请输入权限名称,${nodePrefix}-edit,-,-,搜索新名称
+TC-PERM-19,18,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-19,19,expectVisible,css,.el-table__row:has-text('${nodePrefix}-edit'),-,-,-,新名称节点可见
+TC-PERM-19,20,expectCount,css,.el-table__row:has(td:nth-child(2):text-is('${createdName}')),-,0,-,旧名称(权限名称列)已不存在
+TC-PERM-20,1,setupApi,permCreate,type=2,-,-,-,造待编辑权限
+TC-PERM-20,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-PERM-20,3,goto,-,/system/permission,-,-,-,进入权限管理页
+TC-PERM-20,4,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-20,5,fill,placeholder,请输入权限名称,${createdName},-,-,搜索节点
+TC-PERM-20,6,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-20,7,click,css,.el-table__row:has-text('${createdName}') button:has-text('编辑'),-,-,-,点击编辑
+TC-PERM-20,8,expectVisible,css,.el-dialog,-,-,-,编辑对话框可见
+TC-PERM-20,9,fill,css,.el-dialog input[placeholder='请输入权限名称'],-,-,-,清空权限名称
+TC-PERM-20,10,fill,css,.el-dialog input[placeholder='如 system:user:list'],-,-,-,清空权限编码
+TC-PERM-20,11,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交
+TC-PERM-20,12,expectText,css,.el-dialog,-,请输入权限名称,text,必填校验提示
+TC-PERM-20,13,expectText,css,.el-dialog,-,请输入权限编码,text,必填校验提示
+TC-PERM-21,1,setupApi,permCreate,type=2,-,-,-,造待编辑权限
+TC-PERM-21,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-PERM-21,3,goto,-,/system/permission,-,-,-,进入权限管理页
+TC-PERM-21,4,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-21,5,fill,placeholder,请输入权限名称,${createdName},-,-,搜索节点
+TC-PERM-21,6,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-21,7,click,css,.el-table__row:has-text('${createdName}') button:has-text('编辑'),-,-,-,点击编辑
+TC-PERM-21,8,expectVisible,css,.el-dialog,-,-,-,编辑对话框可见
+TC-PERM-21,9,type,css,.el-dialog input[placeholder='请输入权限名称'],e2e-TC-PERM-21-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,-,-,填50字符权限名称(最大值)
+TC-PERM-21,10,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交新建
+TC-PERM-21,11,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-21,12,fill,placeholder,请输入权限名称,e2e-TC-PERM-21-,-,-,搜索权限名称
+TC-PERM-21,13,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-21,14,expectVisible,css,.el-table__row:has-text('e2e-TC-PERM-21-'),-,-,-,节点出现在树中
+TC-PERM-22,1,setupApi,permCreate,type=2,-,-,-,造待编辑权限
+TC-PERM-22,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-PERM-22,3,goto,-,/system/permission,-,-,-,进入权限管理页
+TC-PERM-22,4,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-22,5,fill,placeholder,请输入权限名称,${createdName},-,-,搜索节点
+TC-PERM-22,6,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-22,7,click,css,.el-table__row:has-text('${createdName}') button:has-text('编辑'),-,-,-,点击编辑
+TC-PERM-22,8,expectVisible,css,.el-dialog,-,-,-,编辑对话框可见
+TC-PERM-22,9,type,css,.el-dialog input[placeholder='请输入权限名称'],e2e-TC-PERM-22-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,-,-,输入60字符(超长)
+TC-PERM-22,10,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交新建
+TC-PERM-22,11,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-22,12,fill,placeholder,请输入权限名称,e2e-TC-PERM-22-,-,-,搜索权限名称
+TC-PERM-22,13,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-22,14,expectVisible,css,.el-table__row:has-text('e2e-TC-PERM-22-'),-,-,-,节点出现在树中(前端maxlength仅录入50)
+TC-PERM-23,1,setupApi,permCreate,type=2,-,-,-,造待编辑权限
+TC-PERM-23,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-PERM-23,3,goto,-,/system/permission,-,-,-,进入权限管理页
+TC-PERM-23,4,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-23,5,fill,placeholder,请输入权限名称,${createdName},-,-,搜索节点
+TC-PERM-23,6,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-23,7,click,css,.el-table__row:has-text('${createdName}') button:has-text('编辑'),-,-,-,点击编辑
+TC-PERM-23,8,expectVisible,css,.el-dialog,-,-,-,编辑对话框可见
+TC-PERM-23,9,type,css,.el-dialog input[placeholder='如 system:user:list'],xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,-,-,填100字符权限编码(最大值)
+TC-PERM-23,10,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交新建
+TC-PERM-23,11,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-23,12,fill,placeholder,请输入权限名称,${createdName},-,-,搜索权限名称
+TC-PERM-23,13,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-23,14,expectVisible,css,.el-table__row:has-text('${createdName}'),-,-,-,节点出现在树中
+TC-PERM-24,1,setupApi,permCreate,type=2,-,-,-,造待编辑权限
+TC-PERM-24,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-PERM-24,3,goto,-,/system/permission,-,-,-,进入权限管理页
+TC-PERM-24,4,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-24,5,fill,placeholder,请输入权限名称,${createdName},-,-,搜索节点
+TC-PERM-24,6,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-24,7,click,css,.el-table__row:has-text('${createdName}') button:has-text('编辑'),-,-,-,点击编辑
+TC-PERM-24,8,expectVisible,css,.el-dialog,-,-,-,编辑对话框可见
+TC-PERM-24,9,type,css,.el-dialog input[placeholder='如 system:user:list'],xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,-,-,输入120字符(超长)
+TC-PERM-24,10,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交新建
+TC-PERM-24,11,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-24,12,fill,placeholder,请输入权限名称,${createdName},-,-,搜索权限名称
+TC-PERM-24,13,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-24,14,expectVisible,css,.el-table__row:has-text('${createdName}'),-,-,-,节点出现在树中(前端maxlength仅录入100)
+TC-PERM-25,1,setupApi,permCreate,type=2,-,-,-,造待编辑权限
+TC-PERM-25,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-PERM-25,3,goto,-,/system/permission,-,-,-,进入权限管理页
+TC-PERM-25,4,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-25,5,fill,placeholder,请输入权限名称,${createdName},-,-,搜索节点
+TC-PERM-25,6,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-25,7,click,css,.el-table__row:has-text('${createdName}') button:has-text('编辑'),-,-,-,点击编辑
+TC-PERM-25,8,expectVisible,css,.el-dialog,-,-,-,编辑对话框可见
+TC-PERM-25,9,fill,css,.el-dialog input[placeholder='如 system:user:list'],1abc,-,-,填非法编码(数字开头)
+TC-PERM-25,10,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交
+TC-PERM-25,11,expectText,css,.el-dialog,-,权限编码以字母开头,text,格式校验提示
+TC-PERM-26,1,setupApi,permCreate,type=2,-,-,-,造待编辑权限(菜单)
+TC-PERM-26,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-PERM-26,3,goto,-,/system/permission,-,-,-,进入权限管理页
+TC-PERM-26,4,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-26,5,fill,placeholder,请输入权限名称,${createdName},-,-,搜索节点
+TC-PERM-26,6,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-26,7,click,css,.el-table__row:has-text('${createdName}') button:has-text('编辑'),-,-,-,点击编辑
+TC-PERM-26,8,expectVisible,css,.el-dialog,-,-,-,编辑对话框可见
+TC-PERM-26,9,fill,css,.el-dialog input[placeholder='如 /system/admin'],-,-,-,清空路径(替换原值)
+TC-PERM-26,10,type,css,.el-dialog input[placeholder='如 /system/admin'],aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,-,-,填255字符路径(最大值)
+TC-PERM-26,11,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交保存
+TC-PERM-26,12,expectHidden,css,.el-dialog,-,-,-,对话框关闭(保存成功)
+TC-PERM-26,13,fill,placeholder,请输入权限名称,${createdName},-,-,搜索节点
+TC-PERM-26,14,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-26,15,expectVisible,css,.el-table__row:has-text('${createdName}'),-,-,-,节点出现在树中(路径255已存)
+TC-PERM-27,1,setupApi,permCreate,type=2,-,-,-,造待编辑权限(菜单)
+TC-PERM-27,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-PERM-27,3,goto,-,/system/permission,-,-,-,进入权限管理页
+TC-PERM-27,4,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-27,5,fill,placeholder,请输入权限名称,${createdName},-,-,搜索节点
+TC-PERM-27,6,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-27,7,click,css,.el-table__row:has-text('${createdName}') button:has-text('编辑'),-,-,-,点击编辑
+TC-PERM-27,8,expectVisible,css,.el-dialog,-,-,-,编辑对话框可见
+TC-PERM-27,9,fill,css,.el-dialog input[placeholder='如 /system/admin'],-,-,-,清空路径(替换原值)
+TC-PERM-27,10,type,css,.el-dialog input[placeholder='如 /system/admin'],aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,-,-,输入260字符(超长-前端maxlength截断为255)
+TC-PERM-27,11,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交保存
+TC-PERM-27,12,expectHidden,css,.el-dialog,-,-,-,对话框关闭(保存成功)
+TC-PERM-27,13,fill,placeholder,请输入权限名称,${createdName},-,-,搜索节点
+TC-PERM-27,14,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-27,15,click,css,.el-table__row:has-text('${createdName}') button:has-text('编辑'),-,-,-,点击编辑
+TC-PERM-27,16,expectVisible,css,.el-dialog,-,-,-,编辑对话框可见
+TC-PERM-27,17,expectValue,css,.el-dialog input[placeholder='如 /system/admin'],-,aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,-,截断为255字符
+TC-PERM-28,1,setupApi,permCreate,type=2,-,-,-,造待编辑权限(菜单)
+TC-PERM-28,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-PERM-28,3,goto,-,/system/permission,-,-,-,进入权限管理页
+TC-PERM-28,4,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-28,5,fill,placeholder,请输入权限名称,${createdName},-,-,搜索节点
+TC-PERM-28,6,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-28,7,click,css,.el-table__row:has-text('${createdName}') button:has-text('编辑'),-,-,-,点击编辑
+TC-PERM-28,8,expectVisible,css,.el-dialog,-,-,-,编辑对话框可见
+TC-PERM-28,9,fill,css,.el-dialog input[placeholder='如 views/system/admin/index.vue'],-,-,-,清空组件路径(替换原值)
+TC-PERM-28,10,type,css,.el-dialog input[placeholder='如 views/system/admin/index.vue'],aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,-,-,填255字符组件路径(最大值)
+TC-PERM-28,11,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交保存
+TC-PERM-28,12,expectHidden,css,.el-dialog,-,-,-,对话框关闭(保存成功)
+TC-PERM-28,13,fill,placeholder,请输入权限名称,${createdName},-,-,搜索节点
+TC-PERM-28,14,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-28,15,expectVisible,css,.el-table__row:has-text('${createdName}'),-,-,-,节点出现在树中(组件路径255已存)
+TC-PERM-29,1,setupApi,permCreate,type=2,-,-,-,造待编辑权限(菜单)
+TC-PERM-29,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-PERM-29,3,goto,-,/system/permission,-,-,-,进入权限管理页
+TC-PERM-29,4,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-29,5,fill,placeholder,请输入权限名称,${createdName},-,-,搜索节点
+TC-PERM-29,6,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-29,7,click,css,.el-table__row:has-text('${createdName}') button:has-text('编辑'),-,-,-,点击编辑
+TC-PERM-29,8,expectVisible,css,.el-dialog,-,-,-,编辑对话框可见
+TC-PERM-29,9,fill,css,.el-dialog input[placeholder='如 views/system/admin/index.vue'],-,-,-,清空组件路径(替换原值)
+TC-PERM-29,10,type,css,.el-dialog input[placeholder='如 views/system/admin/index.vue'],aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,-,-,输入260字符(超长-前端maxlength截断为255)
+TC-PERM-29,11,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交保存
+TC-PERM-29,12,expectHidden,css,.el-dialog,-,-,-,对话框关闭(保存成功)
+TC-PERM-29,13,fill,placeholder,请输入权限名称,${createdName},-,-,搜索节点
+TC-PERM-29,14,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-29,15,click,css,.el-table__row:has-text('${createdName}') button:has-text('编辑'),-,-,-,点击编辑
+TC-PERM-29,16,expectVisible,css,.el-dialog,-,-,-,编辑对话框可见
+TC-PERM-29,17,expectValue,css,.el-dialog input[placeholder='如 views/system/admin/index.vue'],-,aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,-,截断为255字符
+TC-PERM-30,1,setupApi,permCreate,type=2,-,-,-,造待编辑权限(菜单)
+TC-PERM-30,2,apiReject,permission,-,id=${permissionId};permissionName=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,权限名称长度不能超过50,-,后端拒绝超长权限名称(>50编辑)
+TC-PERM-31,1,goto,-,/login,-,-,-,打开登录页
+TC-PERM-31,2,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-PERM-31,3,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-PERM-31,4,click,css,.login-btn,-,-,-,点击登录按钮
+TC-PERM-31,5,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-PERM-31,6,goto,-,/system/permission,-,-,-,进入权限管理页
+TC-PERM-31,7,setupApi,permTree,-,-,-,-,造权限子树
+TC-PERM-31,8,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-31,9,fill,placeholder,请输入权限名称,${dirName},-,-,搜索目录节点
+TC-PERM-31,10,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-31,11,click,css,.el-table__row:has-text('${dirName}') button:has-text('详情'),-,-,-,点击详情
+TC-PERM-31,12,expectVisible,css,.el-dialog,-,-,-,详情对话框可见
+TC-PERM-31,13,expectText,css,.el-dialog,-,${dirName},text,对话框含节点名
+TC-PERM-31,14,click,css,.el-dialog__footer button,-,-,-,关闭详情
+TC-PERM-32,1,goto,-,/login,-,-,-,打开登录页
+TC-PERM-32,2,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-PERM-32,3,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-PERM-32,4,click,css,.login-btn,-,-,-,点击登录按钮
+TC-PERM-32,5,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-PERM-32,6,goto,-,/system/permission,-,-,-,进入权限管理页
+TC-PERM-32,7,setupApi,permCreate,type=2,-,-,-,造待删除节点
+TC-PERM-32,8,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-32,9,fill,placeholder,请输入权限名称,${createdName},-,-,搜索节点
+TC-PERM-32,10,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-32,11,expectVisible,css,.el-table__row:has-text('${createdName}'),-,-,-,节点可见
+TC-PERM-32,12,click,css,.el-table__row:has-text('${createdName}') button:has-text('删除'),-,-,-,点击删除
+TC-PERM-32,13,expectVisible,css,.el-message-box,-,-,-,删除确认框可见
+TC-PERM-32,14,click,css,.el-message-box__btns button.el-button--primary,-,-,-,确认删除
+TC-PERM-32,15,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-32,16,fill,placeholder,请输入权限名称,${createdName},-,-,搜索节点
+TC-PERM-32,17,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-32,18,expectCount,css,.el-table__row:has-text('${createdName}'),-,0,-,节点已删除
+TC-PERM-33,1,setupApi,permBatch,count=2;type=3,-,-,-,造2条权限
+TC-PERM-33,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-PERM-33,3,goto,-,/system/permission,-,-,-,进入权限管理页
+TC-PERM-33,4,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-33,5,fill,placeholder,请输入权限名称,${permPrefix},-,-,按前缀搜索
+TC-PERM-33,6,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-33,7,expectCount,css,.el-table__row:has-text('${permPrefix}'),-,2,-,搜索命中2行(等待渲染完成再全选)
+TC-PERM-33,8,selectAll,-,-,-,-,-,全选
+TC-PERM-33,9,click,css,.action-bar .el-button:has-text('删除'),-,-,-,点击批量删除
+TC-PERM-33,10,expectVisible,css,.el-message-box,-,-,-,删除确认框可见
+TC-PERM-33,11,click,css,.el-message-box__btns .el-button--primary,-,-,-,确认删除
+TC-PERM-33,12,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-33,13,fill,placeholder,请输入权限名称,${permPrefix},-,-,重新搜索
+TC-PERM-33,14,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-33,15,expectCount,css,.el-table__row:has-text('${permPrefix}'),-,0,-,权限已删除
+TC-PERM-34,1,setupApi,roleCreate,desc=E2E-授权校验,-,-,-,造独立角色
+TC-PERM-34,2,setupApi,permCreate,type=2,-,-,-,造菜单权限
+TC-PERM-34,3,goto,-,/login,-,-,-,打开登录页
+TC-PERM-34,4,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-PERM-34,5,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-PERM-34,6,click,css,.login-btn,-,-,-,点击登录按钮
+TC-PERM-34,7,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-PERM-34,8,goto,-,/system/role,-,-,-,进入角色管理页
+TC-PERM-34,9,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${roleName},-,-,按名称搜索角色
+TC-PERM-34,10,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-34,11,selectRow,-,${roleName},-,-,-,选中角色
+TC-PERM-34,12,click,css,.action-bar .el-button:has-text('分配权限'),-,-,-,点击分配权限
+TC-PERM-34,13,expectVisible,css,.el-dialog,-,-,-,对话框可见
+TC-PERM-34,14,expectVisible,css,.el-dialog .el-tree-node__content:has-text('${createdName}'),-,-,-,目标权限节点可见
+TC-PERM-34,15,toggleTree,-,${createdName},-,-,-,勾选权限
+TC-PERM-34,16,expectTreeChecked,-,${createdName},-,true,-,目标节点已勾选
+TC-PERM-34,17,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交
+TC-PERM-34,18,expectHidden,css,.el-dialog,-,-,-,对话框关闭
+TC-PERM-34,19,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${roleName},-,-,重新搜索角色
+TC-PERM-34,20,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-34,21,selectRow,-,${roleName},-,-,-,选中角色
+TC-PERM-34,22,click,css,.action-bar .el-button:has-text('分配权限'),-,-,-,点击分配权限
+TC-PERM-34,23,expectVisible,css,.el-dialog,-,-,-,对话框可见
+TC-PERM-34,24,expectTreeChecked,-,${createdName},-,true,-,回显含该权限
+TC-ROLE-01,1,goto,-,/login,-,-,-,打开登录页
+TC-ROLE-01,2,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-ROLE-01,3,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-ROLE-01,4,click,css,.login-btn,-,-,-,点击登录按钮
+TC-ROLE-01,5,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-ROLE-01,6,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-01,7,expectVisible,css,.el-table,-,-,-,等待表格加载
+TC-ROLE-01,8,expectVisible,css,.page-container,-,-,-,页面容器存在
+TC-ROLE-01,9,expectVisible,css,.search-bar,-,-,-,搜索区存在
+TC-ROLE-01,10,expectVisible,css,.action-bar,-,-,-,按钮区存在
+TC-ROLE-01,11,expectVisible,css,.data-area,-,-,-,数据区存在
+TC-ROLE-02,1,goto,-,/login,-,-,-,打开登录页
+TC-ROLE-02,2,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-ROLE-02,3,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-ROLE-02,4,click,css,.login-btn,-,-,-,点击登录按钮
+TC-ROLE-02,5,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-ROLE-02,6,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-02,7,expectVisible,css,.el-table,-,-,-,等待表格加载
+TC-ROLE-02,8,expectVisible,css,.search-bar .el-input__inner[placeholder='请输入角色名'],-,-,-,角色名输入框存在
+TC-ROLE-02,9,expectVisible,css,.search-bar .el-select,-,-,-,状态选择器存在
+TC-ROLE-02,10,expectVisible,css,.search-bar .el-button:has-text('搜索'),-,-,-,搜索按钮存在
+TC-ROLE-02,11,expectVisible,css,.search-bar .el-button:has-text('重置'),-,-,-,重置按钮存在
+TC-ROLE-03,1,setupApi,roleCreate,desc=E2E-搜索功能,-,-,-,造1条角色
+TC-ROLE-03,2,goto,-,/login,-,-,-,打开登录页
+TC-ROLE-03,3,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-ROLE-03,4,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-ROLE-03,5,click,css,.login-btn,-,-,-,点击登录按钮
+TC-ROLE-03,6,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-ROLE-03,7,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-03,8,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${roleName},-,-,按名称搜索
+TC-ROLE-03,9,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-03,10,expectCount,css,.el-table__body tr,-,1,-,命中1行
+TC-ROLE-03,11,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${roleName}_notexist,-,-,搜索不存在名
+TC-ROLE-03,12,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-03,13,expectCount,css,.el-table__body tr,-,0,-,结果为0行
+TC-ROLE-04,1,goto,-,/login,-,-,-,打开登录页
+TC-ROLE-04,2,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-ROLE-04,3,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-ROLE-04,4,click,css,.login-btn,-,-,-,点击登录按钮
+TC-ROLE-04,5,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-ROLE-04,6,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-04,7,expectVisible,css,.el-table,-,-,-,等待表格加载
+TC-ROLE-04,8,expectVisible,css,.action-bar .el-button:has-text('新增'),-,-,-,新增按钮存在
+TC-ROLE-04,9,expectVisible,css,.action-bar .el-button:has-text('编辑'),-,-,-,编辑按钮存在
+TC-ROLE-04,10,expectVisible,css,.action-bar .el-button:has-text('删除'),-,-,-,删除按钮存在
+TC-ROLE-04,11,expectVisible,css,.action-bar .el-button:has-text('禁用'),-,-,-,禁用按钮存在
+TC-ROLE-04,12,expectVisible,css,.action-bar .el-button:has-text('启用'),-,-,-,启用按钮存在
+TC-ROLE-04,13,expectVisible,css,.action-bar .el-button:has-text('分配权限'),-,-,-,分配权限按钮存在
+TC-ROLE-05,1,goto,-,/login,-,-,-,打开登录页
+TC-ROLE-05,2,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-ROLE-05,3,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-ROLE-05,4,click,css,.login-btn,-,-,-,点击登录按钮
+TC-ROLE-05,5,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-ROLE-05,6,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-05,7,expectVisible,css,.el-table,-,-,-,等待表格加载
+TC-ROLE-05,8,deselectAll,-,-,-,-,-,确保无选中
+TC-ROLE-05,9,expectEnabled,css,.action-bar .el-button:has-text('禁用'),-,-,disabled,批量禁用禁用
+TC-ROLE-05,10,expectEnabled,css,.action-bar .el-button:has-text('启用'),-,-,disabled,批量启用禁用
+TC-ROLE-05,11,expectEnabled,css,.action-bar .el-button:has-text('分配权限'),-,-,disabled,分配权限禁用
+TC-ROLE-06,1,goto,-,/login,-,-,-,打开登录页
+TC-ROLE-06,2,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-ROLE-06,3,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-ROLE-06,4,click,css,.login-btn,-,-,-,点击登录按钮
+TC-ROLE-06,5,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-ROLE-06,6,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-06,7,expectVisible,css,.el-table,-,-,-,等待表格加载
+TC-ROLE-06,8,deselectAll,-,-,-,-,-,确保无选中
+TC-ROLE-06,9,expectEnabled,css,.action-bar .el-button:has-text('删除'),-,-,disabled,删除禁用
+TC-ROLE-07,1,goto,-,/login,-,-,-,打开登录页
+TC-ROLE-07,2,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-ROLE-07,3,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-ROLE-07,4,click,css,.login-btn,-,-,-,点击登录按钮
+TC-ROLE-07,5,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-ROLE-07,6,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-07,7,expectVisible,css,.el-table,-,-,-,等待表格加载
+TC-ROLE-07,8,expectVisible,css,.el-table__header .el-checkbox__input,-,-,-,表头复选框存在
+TC-ROLE-08,1,goto,-,/login,-,-,-,打开登录页
+TC-ROLE-08,2,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-ROLE-08,3,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-ROLE-08,4,click,css,.login-btn,-,-,-,点击登录按钮
+TC-ROLE-08,5,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-ROLE-08,6,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-08,7,expectVisible,css,.el-table,-,-,-,等待表格加载
+TC-ROLE-08,8,expectVisible,css,.el-pagination,-,-,-,分页组件存在
+TC-ROLE-08,9,expectVisible,css,.el-pagination button.btn-prev,-,-,-,上一页按钮存在
+TC-ROLE-08,10,expectVisible,css,.el-pagination button.btn-next,-,-,-,下一页按钮存在
+TC-ROLE-09,1,setupApi,roleBatch,count=2;desc=E2E-列表显示,-,-,-,造2条角色
+TC-ROLE-09,2,goto,-,/login,-,-,-,打开登录页
+TC-ROLE-09,3,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-ROLE-09,4,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-ROLE-09,5,click,css,.login-btn,-,-,-,点击登录按钮
+TC-ROLE-09,6,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-ROLE-09,7,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-09,8,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${rolePrefix},-,-,按前缀搜索
+TC-ROLE-09,9,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-09,10,expectCount,css,.el-table__body tr,-,2,-,列表显示2行
+TC-ROLE-10,1,setupApi,roleBatch,count=2;desc=E2E-全选功能,-,-,-,造2条角色
+TC-ROLE-10,2,goto,-,/login,-,-,-,打开登录页
+TC-ROLE-10,3,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-ROLE-10,4,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-ROLE-10,5,click,css,.login-btn,-,-,-,点击登录按钮
+TC-ROLE-10,6,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-ROLE-10,7,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-10,8,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${rolePrefix},-,-,按前缀搜索
+TC-ROLE-10,9,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-10,10,selectAll,-,-,-,-,-,全选
+TC-ROLE-10,11,expectChecked,css,.el-table__header .el-checkbox__input,-,true,-,表头复选框选中
+TC-ROLE-10,12,expectChecked,css,.el-table__body .el-checkbox__input,0,true,-,首行复选框选中
+TC-ROLE-10,13,deselectAll,-,-,-,-,-,取消全选
+TC-ROLE-10,14,expectChecked,css,.el-table__header .el-checkbox__input,-,false,-,表头复选框未选中
+TC-ROLE-11,1,setupApi,roleBatch,count=11;desc=E2E-翻页功能,-,-,-,造11条角色
+TC-ROLE-11,2,goto,-,/login,-,-,-,打开登录页
+TC-ROLE-11,3,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-ROLE-11,4,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-ROLE-11,5,click,css,.login-btn,-,-,-,点击登录按钮
+TC-ROLE-11,6,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-ROLE-11,7,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-11,8,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${rolePrefix},-,-,按前缀搜索
+TC-ROLE-11,9,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-11,10,expectCount,css,.el-table__body tr,-,10,-,第1页10行
+TC-ROLE-11,11,click,css,.el-pagination button.btn-next,-,-,-,下一页
+TC-ROLE-11,12,expectCount,css,.el-table__body tr,-,1,-,第2页1行
+TC-ROLE-11,13,expectURL,-,-,-,/system/role,url,翻页后URL不变
+TC-ROLE-11,14,click,css,.el-pagination button.btn-prev,-,-,-,上一页
+TC-ROLE-11,15,expectCount,css,.el-table__body tr,-,10,-,回到第1页10行
+TC-ROLE-12,1,setupApi,roleCreate,status=1;desc=E2E-状态正常,-,-,-,造正常角色
+TC-ROLE-12,2,goto,-,/login,-,-,-,打开登录页
+TC-ROLE-12,3,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-ROLE-12,4,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-ROLE-12,5,click,css,.login-btn,-,-,-,点击登录按钮
+TC-ROLE-12,6,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-ROLE-12,7,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-12,8,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${roleName},-,-,按名称搜索
+TC-ROLE-12,9,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-12,10,expectCell,-,${roleName},4,正常,text,状态列显示正常
+TC-ROLE-13,1,setupApi,roleCreate,status=0;desc=E2E-状态禁用,-,-,-,造禁用角色
+TC-ROLE-13,2,goto,-,/login,-,-,-,打开登录页
+TC-ROLE-13,3,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-ROLE-13,4,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-ROLE-13,5,click,css,.login-btn,-,-,-,点击登录按钮
+TC-ROLE-13,6,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-ROLE-13,7,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-13,8,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${roleName},-,-,按名称搜索
+TC-ROLE-13,9,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-13,10,expectCell,-,${roleName},4,禁用,text,状态列显示禁用
+TC-ROLE-14,1,setupApi,roleNameGen,-,-,-,-,生成角色名
+TC-ROLE-14,2,goto,-,/login,-,-,-,打开登录页
+TC-ROLE-14,3,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-ROLE-14,4,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-ROLE-14,5,click,css,.login-btn,-,-,-,点击登录按钮
+TC-ROLE-14,6,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-ROLE-14,7,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-14,8,click,css,.action-bar .el-button:has-text('新增'),-,-,-,点击新增
+TC-ROLE-14,9,expectVisible,css,.el-dialog,-,-,-,对话框可见
+TC-ROLE-14,10,fill,css,.el-dialog input[placeholder='请输入角色名'],${newRoleName},-,-,填角色名
+TC-ROLE-14,11,fill,css,.el-dialog textarea[placeholder='请输入描述'],E2E-添加角色,-,-,填描述
+TC-ROLE-14,12,fill,css,.el-dialog .el-input-number input,99,-,-,填排序
+TC-ROLE-14,13,click,css,.el-dialog .el-radio__label:has-text('正常'),-,-,-,选正常状态
+TC-ROLE-14,14,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交
+TC-ROLE-14,15,expectHidden,css,.el-dialog,-,-,-,对话框关闭
+TC-ROLE-14,16,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${newRoleName},-,-,按名称搜索
+TC-ROLE-14,17,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-14,18,expectCount,css,.el-table__body tr,-,1,-,新角色出现
+TC-ROLE-15,1,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ROLE-15,2,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-15,3,expectVisible,css,.el-table,-,-,-,等待表格加载
+TC-ROLE-15,4,click,css,.action-bar .el-button:has-text('新增'),-,-,-,点击新增
+TC-ROLE-15,5,expectVisible,css,.el-dialog,-,-,-,对话框出现
+TC-ROLE-15,6,click,css,.el-dialog__footer button.el-button--primary,-,-,-,直接提交(角色名为空)
+TC-ROLE-15,7,expectText,css,.el-dialog,-,请输入角色名,text,必填校验提示
+TC-ROLE-16,1,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ROLE-16,2,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-16,3,expectVisible,css,.el-table,-,-,-,等待表格加载
+TC-ROLE-16,4,click,css,.action-bar .el-button:has-text('新增'),-,-,-,点击新增
+TC-ROLE-16,5,expectVisible,css,.el-dialog,-,-,-,对话框出现
+TC-ROLE-16,6,type,css,.el-dialog input[placeholder='请输入角色名'],e2e-TC-ROLE-16-xxxxxxxxxxxxxxx,-,-,填30字符角色名(最大值)
+TC-ROLE-16,7,fill,css,.el-dialog textarea[placeholder='请输入描述'],E2E-边界值,-,-,填描述
+TC-ROLE-16,8,click,css,.el-dialog .el-radio__label:has-text('正常'),-,-,-,选正常状态
+TC-ROLE-16,9,fill,css,.el-dialog .el-input-number input,99,-,-,填排序
+TC-ROLE-16,10,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交
+TC-ROLE-16,11,expectHidden,css,.el-dialog,-,-,-,对话框关闭
+TC-ROLE-16,12,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],e2e-TC-ROLE-16-,-,-,搜索角色名前缀
+TC-ROLE-16,13,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-16,14,expectVisible,css,.el-table__body tr:has-text('e2e-TC-ROLE-16-'),-,-,-,列表含新角色
+TC-ROLE-17,1,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ROLE-17,2,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-17,3,expectVisible,css,.el-table,-,-,-,等待表格加载
+TC-ROLE-17,4,click,css,.action-bar .el-button:has-text('新增'),-,-,-,点击新增
+TC-ROLE-17,5,expectVisible,css,.el-dialog,-,-,-,对话框出现
+TC-ROLE-17,6,type,css,.el-dialog input[placeholder='请输入角色名'],e2e-TC-ROLE-17-xxxxxxxxxxxxxxxxxxxxxxxxx,-,-,输入40字符(超长)
+TC-ROLE-17,7,fill,css,.el-dialog textarea[placeholder='请输入描述'],E2E-边界值,-,-,填描述
+TC-ROLE-17,8,click,css,.el-dialog .el-radio__label:has-text('正常'),-,-,-,选正常状态
+TC-ROLE-17,9,fill,css,.el-dialog .el-input-number input,99,-,-,填排序
+TC-ROLE-17,10,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交
+TC-ROLE-17,11,expectHidden,css,.el-dialog,-,-,-,对话框关闭
+TC-ROLE-17,12,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],e2e-TC-ROLE-17-,-,-,搜索角色名前缀
+TC-ROLE-17,13,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-17,14,expectVisible,css,.el-table__body tr:has-text('e2e-TC-ROLE-17-'),-,-,-,列表含新角色(截断为30)
+TC-ROLE-18,1,apiReject,role,-,roleName=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,角色名长度不能超过30,-,后端拒绝超长角色名
+TC-ROLE-19,1,apiReject,role,-,roleName=,请输入角色名,-,后端拒绝空角色名
+TC-ROLE-20,1,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ROLE-20,2,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-20,3,expectVisible,css,.el-table,-,-,-,等待表格加载
+TC-ROLE-20,4,setupApi,roleNameGen,-,-,-,-,生成角色名前缀
+TC-ROLE-20,5,click,css,.action-bar .el-button:has-text('新增'),-,-,-,点击新增
+TC-ROLE-20,6,expectVisible,css,.el-dialog,-,-,-,对话框出现
+TC-ROLE-20,7,fill,css,.el-dialog input[placeholder='请输入角色名'],${newRoleName},-,-,填角色名
+TC-ROLE-20,8,type,css,.el-dialog textarea[placeholder='请输入描述'],dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd,-,-,填200字符描述(最大值)
+TC-ROLE-20,9,click,css,.el-dialog .el-radio__label:has-text('正常'),-,-,-,选正常状态
+TC-ROLE-20,10,fill,css,.el-dialog .el-input-number input,99,-,-,填排序
+TC-ROLE-20,11,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交
+TC-ROLE-20,12,expectHidden,css,.el-dialog,-,-,-,对话框关闭
+TC-ROLE-20,13,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${newRoleName},-,-,搜索角色名
+TC-ROLE-20,14,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-20,15,expectVisible,css,.el-table__body tr:has-text('${newRoleName}'),-,-,-,列表含新角色
+TC-ROLE-21,1,apiReject,role,-,description=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,角色描述长度不能超过200,-,后端拒绝超长描述(>200)
+TC-ROLE-22,1,setupApi,roleCreate,desc=E2E-编辑角色,-,-,-,造1条角色
+TC-ROLE-22,2,goto,-,/login,-,-,-,打开登录页
+TC-ROLE-22,3,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-ROLE-22,4,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-ROLE-22,5,click,css,.login-btn,-,-,-,点击登录按钮
+TC-ROLE-22,6,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-ROLE-22,7,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-22,8,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${roleName},-,-,按名称搜索
+TC-ROLE-22,9,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-22,10,selectRow,-,${roleName},-,-,-,选中目标行
+TC-ROLE-22,11,click,css,.action-bar .el-button:has-text('编辑'),-,-,-,点击编辑
+TC-ROLE-22,12,expectVisible,css,.el-dialog,-,-,-,对话框可见
+TC-ROLE-22,13,fill,css,.el-dialog textarea[placeholder='请输入描述'],E2E-编辑后角色,-,-,改描述
+TC-ROLE-22,14,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交
+TC-ROLE-22,15,expectHidden,css,.el-dialog,-,-,-,对话框关闭
+TC-ROLE-22,16,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${roleName},-,-,重新搜索
+TC-ROLE-22,17,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-22,18,expectCell,-,${roleName},3,E2E-编辑后角色,text,描述列显示新值
+TC-ROLE-22,19,selectRow,-,${roleName},-,-,-,选中目标行
+TC-ROLE-22,20,click,css,.action-bar .el-button:has-text('编辑'),-,-,-,点击编辑
+TC-ROLE-22,21,expectVisible,css,.el-dialog,-,-,-,对话框可见
+TC-ROLE-22,22,expectValue,css,.el-dialog textarea[placeholder='请输入描述'],-,E2E-编辑后角色,-,描述框值为新值
+TC-ROLE-22,23,click,css,.el-dialog__headerbtn,-,-,-,关闭对话框
+TC-ROLE-22,24,expectHidden,css,.el-dialog,-,-,-,对话框关闭
+TC-ROLE-22,25,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${roleName},-,-,重新搜索
+TC-ROLE-22,26,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-22,27,selectRow,-,${roleName},-,-,-,选中目标行
+TC-ROLE-22,28,click,css,.action-bar .el-button:has-text('编辑'),-,-,-,点击编辑
+TC-ROLE-22,29,expectVisible,css,.el-dialog,-,-,-,对话框可见
+TC-ROLE-22,30,fill,css,.el-dialog textarea[placeholder='请输入描述'],E2E-编辑角色,-,-,改回原描述
+TC-ROLE-22,31,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交
+TC-ROLE-22,32,expectHidden,css,.el-dialog,-,-,-,对话框关闭
+TC-ROLE-23,1,setupApi,roleCreate,desc=E2E-编辑校验;status=1,-,-,-,造1条角色
+TC-ROLE-23,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ROLE-23,3,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-23,4,expectVisible,css,.el-table,-,-,-,等待表格加载
+TC-ROLE-23,5,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${roleName},-,-,按名称搜索
+TC-ROLE-23,6,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-23,7,selectRow,-,${roleName},-,-,-,选中目标行
+TC-ROLE-23,8,click,css,.action-bar .el-button:has-text('编辑'),-,-,-,点击编辑
+TC-ROLE-23,9,expectVisible,css,.el-dialog,-,-,-,对话框出现
+TC-ROLE-23,10,fill,css,.el-dialog input[placeholder='请输入角色名'],-,-,-,清空角色名
+TC-ROLE-23,11,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交
+TC-ROLE-23,12,expectText,css,.el-dialog,-,请输入角色名,text,必填校验提示
+TC-ROLE-24,1,setupApi,roleCreate,desc=E2E-编辑校验;status=1,-,-,-,造1条角色
+TC-ROLE-24,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ROLE-24,3,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-24,4,expectVisible,css,.el-table,-,-,-,等待表格加载
+TC-ROLE-24,5,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${roleName},-,-,按名称搜索
+TC-ROLE-24,6,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-24,7,selectRow,-,${roleName},-,-,-,选中目标行
+TC-ROLE-24,8,click,css,.action-bar .el-button:has-text('编辑'),-,-,-,点击编辑
+TC-ROLE-24,9,expectVisible,css,.el-dialog,-,-,-,对话框出现
+TC-ROLE-24,10,fill,css,.el-dialog input[placeholder='请输入角色名'],e2e-TC-ROLE-24-xxxxxxxxxxxxxxx,-,-,填30字符角色名(最大值)
+TC-ROLE-24,11,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交
+TC-ROLE-24,12,expectHidden,css,.el-dialog,-,-,-,对话框关闭
+TC-ROLE-24,13,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],e2e-TC-ROLE-24-,-,-,搜索新角色名
+TC-ROLE-24,14,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-24,15,expectVisible,css,.el-table__body tr:has-text('e2e-TC-ROLE-24-'),-,-,-,列表含编辑后角色
+TC-ROLE-25,1,setupApi,roleCreate,desc=E2E-编辑校验;status=1,-,-,-,造1条角色
+TC-ROLE-25,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ROLE-25,3,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-25,4,expectVisible,css,.el-table,-,-,-,等待表格加载
+TC-ROLE-25,5,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${roleName},-,-,按名称搜索
+TC-ROLE-25,6,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-25,7,selectRow,-,${roleName},-,-,-,选中目标行
+TC-ROLE-25,8,click,css,.action-bar .el-button:has-text('编辑'),-,-,-,点击编辑
+TC-ROLE-25,9,expectVisible,css,.el-dialog,-,-,-,对话框出现
+TC-ROLE-25,10,fill,css,.el-dialog input[placeholder='请输入角色名'],-,-,-,清空原角色名
+TC-ROLE-25,11,type,css,.el-dialog input[placeholder='请输入角色名'],e2e-TC-ROLE-25-xxxxxxxxxxxxxxxxxxxxxxxxx,-,-,输入40字符(超长-前端maxlength截断为30)
+TC-ROLE-25,12,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交
+TC-ROLE-25,13,expectHidden,css,.el-dialog,-,-,-,对话框关闭
+TC-ROLE-25,14,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],e2e-TC-ROLE-25-,-,-,搜索角色名前缀
+TC-ROLE-25,15,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-25,16,expectVisible,css,.el-table__body tr:has-text('e2e-TC-ROLE-25-'),-,-,-,列表含编辑后角色(截断为30)
+TC-ROLE-26,1,setupApi,roleCreate,desc=E2E-编辑校验;status=1,-,-,-,造1条角色
+TC-ROLE-26,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ROLE-26,3,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-26,4,expectVisible,css,.el-table,-,-,-,等待表格加载
+TC-ROLE-26,5,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${roleName},-,-,按名称搜索
+TC-ROLE-26,6,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-26,7,selectRow,-,${roleName},-,-,-,选中目标行
+TC-ROLE-26,8,click,css,.action-bar .el-button:has-text('编辑'),-,-,-,点击编辑
+TC-ROLE-26,9,expectVisible,css,.el-dialog,-,-,-,对话框出现
+TC-ROLE-26,10,type,css,.el-dialog textarea[placeholder='请输入描述'],dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd,-,-,填200字符描述(最大值)
+TC-ROLE-26,11,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交
+TC-ROLE-26,12,expectHidden,css,.el-dialog,-,-,-,对话框关闭
+TC-ROLE-26,13,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${roleName},-,-,重新搜索
+TC-ROLE-26,14,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-26,15,expectVisible,css,.el-table__body tr:has-text('${roleName}'),-,-,-,列表含编辑后角色
+TC-ROLE-27,1,setupApi,roleCreate,desc=E2E-编辑校验;status=1,-,-,-,造1条角色
+TC-ROLE-27,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ROLE-27,3,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-27,4,expectVisible,css,.el-table,-,-,-,等待表格加载
+TC-ROLE-27,5,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${roleName},-,-,按名称搜索
+TC-ROLE-27,6,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-27,7,selectRow,-,${roleName},-,-,-,选中目标行
+TC-ROLE-27,8,click,css,.action-bar .el-button:has-text('编辑'),-,-,-,点击编辑
+TC-ROLE-27,9,expectVisible,css,.el-dialog,-,-,-,对话框出现
+TC-ROLE-27,10,fill,css,.el-dialog textarea[placeholder='请输入描述'],-,-,-,清空描述(替换原值)
+TC-ROLE-27,11,type,css,.el-dialog textarea[placeholder='请输入描述'],aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,-,-,输入260字符(超长-前端maxlength截断为200)
+TC-ROLE-27,12,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交
+TC-ROLE-27,13,expectHidden,css,.el-dialog,-,-,-,对话框关闭(保存成功)
+TC-ROLE-27,14,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${roleName},-,-,重新搜索
+TC-ROLE-27,15,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-27,16,expectVisible,css,.el-table__body tr:has-text('${roleName}'),-,-,-,列表含编辑后角色(描述截断为200)
+TC-ROLE-28,1,setupApi,roleCreate,desc=E2E-编辑校验;status=1,-,-,-,造1条角色
+TC-ROLE-28,2,apiReject,role,-,id=${roleId};description=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,角色描述长度不能超过200,-,后端拒绝超长描述(>200编辑)
+TC-ROLE-29,1,setupApi,roleCreate,desc=E2E-查看详情,-,-,-,造1条角色
+TC-ROLE-29,2,goto,-,/login,-,-,-,打开登录页
+TC-ROLE-29,3,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-ROLE-29,4,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-ROLE-29,5,click,css,.login-btn,-,-,-,点击登录按钮
+TC-ROLE-29,6,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-ROLE-29,7,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-29,8,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${roleName},-,-,按名称搜索
+TC-ROLE-29,9,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-29,10,selectRow,-,${roleName},-,-,-,选中目标行
+TC-ROLE-29,11,clickRow,-,${roleName},详情,-,-,点击详情
+TC-ROLE-29,12,expectVisible,css,.el-dialog,-,-,-,详情对话框可见
+TC-ROLE-29,13,expectText,css,.el-dialog,-,${roleName},text,对话框含角色名
+TC-ROLE-30,1,setupApi,roleCreate,desc=E2E-删除角色,-,-,-,造1条角色
+TC-ROLE-30,2,goto,-,/login,-,-,-,打开登录页
+TC-ROLE-30,3,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-ROLE-30,4,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-ROLE-30,5,click,css,.login-btn,-,-,-,点击登录按钮
+TC-ROLE-30,6,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-ROLE-30,7,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-30,8,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${roleName},-,-,按名称搜索
+TC-ROLE-30,9,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-30,10,selectRow,-,${roleName},-,-,-,选中目标行
+TC-ROLE-30,11,click,css,.action-bar .el-button:has-text('删除'),-,-,-,点击删除
+TC-ROLE-30,12,expectVisible,css,.el-message-box,-,-,-,删除确认框可见
+TC-ROLE-30,13,click,css,.el-message-box__btns .el-button--primary,-,-,-,确认删除
+TC-ROLE-30,14,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${roleName},-,-,重新搜索
+TC-ROLE-30,15,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-30,16,expectCount,css,.el-table__body tr,-,0,-,角色已删除
+TC-ROLE-31,1,setupApi,roleBatch,count=2;desc=E2E-批量删除;status=1,-,-,-,造2条角色
+TC-ROLE-31,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-ROLE-31,3,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-31,4,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${rolePrefix},-,-,按前缀搜索
+TC-ROLE-31,5,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-31,6,selectAll,-,-,-,-,-,全选
+TC-ROLE-31,7,click,css,.action-bar .el-button:has-text('删除'),-,-,-,点击批量删除
+TC-ROLE-31,8,expectVisible,css,.el-message-box,-,-,-,删除确认框可见
+TC-ROLE-31,9,click,css,.el-message-box__btns .el-button--primary,-,-,-,确认删除
+TC-ROLE-31,10,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${rolePrefix},-,-,重新搜索
+TC-ROLE-31,11,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-31,12,expectCount,css,.el-table__body tr,-,0,-,角色已删除
+TC-ROLE-32,1,setupApi,roleBatch,count=2;desc=E2E-批量禁用,-,-,-,造2条角色
+TC-ROLE-32,2,goto,-,/login,-,-,-,打开登录页
+TC-ROLE-32,3,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-ROLE-32,4,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-ROLE-32,5,click,css,.login-btn,-,-,-,点击登录按钮
+TC-ROLE-32,6,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-ROLE-32,7,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-32,8,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${rolePrefix},-,-,按前缀搜索
+TC-ROLE-32,9,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-32,10,selectRow,-,${roleName0},-,-,-,选中第1行
+TC-ROLE-32,11,selectRow,-,${roleName1},-,-,-,选中第2行
+TC-ROLE-32,12,click,css,.action-bar .el-button:has-text('禁用'),-,-,-,点击批量禁用
+TC-ROLE-32,13,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${rolePrefix},-,-,重新搜索
+TC-ROLE-32,14,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-32,15,expectCell,-,${roleName0},4,禁用,text,第1行状态禁用
+TC-ROLE-32,16,expectCell,-,${roleName1},4,禁用,text,第2行状态禁用
+TC-ROLE-33,1,setupApi,roleCreate,status=1;desc=E2E-禁用角色,-,-,-,造正常角色
+TC-ROLE-33,2,goto,-,/login,-,-,-,打开登录页
+TC-ROLE-33,3,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-ROLE-33,4,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-ROLE-33,5,click,css,.login-btn,-,-,-,点击登录按钮
+TC-ROLE-33,6,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-ROLE-33,7,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-33,8,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${roleName},-,-,按名称搜索
+TC-ROLE-33,9,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-33,10,selectRow,-,${roleName},-,-,-,选中目标行
+TC-ROLE-33,11,clickRow,-,${roleName},禁用,-,-,点击禁用
+TC-ROLE-33,12,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${roleName},-,-,重新搜索
+TC-ROLE-33,13,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-33,14,expectCell,-,${roleName},4,禁用,text,状态列显示禁用
+TC-ROLE-34,1,setupApi,roleBatch,count=1;status=0;desc=E2E-批量启用,-,-,-,造1条禁用角色
+TC-ROLE-34,2,goto,-,/login,-,-,-,打开登录页
+TC-ROLE-34,3,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-ROLE-34,4,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-ROLE-34,5,click,css,.login-btn,-,-,-,点击登录按钮
+TC-ROLE-34,6,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-ROLE-34,7,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-34,8,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${rolePrefix},-,-,按前缀搜索
+TC-ROLE-34,9,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-34,10,selectRow,-,${roleName0},-,-,-,选中第1行
+TC-ROLE-34,11,click,css,.action-bar .el-button:has-text('启用'),-,-,-,点击批量启用
+TC-ROLE-34,12,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${rolePrefix},-,-,重新搜索
+TC-ROLE-34,13,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-34,14,expectCell,-,${roleName0},4,正常,text,状态列显示正常
+TC-ROLE-35,1,setupApi,roleCreate,status=0;desc=E2E-启用角色,-,-,-,造禁用角色
+TC-ROLE-35,2,goto,-,/login,-,-,-,打开登录页
+TC-ROLE-35,3,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-ROLE-35,4,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-ROLE-35,5,click,css,.login-btn,-,-,-,点击登录按钮
+TC-ROLE-35,6,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-ROLE-35,7,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-35,8,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${roleName},-,-,按名称搜索
+TC-ROLE-35,9,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-35,10,selectRow,-,${roleName},-,-,-,选中目标行
+TC-ROLE-35,11,clickRow,-,${roleName},启用,-,-,点击启用
+TC-ROLE-35,12,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${roleName},-,-,重新搜索
+TC-ROLE-35,13,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-35,14,expectCell,-,${roleName},4,正常,text,状态列显示正常
+TC-ROLE-36,1,setupApi,roleBatch,count=1;desc=E2E-分配权限,-,-,-,造1条角色
+TC-ROLE-36,2,goto,-,/login,-,-,-,打开登录页
+TC-ROLE-36,3,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-ROLE-36,4,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-ROLE-36,5,click,css,.login-btn,-,-,-,点击登录按钮
+TC-ROLE-36,6,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-ROLE-36,7,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-36,8,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${rolePrefix},-,-,按前缀搜索
+TC-ROLE-36,9,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-36,10,selectRow,-,${roleName0},-,-,-,选中第1行
+TC-ROLE-36,11,click,css,.action-bar .el-button:has-text('分配权限'),-,-,-,点击分配权限
+TC-ROLE-36,12,expectVisible,css,.el-dialog,-,-,-,对话框可见
+TC-ROLE-36,13,expectText,css,.el-dialog,-,分配权限,text,标题为分配权限
+TC-ROLE-36,14,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交
+TC-ROLE-36,15,expectHidden,css,.el-dialog,-,-,-,对话框关闭
+TC-ROLE-36,16,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${rolePrefix},-,-,重新搜索
+TC-ROLE-36,17,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-36,18,expectCount,css,.el-table__body tr,-,1,-,角色仍存在
+TC-ROLE-37,1,setupApi,rolePermLeaf,-,-,-,-,造角色与权限子树
+TC-ROLE-37,2,goto,-,/login,-,-,-,打开登录页
+TC-ROLE-37,3,fill,placeholder,请输入用户名,admin,-,-,输入用户名
+TC-ROLE-37,4,fill,placeholder,请输入密码,admin123,-,-,输入密码
+TC-ROLE-37,5,click,css,.login-btn,-,-,-,点击登录按钮
+TC-ROLE-37,6,expectURL,-,-,-,/dashboard,url,跳转仪表盘
+TC-ROLE-37,7,goto,-,/system/role,-,-,-,进入角色管理页
+TC-ROLE-37,8,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${roleName},-,-,按名称搜索
+TC-ROLE-37,9,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-37,10,selectRow,-,${roleName},-,-,-,选中角色
+TC-ROLE-37,11,click,css,.action-bar .el-button:has-text('分配权限'),-,-,-,点击分配权限
+TC-ROLE-37,12,expectVisible,css,.el-dialog,-,-,-,对话框可见
+TC-ROLE-37,13,expectVisible,css,.el-dialog .el-tree-node__content:has-text('${leaf1}'),-,-,-,目标节点可见
+TC-ROLE-37,14,toggleTree,-,${leaf1},-,-,-,勾选最底层权限
+TC-ROLE-37,15,expectTreeChecked,-,${leaf1},-,true,-,目标节点已勾选
+TC-ROLE-37,16,click,css,.el-dialog__footer button.el-button--primary,-,-,-,提交
+TC-ROLE-37,17,expectHidden,css,.el-dialog,-,-,-,对话框关闭
+TC-ROLE-37,18,fill,css,.search-bar .el-input__inner[placeholder='请输入角色名'],${roleName},-,-,重新搜索
+TC-ROLE-37,19,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ROLE-37,20,selectRow,-,${roleName},-,-,-,选中角色
+TC-ROLE-37,21,click,css,.action-bar .el-button:has-text('分配权限'),-,-,-,点击分配权限
+TC-ROLE-37,22,expectVisible,css,.el-dialog,-,-,-,对话框可见
+TC-ROLE-37,23,expectTreeChecked,-,${leaf1},-,true,-,回显目标节点勾选
+TC-ROLE-37,24,expectTreeChecked,-,${leaf2},-,false,-,同级节点未连带勾选
+TC-ROLE-37,25,expectTreeChecked,-,${leaf3},-,false,-,同级节点未连带勾选
+TC-ROLE-37,26,click,css,.el-dialog__headerbtn,-,-,-,关闭对话框

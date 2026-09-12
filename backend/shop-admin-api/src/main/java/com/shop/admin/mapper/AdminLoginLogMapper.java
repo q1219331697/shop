@@ -1,8 +1,9 @@
 package com.shop.admin.mapper;
 
+import org.apache.ibatis.annotations.Mapper;
+
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.shop.admin.entity.AdminLoginLogEntity;
-import org.apache.ibatis.annotations.Mapper;
 
 /**
  * 后台登录日志Mapper接口

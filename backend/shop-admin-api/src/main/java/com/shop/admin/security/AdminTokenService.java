@@ -1,16 +1,19 @@
 package com.shop.admin.security;
 
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 管理员Token服务
  * 使用Token+Redis方式管理登录状态
+ *
+ * @author shop
  * @since 1.0.0
  */
 @Slf4j

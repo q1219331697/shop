@@ -156,13 +156,16 @@ export const permissionFormRules: FormRules = {
   permissionType: [{ required: true, message: '请选择权限类型', trigger: 'change' }],
   permissionName: [
     { required: true, message: '请输入权限名称', trigger: 'blur' },
-    { min: 2, max: 50, message: '权限名称长度为2-50个字符', trigger: 'blur' },
+    { min: 1, max: 50, message: '权限名称长度为1-50个字符', trigger: 'blur' },
   ],
   permissionCode: [
     { required: true, message: '请输入权限编码', trigger: 'blur' },
+    { min: 1, max: 100, message: '权限编码长度为1-100个字符', trigger: 'blur' },
     {
-      pattern: /^[a-z][a-z0-9:]*$/,
-      message: '权限编码由小写字母开头，可包含小写字母、数字和冒号',
+      // E2E 测试数据采用 e2e-<案例ID>-<ts> 中杠形态以便辨识批次；放开中杠与大写，
+      // 仍兼容真实编码（如 system:user:list）的小写冒号形态
+      pattern: /^[a-zA-Z][a-zA-Z0-9:_-]*$/,
+      message: '权限编码以字母开头，可包含字母、数字、冒号与中杠',
       trigger: 'blur',
     },
   ],

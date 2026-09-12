@@ -7,9 +7,9 @@
  *    因此「造出来的数据」与「清理时匹配的数据」必然一致，不会出现造数后清不干净的残留。
  * 2. 创建即确认：统一在创建后轮询列表接口，确认数据已提交可查再返回。
  *    少了这一步，用例进入 UI 搜索时后端数据可能尚未可见，是并行下最常见的偶发失败源。
- * 3. 唯一性：名称统一追加 Date.now().toString(36)，跨批次、跨用例、跨 worker 都不重合。
+ * 3. 唯一性：casePrefix 已含 用例ID + Date.now().toString(36) 后缀，跨批次、跨用例都不重合。
  *
- * ⚠️ 这里只造「用例自己会清理」的临时数据（e2e_ 前缀），不依赖任何数据库种子数据。
+ * ⚠️ 这里只造「用例自己会清理」的临时数据（e2e- 中杠前缀），不依赖任何数据库种子数据。
  */
 import type { Page } from '@playwright/test'
 
@@ -25,16 +25,13 @@ import { expect } from './e2eFixtures'
 /** 造数后「确认数据可查」的轮询预算（毫秒） */
 const CONFIRM_TIMEOUT = 15000
 
-/** 时间戳后缀：保证同名前缀的多次造数互不重合 */
-const uniqueSuffix = (): string => Date.now().toString(36)
-
 /** 轮询确认造数结果已在列表中可查 */
 async function confirmCreated(page: Page, probe: () => Promise<boolean>): Promise<void> {
   await expect.poll(probe, { timeout: CONFIRM_TIMEOUT, intervals: [200, 400, 800] }).toBe(true)
 }
 
 /** 查询管理员用户 ID（创建后如需立即删除/关联时使用） */
-async function findAdminUserId(page: Page, username: string): Promise<number | undefined> {
+export async function findAdminUserId(page: Page, username: string): Promise<number | undefined> {
   const resp = await page.request.get(apiUrl(endpoints.adminUser.list), {
     params: { username, pageNum: 1, pageSize: 10 },
     headers: auth(),
@@ -56,7 +53,7 @@ export async function findRoleIdByName(page: Page, roleName: string): Promise<nu
 /**
  * 创建临时后台管理员用户，返回用户名
  *
- * @param casePrefix 用例前缀（须为 isolatedPrefix() 返回值，含 workerId）
+ * @param casePrefix 用例前缀（须为 isolatedPrefix() 返回值，含用例ID）
  * @param realName 真实姓名（传中文用例名，如 E2E-禁用用户，便于库内区分）
  * @param status 1-正常，0-禁用
  * @param deleted 创建后立即逻辑删除（用于已删除态用例）
@@ -68,7 +65,8 @@ export async function createTestUser(
   status = 1,
   deleted = false,
 ): Promise<string> {
-  const username = `${casePrefix}_${uniqueSuffix()}`
+  // 名称直接使用 casePrefix（其已含用例ID + 时间戳后缀），不再重复追加，避免两段随机数
+  const username = casePrefix
   await page.request.post(apiUrl(endpoints.adminUser.create), {
     data: { username, password: 'testpass123', realName, status },
     headers: auth(),
@@ -104,14 +102,14 @@ export async function createBatchUsers(
   deleted = false,
 ): Promise<void> {
   for (let i = 0; i < count; i++) {
-    await createTestUser(page, `${prefix}_${i}`, realName, status, deleted)
+    await createTestUser(page, `${prefix}-${i}`, realName, status, deleted)
   }
 }
 
 /**
  * 创建临时角色，返回角色名
  *
- * @param casePrefix 用例前缀（须为 isolatedPrefix() 返回值，含 workerId）
+ * @param casePrefix 用例前缀（须为 isolatedPrefix() 返回值，含用例ID）
  * @param description 角色描述（传中文用例名，如 E2E-禁用角色）
  * @param status 1-正常，0-禁用
  */
@@ -121,7 +119,8 @@ export async function createTestRole(
   description: string,
   status = 1,
 ): Promise<string> {
-  const roleName = `${casePrefix}_${uniqueSuffix()}`
+  // 名称直接使用 casePrefix（其已含用例ID + 时间戳后缀），不再重复追加，避免两段随机数
+  const roleName = casePrefix
   await page.request.post(apiUrl(endpoints.role.create), {
     data: { roleName, description, sortOrder: 99, status },
     headers: auth(),
@@ -147,14 +146,14 @@ export async function createBatchRoles(
   status = 1,
 ): Promise<void> {
   for (let i = 0; i < count; i++) {
-    await createTestRole(page, `${prefix}_${i}`, description, status)
+    await createTestRole(page, `${prefix}-${i}`, description, status)
   }
 }
 
 /**
  * 创建一条权限，返回新权限 ID
  *
- * 权限名称由调用方传入（须用 e2e_ 前缀派生，才能随用例前缀一并清理）。
+ * 权限名称由调用方传入（须用 e2e- 中杠前缀派生，才能随用例前缀一并清理）。
  * 后端创建接口直接返回新 ID，无需再从权限树反查。
  */
 export async function createPermissionViaApi(
@@ -187,13 +186,13 @@ export async function createPermissionTreeFixture(
   page: Page,
   casePrefix: string,
 ): Promise<PermissionFixture> {
-  const dirName = `${casePrefix}_dir`
-  const menuName = `${casePrefix}_menu`
-  const actionName = `${casePrefix}_act`
+  const dirName = `${casePrefix}-dir`
+  const menuName = `${casePrefix}-menu`
+  const actionName = `${casePrefix}-act`
 
   const dirId = await createPermissionViaApi(page, {
     permissionName: dirName,
-    permissionCode: `${casePrefix}_dir`,
+    permissionCode: `${casePrefix}-dir`,
     permissionType: 1,
     parentId: 0,
     path: '/e2e/dir',
@@ -204,7 +203,7 @@ export async function createPermissionTreeFixture(
   })
   const menuId = await createPermissionViaApi(page, {
     permissionName: menuName,
-    permissionCode: `${casePrefix}_menu`,
+    permissionCode: `${casePrefix}-menu`,
     permissionType: 2,
     parentId: dirId,
     path: '/e2e/menu',
@@ -216,7 +215,7 @@ export async function createPermissionTreeFixture(
   })
   await createPermissionViaApi(page, {
     permissionName: actionName,
-    permissionCode: `${casePrefix}_act`,
+    permissionCode: `${casePrefix}-act`,
     permissionType: 3,
     parentId: menuId,
     sortOrder: 1,

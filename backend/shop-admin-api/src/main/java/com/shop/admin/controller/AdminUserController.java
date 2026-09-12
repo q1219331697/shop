@@ -1,20 +1,13 @@
 package com.shop.admin.controller;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.shop.admin.entity.AdminPermissionEntity;
+import java.util.List;
+import java.util.Map;
 
-import com.shop.admin.entity.AdminUserEntity;
-import com.shop.admin.vo.AdminUserPermissionVo;
-import com.shop.admin.service.AdminPermissionService;
-import org.springframework.security.access.prepost.PreAuthorize;
-import com.shop.admin.service.AdminRoleService;
-import com.shop.admin.service.AdminUserService;
-import com.shop.common.Result;
-import com.shop.common.ResultCodeEnum;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,11 +18,24 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-import java.util.Map;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.shop.admin.entity.AdminPermissionEntity;
+import com.shop.admin.entity.AdminUserEntity;
+import com.shop.admin.service.AdminPermissionService;
+import com.shop.admin.service.AdminRoleService;
+import com.shop.admin.service.AdminUserService;
+import com.shop.admin.validation.ValidationGroups;
+import com.shop.admin.vo.AdminUserPermissionVo;
+import com.shop.common.Result;
+import com.shop.common.ResultCodeEnum;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * 管理员管理控制器
+ *
+ * @author shop
  * @since 1.0.0
  */
 @Tag(name = "管理员管理", description = "管理员管理接口")
@@ -92,7 +98,7 @@ public class AdminUserController {
     @PreAuthorize("hasAuthority('system:admin:create')")
     @Operation(summary = "创建管理员")
     @PostMapping
-    public Result<Void> create(@RequestBody AdminUserEntity adminUser) {
+    public Result<Void> create(@RequestBody @Validated(ValidationGroups.OnCreate.class) AdminUserEntity adminUser) {
         return adminUserService.createAdminUser(adminUser);
     }
 
@@ -106,7 +112,8 @@ public class AdminUserController {
     @PreAuthorize("hasAuthority('system:admin:update')")
     @Operation(summary = "更新管理员信息")
     @PutMapping("/{id}")
-    public Result<Void> update(@PathVariable Long id, @RequestBody AdminUserEntity adminUser) {
+    public Result<Void> update(@PathVariable Long id,
+            @RequestBody @Validated(ValidationGroups.OnUpdate.class) AdminUserEntity adminUser) {
         adminUser.setId(id);
         return adminUserService.updateAdminUser(adminUser);
     }

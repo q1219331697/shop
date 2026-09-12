@@ -1,25 +1,26 @@
 package com.shop.admin.listener;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.boot.context.metrics.buffering.BufferingApplicationStartup;
-import org.springframework.boot.context.metrics.buffering.StartupTimeline;
-import org.springframework.boot.context.metrics.buffering.StartupTimeline.TimelineEvent;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.ApplicationListener;
-import org.springframework.core.metrics.ApplicationStartup;
-import org.springframework.core.metrics.StartupStep;
-import org.springframework.lang.NonNull;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.boot.context.metrics.buffering.BufferingApplicationStartup;
+import org.springframework.boot.context.metrics.buffering.StartupTimeline;
+import org.springframework.boot.context.metrics.buffering.StartupTimeline.TimelineEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.core.metrics.ApplicationStartup;
+import org.springframework.core.metrics.StartupStep;
+import org.springframework.lang.NonNull;
+
 /**
  * 启动耗时日志记录器
  * 在应用启动完成后，自动将各阶段耗时信息输出到日志
  *
+ * @author shop
  * @since 1.0.0
  */
 public class StartupLoggingListener implements ApplicationListener<ApplicationReadyEvent> {

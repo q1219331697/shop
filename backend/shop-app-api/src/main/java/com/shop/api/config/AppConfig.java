@@ -1,8 +1,9 @@
 package com.shop.api.config;
 
-import com.shop.util.JwtUtil;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import com.shop.util.JwtUtil;
 
 /**
  * 应用配置类
@@ -10,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
  * 注册需要依赖应用配置的Bean
  * </p>
  *
+ * @author shop
  * @since 1.0.0
  */
 @Configuration

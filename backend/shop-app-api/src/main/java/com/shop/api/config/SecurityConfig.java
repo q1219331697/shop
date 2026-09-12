@@ -10,6 +10,8 @@ import org.springframework.security.web.SecurityFilterChain;
 /**
  * Spring Security配置类
  * 配置放行所有请求
+ *
+ * @author shop
  * @since 1.0.0
  */
 @Configuration

@@ -5,6 +5,8 @@ import lombok.Getter;
 
 /**
  * 商品状态枚举
+ *
+ * @author shop
  * @since 1.0.0
  */
 @Getter

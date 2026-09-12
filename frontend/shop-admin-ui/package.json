@@ -14,7 +14,8 @@
     "format": "prettier --write \"src/**/*.{js,ts,vue,css,scss,json}\"",
     "test:e2e:headed": "cross-env SLOW=1 playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
-    "test:e2e": "playwright test"
+    "test": "playwright test",
+    "test:e2e:table": "playwright test tests/e2e/specs/excel-driven.spec.ts --reporter=list,./tests/e2e/reporter/csv-reporter.ts"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
@@ -32,6 +33,7 @@
     "@types/nprogress": "^0.2.3",
     "@vitejs/plugin-vue": "^5.2.3",
     "cross-env": "^10.1.0",
+    "csv-parse": "^5.6.0",
     "eslint": "^10.4.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^3.10.1",

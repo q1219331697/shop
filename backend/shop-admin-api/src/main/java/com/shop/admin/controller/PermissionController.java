@@ -1,27 +1,33 @@
-
 package com.shop.admin.controller;
 
-import com.shop.admin.entity.AdminPermissionEntity;
-import com.shop.admin.service.AdminPermissionService;
-import org.springframework.security.access.prepost.PreAuthorize;
-import com.shop.common.Result;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
+
+import jakarta.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.shop.admin.entity.AdminPermissionEntity;
+import com.shop.admin.service.AdminPermissionService;
+import com.shop.admin.validation.ValidationGroups;
+import com.shop.common.Result;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * 权限管理控制器
+ *
+ * @author shop
  * @since 1.0.0
  */
 @Tag(name = "权限管理", description = "权限管理接口")
@@ -83,7 +89,8 @@ public class PermissionController {
     @PreAuthorize("hasAuthority('system:permission:create')")
     @Operation(summary = "创建权限")
     @PostMapping
-    public Result<Long> create(@RequestBody AdminPermissionEntity permission) {
+    public Result<Long> create(
+            @RequestBody @Validated(ValidationGroups.OnCreate.class) AdminPermissionEntity permission) {
         return adminPermissionService.createPermission(permission);
     }
 
@@ -97,7 +104,8 @@ public class PermissionController {
     @PreAuthorize("hasAuthority('system:permission:update')")
     @Operation(summary = "更新权限")
     @PutMapping("/{id}")
-    public Result<Void> update(@PathVariable Long id, @RequestBody AdminPermissionEntity permission) {
+    public Result<Void> update(@PathVariable Long id,
+            @RequestBody @Validated(ValidationGroups.OnUpdate.class) AdminPermissionEntity permission) {
         permission.setId(id);
         return adminPermissionService.updatePermission(permission);
     }

@@ -184,7 +184,7 @@ export const adminUserSchema: CrudSchema<AdminUserItem> = {
   formRules: {
     username: [
       { required: true, message: '请输入用户名', trigger: 'blur' },
-      { min: 2, max: 50, message: '用户名长度为2-50个字符', trigger: 'blur' },
+      { min: 1, max: 50, message: '用户名长度为1-50个字符', trigger: 'blur' },
     ],
     password: [
       { required: true, message: '请输入密码', trigger: 'blur' },

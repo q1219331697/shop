@@ -1,8 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ 商城项目根 POM 文件
-  ~ 多模块聚合项目，统一管理依赖版本和构建配置
-  -->
+  ============================================================
+  商城项目根 POM 文件（多模块聚合，统一管理依赖版本与构建配置）
+  ============================================================
+  后端构建与验证约定（AI / 协作者必读，勿跳过）：
+  1. Checkstyle 校验：使用 Maven 验证，严禁跳过。
+     - 快速校验：         mvn -o checkstyle:check
+     - 完整构建（含校验）： mvn clean package -pl shop-admin-api -am -DskipTests
+     - 禁止 -Dcheckstyle.skip，校验不通过则构建失败。
+  2. 运行 / 重启后端：使用 Docker 重建镜像并启动（自动拉起 mysql、redis）。
+     - 重建镜像： docker compose build shop-admin-api
+     - 启动容器： docker compose up -d shop-admin-api
+     - 仅重启容器： docker compose restart shop-admin-api
+     （以上命令在仓库根目录执行）
+  3. 响应约定：所有接口 HTTP 状态码恒为 200，成功/失败仅由响应体 code 区分
+     （SUCCESS=000000，参数错误=PARAM_ERROR=000002）。
+     校验失败统一返回 Result.error(ResultCodeEnum.PARAM_ERROR, 文案)，不使用 4xx/5xx。
+     详见仓库根 AI.md 第 4 节。
+  ============================================================
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
@@ -154,6 +170,23 @@
                         <goals>
                             <goal>check</goal>
                         </goals>
+                    </execution>
+                    <!--
+                        实体类字段 Javadoc 专项检查：仅针对 entity 包下的文件（**/entity/**/*.java），
+                        强制所有字段（含 private）必须有 Javadoc。规则文件：code-quality/checkstyle/checkstyle-entity.xml
+                    -->
+                    <execution>
+                        <id>entity-field-javadoc</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <configLocation>code-quality/checkstyle/checkstyle-entity.xml</configLocation>
+                            <includes>**/entity/**/*.java</includes>
+                            <consoleOutput>true</consoleOutput>
+                            <failsOnError>true</failsOnError>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

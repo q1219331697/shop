@@ -1,5 +1,11 @@
 package com.shop.admin.service.impl;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -14,15 +20,13 @@ import com.shop.admin.service.AdminPermissionService;
 import com.shop.admin.service.AdminUserService;
 import com.shop.common.Result;
 import com.shop.common.ResultCodeEnum;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 后台管理用户服务实现类
+ *
+ * @author shop
  * @since 1.0.0
  */
 @Slf4j

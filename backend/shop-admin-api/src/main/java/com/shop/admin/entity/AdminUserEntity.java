@@ -1,16 +1,21 @@
 package com.shop.admin.entity;
 
+import java.io.Serializable;
+import java.time.LocalDateTime;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.shop.admin.validation.ValidationGroups;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-
-import java.io.Serializable;
-import java.time.LocalDateTime;
 
 /**
  * 后台管理用户实体类
@@ -39,18 +44,27 @@ public class AdminUserEntity implements Serializable {
      * 用户名，唯一
      */
     @Schema(description = "用户名")
+    @NotBlank(message = "请输入用户名",
+            groups = {ValidationGroups.OnCreate.class, ValidationGroups.OnUpdate.class})
+    @Size(max = 50, message = "用户名长度不能超过50",
+            groups = {ValidationGroups.OnCreate.class, ValidationGroups.OnUpdate.class})
     private String username;
 
     /**
      * 密码，BCrypt加密存储
      */
     @Schema(description = "密码")
+    @NotBlank(message = "请输入密码",
+            groups = ValidationGroups.OnCreate.class)
+    @Size(min = 4, max = 30, message = "密码长度需在4-30位之间",
+            groups = {ValidationGroups.OnCreate.class, ValidationGroups.OnUpdate.class})
     private String password;
 
     /**
      * 姓名
      */
     @Schema(description = "姓名")
+    @Size(max = 50, message = "姓名长度不能超过50", groups = {ValidationGroups.OnCreate.class, ValidationGroups.OnUpdate.class})
     private String realName;
 
     /**

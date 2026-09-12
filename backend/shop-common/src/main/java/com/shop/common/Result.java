@@ -1,10 +1,11 @@
 package com.shop.common;
 
+import java.io.Serializable;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-
-import java.io.Serializable;
 
 /**
  * 统一响应结果类
@@ -21,6 +22,8 @@ import java.io.Serializable;
  * </pre>
  *
  * @param <T> 数据类型
+ *
+ * @author shop
  * @since 1.0.0
  */
 @Data

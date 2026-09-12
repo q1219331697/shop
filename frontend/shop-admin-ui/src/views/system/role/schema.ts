@@ -143,7 +143,7 @@ export const roleSchema: CrudSchema<RoleItem> = {
   formRules: {
     roleName: [
       { required: true, message: '请输入角色名', trigger: 'blur' },
-      { min: 2, max: 30, message: '角色名长度为2-30个字符', trigger: 'blur' },
+      { min: 1, max: 30, message: '角色名长度为1-30个字符', trigger: 'blur' },
     ],
     description: [{ max: 200, message: '描述最多200个字符', trigger: 'blur' }],
     sortOrder: [{ required: true, message: '请输入排序值', trigger: 'blur' }],

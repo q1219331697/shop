@@ -6,6 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
  * 后台管理启动类
+ *
+ * @author shop
  * @since 1.0.0
  */
 @SpringBootApplication(scanBasePackages = "com.shop")

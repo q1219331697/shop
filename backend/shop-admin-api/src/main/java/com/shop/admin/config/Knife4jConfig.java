@@ -1,14 +1,15 @@
 package com.shop.admin.config;
 
+import java.util.List;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-import java.util.List;
 
 /**
  * Knife4j配置类 - API文档展示与授权配置
@@ -17,6 +18,7 @@ import java.util.List;
  * 后续请求自动携带 Token 请求头进行鉴权。
  * </p>
  *
+ * @author shop
  * @since 1.0.0
  */
 @Configuration

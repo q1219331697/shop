@@ -1,13 +1,15 @@
 package com.shop.service;
 
+import java.util.List;
+
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.shop.common.Result;
 import com.shop.entity.CategoryEntity;
 
-import java.util.List;
-
 /**
  * 分类服务接口
+ *
+ * @author shop
  * @since 1.0.0
  */
 public interface CategoryService extends IService<CategoryEntity> {

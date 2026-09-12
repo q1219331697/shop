@@ -7,6 +7,8 @@ import com.shop.entity.OrderEntity;
 
 /**
  * 订单服务接口
+ *
+ * @author shop
  * @since 1.0.0
  */
 public interface OrderService extends IService<OrderEntity> {

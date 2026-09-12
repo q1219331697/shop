@@ -51,9 +51,9 @@
         UPDATE t_admin_user SET deleted = 1 WHERE id = #{id} AND deleted = 0
     </update>
 
-    <!-- 物理删除指定用户名前缀的测试用户（prefix 需以 e2e_ 开头，调用方/Service 已校验） -->
+    <!-- 物理删除指定用户名前缀的测试用户（prefix 需以 e2e- 开头，调用方/Service 已校验） -->
     <delete id="deleteByUsernamePrefix">
-        DELETE FROM t_admin_user WHERE username LIKE CONCAT(#{prefix}, '%') ESCAPE '\\'
+        DELETE FROM t_admin_user WHERE username LIKE CONCAT(#{prefix}, '%')
     </delete>
 
 </mapper>

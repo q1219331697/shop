@@ -2,5 +2,17 @@
   "java.compile.nullAnalysis.mode": "automatic",
   "maven.view": "flat",
   "java.configuration.updateBuildConfiguration": "automatic",
-  "java.dependency.packagePresentation": "flat"
+  "java.dependency.packagePresentation": "flat",
+
+  "java.completion.importOrder": ["java", "javax", "jakarta", "org", "com"],
+  "java.sources.organizeImports.starThreshold": 999,
+  "java.sources.organizeImports.staticStarThreshold": 999,
+
+  "[java]": {
+    "editor.defaultFormatter": "redhat.java",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
+  }
 }

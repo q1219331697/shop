@@ -1,4 +1,3 @@
-
 package com.shop.admin.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -11,6 +10,7 @@ import lombok.EqualsAndHashCode;
  * 用于角色列表分页查询的请求参数封装
  * </p>
  *
+ * @author shop
  * @since 1.0.0
  */
 @Data

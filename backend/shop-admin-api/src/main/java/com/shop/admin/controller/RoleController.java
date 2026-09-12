@@ -1,16 +1,11 @@
-
 package com.shop.admin.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.shop.admin.entity.AdminRoleEntity;
-import com.shop.admin.service.AdminRoleService;
-import org.springframework.security.access.prepost.PreAuthorize;
-import com.shop.common.Result;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,14 +13,24 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import com.shop.admin.vo.RolePageQueryVo;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-import java.util.Map;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.shop.admin.entity.AdminRoleEntity;
+import com.shop.admin.service.AdminRoleService;
+import com.shop.admin.validation.ValidationGroups;
+import com.shop.admin.vo.RolePageQueryVo;
+import com.shop.common.Result;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * 角色管理控制器
+ *
+ * @author shop
  * @since 1.0.0
  */
 @Tag(name = "角色管理", description = "角色管理接口")
@@ -92,7 +97,7 @@ public class RoleController {
     @PreAuthorize("hasAuthority('system:role:create')")
     @Operation(summary = "创建角色")
     @PostMapping
-    public Result<Void> create(@RequestBody AdminRoleEntity role) {
+    public Result<Void> create(@RequestBody @Validated(ValidationGroups.OnCreate.class) AdminRoleEntity role) {
         return adminRoleService.createRole(role);
     }
 
@@ -106,7 +111,8 @@ public class RoleController {
     @PreAuthorize("hasAuthority('system:role:update')")
     @Operation(summary = "更新角色")
     @PutMapping("/{id}")
-    public Result<Void> update(@PathVariable Long id, @RequestBody AdminRoleEntity role) {
+    public Result<Void> update(@PathVariable Long id,
+            @RequestBody @Validated(ValidationGroups.OnUpdate.class) AdminRoleEntity role) {
         role.setId(id);
         return adminRoleService.updateRole(role);
     }

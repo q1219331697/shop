@@ -7,6 +7,8 @@ import com.shop.entity.ProductEntity;
 
 /**
  * 商品服务接口
+ *
+ * @author shop
  * @since 1.0.0
  */
 public interface ProductService extends IService<ProductEntity> {

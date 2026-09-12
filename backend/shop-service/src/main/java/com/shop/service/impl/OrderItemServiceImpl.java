@@ -1,5 +1,12 @@
 package com.shop.service.impl;
 
+import java.math.BigDecimal;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.shop.common.Result;
@@ -11,16 +18,13 @@ import com.shop.mapper.OrderItemMapper;
 import com.shop.service.OrderItemService;
 import com.shop.service.OrderService;
 import com.shop.service.ProductService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 订单详情服务实现类
+ *
+ * @author shop
  * @since 1.0.0
  */
 @Slf4j

@@ -1,14 +1,18 @@
 package com.shop.redis;
 
-import com.shop.entity.ProductEntity;
+import java.util.concurrent.TimeUnit;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.util.concurrent.TimeUnit;
+import com.shop.entity.ProductEntity;
 
 /**
  * 商品 Redis 缓存操作类
+ *
+ * @author shop
+ * @since 1.0.0
  */
 @Component
 public class ProductRedisCache {

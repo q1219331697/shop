@@ -1,14 +1,15 @@
-
 package com.shop.admin.service;
+
+import java.util.List;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.shop.admin.entity.AdminRoleEntity;
 import com.shop.common.Result;
 
-import java.util.List;
-
 /**
  * 后台角色服务接口
+ *
+ * @author shop
  * @since 1.0.0
  */
 public interface AdminRoleService extends IService<AdminRoleEntity> {

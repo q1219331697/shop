@@ -1,11 +1,5 @@
 package com.shop.api.controller;
 
-import com.shop.common.Result;
-import com.shop.entity.UserEntity;
-import com.shop.service.UserService;
-import com.shop.util.JwtUtil;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,8 +9,18 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.shop.common.Result;
+import com.shop.entity.UserEntity;
+import com.shop.service.UserService;
+import com.shop.util.JwtUtil;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 /**
  * 用户控制器
+ *
+ * @author shop
  * @since 1.0.0
  */
 @Tag(name = "用户管理", description = "用户相关接口")

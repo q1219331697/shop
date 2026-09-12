@@ -1,10 +1,9 @@
-
 package com.shop.admin.vo;
+
+import java.io.Serializable;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-
-import java.io.Serializable;
 
 /**
  * 通用分页查询VO
@@ -12,6 +11,7 @@ import java.io.Serializable;
  * 用于分页查询的请求参数封装，提供基础的分页参数
  * </p>
  *
+ * @author shop
  * @since 1.0.0
  */
 @Data

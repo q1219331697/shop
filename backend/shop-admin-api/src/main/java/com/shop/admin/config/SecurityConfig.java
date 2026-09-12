@@ -1,6 +1,5 @@
 package com.shop.admin.config;
 
-import com.shop.admin.security.AdminAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -11,6 +10,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.shop.admin.security.AdminAuthFilter;
+
 /**
  * Spring Security配置类
  * <p>
@@ -18,6 +19,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * 授权层：启用方法级安全，由Controller上的@PreAuthorize("hasAuthority('xxx')")进行权限校验。
  * </p>
  *
+ * @author shop
  * @since 1.0.0
  */
 @Configuration

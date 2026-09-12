@@ -1,0 +1,17 @@
+# 跨 IDE 统一基础风格（IDEA / Eclipse / VSCode 均原生支持 EditorConfig）
+# 说明：import 顺序与分组由各 IDE 项目配置 + Checkstyle 共同保证，见 .idea/codeStyles、.settings、.vscode 与 backend/code-quality/checkstyle
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.java]
+indent_style = space
+indent_size = 4
+
+# Markdown 中行尾双空格表示换行，不裁剪
+[*.md]
+trim_trailing_whitespace = false
