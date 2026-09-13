@@ -1,5 +1,8 @@
 import type { Page } from '@playwright/test'
 
+import { endpoints } from '../../../src/api/endpoints'
+
+import { apiUrl, auth, unwrap } from '../common/apiClient'
 import {
   createPermissionTreeFixture,
   createPermissionViaApi,
@@ -8,7 +11,7 @@ import {
   findAdminUserId,
   findRoleIdByName,
 } from '../common/dataFactory'
-import { newPrefix } from '../common/e2eFixtures'
+import { expect, newPrefix } from '../common/e2eFixtures'
 
 /**
  * 造数注册表：CSV 步骤通过 操作=setupApi + 定位值=<注册名> + 输入值=<key=value;...> 调用。
@@ -114,24 +117,29 @@ export const setupRegistry: Record<
     if (rid !== undefined) vars.roleId = String(rid)
   },
 
-  // 批量创建共享前缀的角色，暴露 roleName0..N
+  // 批量创建共享前缀的角色，暴露 roleName0..N / roleId0..N
   async roleBatch(page, args, vars) {
     const prefix = newPrefix(vars.用例ID)
     const count = Number(args.count ?? 2)
     for (let i = 0; i < count; i++) {
-      vars['roleName' + i] = await createTestRole(
+      const name = await createTestRole(
         page,
         `${prefix}-${i}`,
         args.desc ?? `E2E-${vars.用例ID}`,
         Number(args.status ?? 1),
       )
+      vars['roleName' + i] = name
+      // 暴露角色 ID：分配角色类用例需要用它预置「已分配 N 个角色」的前置
+      const rid = await findRoleIdByName(page, name)
+      if (rid !== undefined) vars['roleId' + i] = String(rid)
     }
     vars.rolePrefix = prefix
   },
 
   // 创建「角色 + 权限子树（菜单 + 3 个同级最底层操作）」，供分配权限回显用例
   // 角色与权限共用同一用例前缀（e2e-<用例ID>-<ts>），用例前后按用例ID统一清理
-  async rolePermLeaf(page, _args, vars) {
+  // 暴露：roleName / roleId、menuName、leaf1..3（名称）、leafId1..3（ID，供接口预置授权）
+  async rolePermLeaf(page, args, vars) {
     const prefix = newPrefix(vars.用例ID)
     const menuName = `${prefix}-menu`
     const leafNames = [`${prefix}-leaf1`, `${prefix}-leaf2`, `${prefix}-leaf3`]
@@ -147,23 +155,32 @@ export const setupRegistry: Record<
       status: 1,
       visible: 0,
     })
+    const leafIds: number[] = []
     for (let i = 0; i < leafNames.length; i++) {
-      await createPermissionViaApi(page, {
-        permissionName: leafNames[i],
-        permissionCode: `${prefix}-leaf${i + 1}`,
-        permissionType: 3,
-        parentId: menuId,
-        sortOrder: i + 1,
-        status: 1,
-        visible: 0,
-      })
+      leafIds.push(
+        await createPermissionViaApi(page, {
+          permissionName: leafNames[i],
+          permissionCode: `${prefix}-leaf${i + 1}`,
+          permissionType: 3,
+          parentId: menuId,
+          sortOrder: i + 1,
+          status: 1,
+          visible: 0,
+        }),
+      )
     }
-    const roleName = await createTestRole(page, prefix, 'E2E-单选最底层权限', 1)
+    const roleName = await createTestRole(page, prefix, args.desc ?? 'E2E-单选最底层权限', 1)
     vars.roleName = roleName
+    // 暴露角色 ID：分配权限类用例需要用它预置「已分配 N 个资源」的前置
+    const rid = await findRoleIdByName(page, roleName)
+    if (rid !== undefined) vars.roleId = String(rid)
     vars.menuName = menuName
     vars.leaf1 = leafNames[0]
     vars.leaf2 = leafNames[1]
     vars.leaf3 = leafNames[2]
+    vars.leafId1 = String(leafIds[0])
+    vars.leafId2 = String(leafIds[1])
+    vars.leafId3 = String(leafIds[2])
   },
 
   // 仅生成一个用户名（不落库）：供 UI 表单新增用例回灌搜索与清理前缀
@@ -202,6 +219,86 @@ export const setupRegistry: Record<
       )
     }
     vars.userPrefix = prefix
+  },
+
+  // 预置「用户已分配 N 个角色」的前置（走接口，避免重复一遍 UI 分配链路）
+  // 参数：user=用户名变量名（默认 user0）；roles=角色ID变量名，用 + 连接（如 roles=roleId0+roleId1）
+  // 为什么用 + 而不是逗号：CSV 字段不能出现半角逗号，+ 不会破坏列切分
+  async userAssignRoles(page, args, vars) {
+    const username = vars[args.user ?? 'user0'] ?? vars.userName
+    const userId = vars.userId ?? (username ? await findAdminUserId(page, username) : undefined)
+    if (userId === undefined) {
+      throw new Error(`userAssignRoles 未找到用户（用例 ${vars.用例ID}）`)
+    }
+
+    const roleIds = (args.roles ?? '')
+      .split('+')
+      .map((key) => key.trim())
+      .filter((key) => key.length > 0)
+      .map((key) => Number(vars[key] ?? key))
+      .filter((id) => Number.isFinite(id))
+    if (roleIds.length === 0) {
+      throw new Error(`userAssignRoles 未解析到角色（用例 ${vars.用例ID}，roles=${args.roles ?? ''}）`)
+    }
+
+    await page.request.post(apiUrl(endpoints.adminUser.assignRoles(userId)), {
+      data: { roleIds },
+      headers: auth(),
+    })
+
+    // 确认已落库再返回：分配页的回显读的是后端数据，未确认就进 UI 会偶发断不到勾选
+    await expect
+      .poll(
+        async () => {
+          const resp = await page.request.get(apiUrl(endpoints.adminUser.roleIds(userId)), {
+            headers: auth(),
+          })
+          const ids = await unwrap<number[]>(resp)
+          return [...ids].sort().join(',') === [...roleIds].sort().join(',')
+        },
+        { timeout: 15000, intervals: [200, 400, 800] },
+      )
+      .toBe(true)
+  },
+
+  // 预置「角色已分配 N 个资源（权限）」的前置（走接口，避免重复一遍 UI 授权链路）
+  // 参数：role=角色名变量名（默认 roleName，优先用 vars.roleId）；perms=权限ID变量名，用 + 连接（如 perms=leafId1+leafId2）
+  // 为什么用 + 而不是逗号：CSV 字段不能出现半角逗号，+ 不会破坏列切分
+  async roleAssignPermissions(page, args, vars) {
+    const roleName = vars[args.role ?? 'roleName']
+    const roleId = vars.roleId ?? (roleName ? await findRoleIdByName(page, roleName) : undefined)
+    if (roleId === undefined) {
+      throw new Error(`roleAssignPermissions 未找到角色（用例 ${vars.用例ID}）`)
+    }
+
+    const permissionIds = (args.perms ?? '')
+      .split('+')
+      .map((key) => key.trim())
+      .filter((key) => key.length > 0)
+      .map((key) => Number(vars[key] ?? key))
+      .filter((id) => Number.isFinite(id))
+    if (permissionIds.length === 0) {
+      throw new Error(`roleAssignPermissions 未解析到权限（用例 ${vars.用例ID}，perms=${args.perms ?? ''}）`)
+    }
+
+    await page.request.post(apiUrl(endpoints.role.assignPermissions(roleId)), {
+      data: { permissionIds },
+      headers: auth(),
+    })
+
+    // 确认已落库再返回：分配页回显读的是后端数据，未确认就进 UI 会偶发断不到勾选
+    await expect
+      .poll(
+        async () => {
+          const resp = await page.request.get(apiUrl(endpoints.role.permissionIds(roleId)), {
+            headers: auth(),
+          })
+          const ids = await unwrap<number[]>(resp)
+          return [...ids].sort().join(',') === [...permissionIds].sort().join(',')
+        },
+        { timeout: 15000, intervals: [200, 400, 800] },
+      )
+      .toBe(true)
   },
 
   // UI 登录（整页刷新会清空登录态，admin 模块每个用例独立 context，需各自登录）

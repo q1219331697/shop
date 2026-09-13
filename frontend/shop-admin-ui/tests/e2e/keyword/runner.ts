@@ -1,7 +1,7 @@
 import { Page, expect } from '@playwright/test'
 import { toLocator } from './locator'
 import { runSetup, type Vars } from './setupRegistry'
-import { auth, apiUrl } from '../common/apiClient'
+import { auth, apiUrl, unwrap } from '../common/apiClient'
 import { endpoints } from '../../../src/api/endpoints'
 import { PARAM_ERROR } from '../../../src/api/resultCode'
 import type { Step } from './csv'
@@ -22,7 +22,7 @@ function rowByName(page: Page, name: string) {
 /** 在分配权限树中按节点名定位树节点内容行 */
 function treeNode(page: Page, name: string) {
   return page
-    .locator('.el-dialog .el-tree-node__content')
+    .locator('.el-tree-node__content')
     .filter({ has: page.getByText(name, { exact: true }) })
     .first()
 }
@@ -90,11 +90,13 @@ export async function dispatch(step: Step, page: Page, vars: Vars): Promise<void
       await expect(loc!).toContainText(预期)
       return
     case 'expectValue':
-      await expect(loc!).toHaveValue(预期)
+      // 编辑页字段由接口异步回填：这里也用于「等待回填完成」的同步点，故放宽至 15s
+      await expect(loc!).toHaveValue(预期, { timeout: 15000 })
       return
     case 'expectURL':
       // 预期值作为正则匹配（如 /dashboard 可匹配完整 URL 中的路径）
-      await expect(page).toHaveURL(new RegExp(预期))
+      // 并行负载下登录重定向 + 动态路由生成可能晚于默认 5s，放宽至 15s
+      await expect(page).toHaveURL(new RegExp(预期), { timeout: 15000 })
       return
     case 'expectCount':
       // 断言匹配元素的数量（如统计卡片数量、节点隐藏时数量为 0）
@@ -161,23 +163,72 @@ export async function dispatch(step: Step, page: Page, vars: Vars): Promise<void
       await treeNode(page, 定位值).locator('.el-checkbox__input').first().click()
       return
     case 'expectTreeChecked': {
-      // 断言权限树节点勾选态（预期=true|false）；树为异步加载，轮询重试以容忍回显延迟
-      const expectTrue = 预期 !== 'false'
+      // 断言权限树节点勾选态（预期=true|false|half）；树为异步加载，轮询重试以容忍回显延迟
+      // half = 半选：子节点只勾了一部分时父节点呈半选态（Element Plus 在 el-checkbox__input 上加 is-indeterminate）
+      const want = 预期 === 'false' ? 'unchecked' : 预期 === 'half' ? 'half' : 'checked'
       const target = treeNode(page, 定位值).locator('.el-checkbox__input').first()
-      let checked = false
+      let actual = 'unchecked'
       const deadline = Date.now() + 8000
       while (Date.now() < deadline) {
         const cls = (await target.getAttribute('class')) ?? ''
-        checked = cls.includes('is-checked')
-        if (expectTrue === checked) break
+        actual = cls.includes('is-indeterminate')
+          ? 'half'
+          : cls.includes('is-checked')
+            ? 'checked'
+            : 'unchecked'
+        if (actual === want) break
         await page.waitForTimeout(300)
       }
-      if (expectTrue !== checked) {
+      if (actual !== want) {
         throw new Error(
-          `权限树节点 ${定位值} 勾选态期望 ${expectTrue} 实际 ${checked}（用例 ${step.用例ID} 步骤 ${step.序号}）`,
+          `权限树节点 ${定位值} 勾选态期望 ${want} 实际 ${actual}（用例 ${step.用例ID} 步骤 ${step.序号}）`,
         )
       }
       return
+    }
+    case 'expectRolePerms': {
+      // 资源视角的数据断言：直接查角色的资源(权限)ID 列表，验证「资源归属角色」的结果（不依赖 UI 回显）
+      // - 定位值：角色 ID（如 ${roleId}）
+      // - 输入值：必须包含的资源 ID，用 + 连接（如 ${leafId1}+${leafId2}；- 表示不校验）
+      // - 预期：必须不包含的资源 ID，用 + 连接（- 表示不校验）
+      // - 预期类型=empty：断言资源列表为空（用于「取消全部」场景）
+      const roleId = 定位值
+      const parseIds = (raw: string): number[] =>
+        raw === '' || raw === '-'
+          ? []
+          : raw
+              .split('+')
+              .map((k) => k.trim())
+              .filter((k) => k.length > 0)
+              .map((k) => Number(k))
+              .filter((n) => Number.isFinite(n))
+      const mustHave = parseIds(输入值)
+      const mustNotHave = parseIds(预期)
+      const wantEmpty = step.预期类型 === 'empty'
+
+      let ids: number[] = []
+      const deadline = Date.now() + 8000
+      for (;;) {
+        const resp = await page.request.get(apiUrl(endpoints.role.permissionIds(roleId)), {
+          headers: auth(),
+        })
+        ids = await unwrap<number[]>(resp)
+        const ok =
+          (!wantEmpty || ids.length === 0) &&
+          mustHave.every((id) => ids.includes(id)) &&
+          mustNotHave.every((id) => !ids.includes(id))
+        if (ok) return
+        if (Date.now() > deadline) {
+          throw new Error(
+            `角色 ${roleId} 资源列表不符：实际 [${ids.join(',')}]` +
+              `${wantEmpty ? ' 期望为空' : ''}` +
+              `${mustHave.length ? ` 应含 [${mustHave.join(',')}]` : ''}` +
+              `${mustNotHave.length ? ` 应不含 [${mustNotHave.join(',')}]` : ''}` +
+              `（用例 ${step.用例ID} 步骤 ${step.序号}）`,
+          )
+        }
+        await page.waitForTimeout(300)
+      }
     }
     default:
       throw new Error(`未知操作: ${step.操作}（用例 ${step.用例ID} 步骤 ${step.序号}）`)
