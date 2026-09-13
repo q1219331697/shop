@@ -27,6 +27,12 @@ const systemRoutes: RouteRecordRaw = {
       component: () => import('@/views/system/permission/index.vue'),
       meta: { title: '权限管理', icon: 'Lock' },
     },
+    {
+      path: 'loginLog',
+      name: 'SystemLoginLog',
+      component: () => import('@/views/system/loginLog/index.vue'),
+      meta: { title: '登录日志', icon: 'Document' },
+    },
   ],
 }
 

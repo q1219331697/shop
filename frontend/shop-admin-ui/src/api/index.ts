@@ -9,6 +9,7 @@
  */
 import { adminUserApi } from './adminUser'
 import { authApi } from './auth'
+import { loginLogApi } from './loginLog'
 import { permissionApi } from './permission'
 import { roleApi } from './role'
 
@@ -26,6 +27,7 @@ export type { LoginParams, LoginResult } from './auth'
 export type { AdminUserItem, AdminUserPageParams } from './adminUser'
 export type { RoleItem, RolePageParams } from './role'
 export type { PermissionItem, PermissionPageParams, PermissionTreeResult } from './permission'
+export type { LoginLogItem, LoginLogPageParams } from './loginLog'
 
 // ==================== api 聚合对象 ====================
 
@@ -38,4 +40,5 @@ export const api = {
   adminUser: adminUserApi,
   role: roleApi,
   permission: permissionApi,
+  loginLog: loginLogApi,
 }

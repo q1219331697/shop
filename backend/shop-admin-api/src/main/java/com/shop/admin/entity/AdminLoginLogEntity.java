@@ -48,6 +48,12 @@ public class AdminLoginLogEntity implements Serializable {
     private String username;
 
     /**
+     * 登录IP地址
+     */
+    @Schema(description = "登录IP地址")
+    private String ip;
+
+    /**
      * 登录时间
      */
     @Schema(description = "登录时间")

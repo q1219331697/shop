@@ -1,12 +1,10 @@
 package com.shop.admin.controller;
 
-import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -28,28 +26,32 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RequestMapping("/adminLoginLog")
 public class AdminLoginLogController {
 
-    private static final Long DEFAULT_PAGE_SIZE = 10L;
-
     @Autowired
     private AdminLoginLogService adminLoginLogService;
 
     /**
      * 分页查询登录日志
      *
-     * @param params 查询参数：pageNum, pageSize, username, success, startTime, endTime
+     * @param pageNum 页码
+     * @param pageSize 每页条数
+     * @param username 用户名（模糊匹配）
+     * @param ip 登录IP（模糊匹配）
+     * @param success 是否成功：0-失败，1-成功
+     * @param startTime 开始时间（yyyy-MM-dd 或 yyyy-MM-dd HH:mm:ss）
+     * @param endTime 结束时间（yyyy-MM-dd 或 yyyy-MM-dd HH:mm:ss）
      * @return 登录日志分页数据
      */
     @PreAuthorize("hasAuthority('system:loginlog:query')")
     @Operation(summary = "分页查询登录日志")
     @GetMapping
-    public Result<IPage<AdminLoginLogEntity>> list(@RequestBody Map<String, Object> params) {
-        Long pageNum = params.get("pageNum") != null ? Long.valueOf(params.get("pageNum").toString()) : 1L;
-        Long pageSize = params.get("pageSize") != null
-                ? Long.valueOf(params.get("pageSize").toString()) : DEFAULT_PAGE_SIZE;
-        String username = params.get("username") != null ? params.get("username").toString() : null;
-        Integer success = params.get("success") != null ? Integer.valueOf(params.get("success").toString()) : null;
-        String startTime = params.get("startTime") != null ? params.get("startTime").toString() : null;
-        String endTime = params.get("endTime") != null ? params.get("endTime").toString() : null;
-        return adminLoginLogService.pageLoginLog(pageNum, pageSize, username, success, startTime, endTime);
+    public Result<IPage<AdminLoginLogEntity>> list(
+            @RequestParam(defaultValue = "1") Long pageNum,
+            @RequestParam(defaultValue = "10") Long pageSize,
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) String ip,
+            @RequestParam(required = false) Integer success,
+            @RequestParam(required = false) String startTime,
+            @RequestParam(required = false) String endTime) {
+        return adminLoginLogService.pageLoginLog(pageNum, pageSize, username, ip, success, startTime, endTime);
     }
 }

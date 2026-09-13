@@ -62,26 +62,26 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
         AdminUserEntity dbUser = getByUsername(username);
         if (dbUser == null) {
             log.info("管理员登录失败, 用户不存在, username: {}", username);
-            adminLoginLogService.recordLoginLog(null, username, 0, "管理员不存在");
+            adminLoginLogService.recordLoginLog(null, username, ip, 0, "管理员不存在");
             return Result.error(ResultCodeEnum.USER_NOT_EXIST, "管理员不存在");
         }
 
         if (!adminUser.getPassword().equals(dbUser.getPassword())) {
             log.info("管理员登录失败, 密码错误, username: {}", username);
-            adminLoginLogService.recordLoginLog(dbUser.getId(), username, 0, "密码错误");
+            adminLoginLogService.recordLoginLog(dbUser.getId(), username, ip, 0, "密码错误");
             return Result.error(ResultCodeEnum.PASSWORD_ERROR, "密码错误");
         }
 
         if (dbUser.getStatus() == 0) {
             log.info("管理员登录失败, 用户已被禁用, username: {}", username);
-            adminLoginLogService.recordLoginLog(dbUser.getId(), username, 0, "管理员已被禁用");
+            adminLoginLogService.recordLoginLog(dbUser.getId(), username, ip, 0, "管理员已被禁用");
             return Result.error(ResultCodeEnum.USER_DISABLED, "管理员已被禁用");
         }
 
         // 生成Token并存入Redis
         String token = adminTokenService.createToken(dbUser.getId(), dbUser.getUsername());
         log.info("管理员登录成功, adminUserId: {}, username: {}", dbUser.getId(), username);
-        adminLoginLogService.recordLoginLog(dbUser.getId(), username, 1, "登录成功");
+        adminLoginLogService.recordLoginLog(dbUser.getId(), username, ip, 1, "登录成功");
         return Result.success(token);
     }
 

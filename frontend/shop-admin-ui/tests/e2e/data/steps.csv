@@ -1288,3 +1288,46 @@ TC-ROLE-37,23,expectTreeChecked,-,${leaf1},-,true,-,回显目标节点勾选
 TC-ROLE-37,24,expectTreeChecked,-,${leaf2},-,false,-,同级节点未连带勾选
 TC-ROLE-37,25,expectTreeChecked,-,${leaf3},-,false,-,同级节点未连带勾选
 TC-ROLE-37,26,click,css,.el-dialog__headerbtn,-,-,-,关闭对话框
+TC-ADMLOG-01,1,setupApi,uiLogin,-,-,-,-,登录并进入系统管理页
+TC-ADMLOG-01,2,goto,-,/system/loginLog,-,-,-,进入登录日志页
+TC-ADMLOG-01,3,expectVisible,css,.page-container,-,-,-,页面容器存在
+TC-ADMLOG-01,4,expectVisible,css,.search-bar,-,-,-,搜索区存在
+TC-ADMLOG-01,5,expectVisible,css,.data-area,-,-,-,数据区存在
+TC-ADMLOG-01,6,expectVisible,css,.el-table,-,-,-,表格存在
+TC-ADMLOG-01,7,expectVisible,css,.el-pagination,-,-,-,分页组件存在
+TC-ADMLOG-02,1,setupApi,uiLogin,-,-,-,-,登录并进入系统管理页
+TC-ADMLOG-02,2,goto,-,/system/loginLog,-,-,-,进入登录日志页
+TC-ADMLOG-02,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],admin,-,-,搜索框输入admin
+TC-ADMLOG-02,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADMLOG-02,5,wait,-,-,-,-,-,等待结果渲染
+TC-ADMLOG-02,6,expectVisible,css,.el-table__body tr:first-child,-,-,-,结果行已渲染
+TC-ADMLOG-02,7,expectText,css,.el-table__body tr:first-child td:nth-child(2),-,admin,-,首行用户名为admin
+TC-ADMLOG-03,1,setupApi,uiLogin,-,-,-,-,登录并进入系统管理页
+TC-ADMLOG-03,2,goto,-,/system/loginLog,-,-,-,进入登录日志页
+TC-ADMLOG-03,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],nosuchuser-xyz,-,-,搜索不存在的用户名
+TC-ADMLOG-03,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADMLOG-03,5,wait,-,-,-,-,-,等待结果渲染
+TC-ADMLOG-03,6,expectCount,css,.el-table__body tr,-,0,-,无命中
+TC-ADMLOG-04,1,setupApi,uiLogin,-,-,-,-,登录并进入系统管理页
+TC-ADMLOG-04,2,goto,-,/system/loginLog,-,-,-,进入登录日志页
+TC-ADMLOG-04,3,click,css,.search-bar .el-select,-,-,-,展开状态下拉
+TC-ADMLOG-04,4,click,css,.el-select-dropdown__item:has-text('成功'),-,-,-,选择成功
+TC-ADMLOG-04,5,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADMLOG-04,6,wait,-,-,-,-,-,等待结果渲染
+TC-ADMLOG-04,7,expectVisible,css,.el-table__body tr:first-child,-,-,-,结果行已渲染
+TC-ADMLOG-04,8,expectText,css,.el-table__body tr:first-child td:nth-child(4),-,成功,-,首行状态为成功
+TC-ADMLOG-05,1,setupApi,uiLogin,-,-,-,-,登录并进入系统管理页
+TC-ADMLOG-05,2,goto,-,/system/loginLog,-,-,-,进入登录日志页
+TC-ADMLOG-05,3,expectCount,css,.action-bar .el-button,-,0,-,只读页无工具栏按钮
+TC-ADMLOG-05,4,expectCount,css,.el-table__body .action-link,-,0,-,无行操作按钮
+TC-ADMLOG-05,5,expectCount,css,.el-table__body .el-checkbox,-,0,-,无多选复选框
+TC-ADMLOG-06,1,setupApi,uiLogin,-,-,-,-,登录并进入系统管理页
+TC-ADMLOG-06,2,goto,-,/system/loginLog,-,-,-,进入登录日志页
+TC-ADMLOG-06,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],nosuchuser-xyz,-,-,先搜无结果
+TC-ADMLOG-06,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADMLOG-06,5,wait,-,-,-,-,-,等待结果渲染
+TC-ADMLOG-06,6,expectCount,css,.el-table__body tr,-,0,-,无命中
+TC-ADMLOG-06,7,click,css,.search-bar .el-button:has-text('重置'),-,-,-,点击重置
+TC-ADMLOG-06,8,wait,-,-,-,-,-,等待重置结果渲染
+TC-ADMLOG-06,9,expectVisible,css,.el-table__body tr:first-child,-,-,-,恢复后有数据行
+TC-ADMLOG-06,10,expectText,css,.el-table__body tr:first-child td:nth-child(2),-,admin,-,恢复后首行为admin

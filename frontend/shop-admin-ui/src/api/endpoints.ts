@@ -69,4 +69,9 @@ export const endpoints = {
     delete: (id: number | string) => `/permission/${id}`,
   },
 
+  // ==================== 登录日志 ====================
+  loginLog: {
+    list: '/adminLoginLog',
+  },
+
 } as const
