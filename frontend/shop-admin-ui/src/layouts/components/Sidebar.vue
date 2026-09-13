@@ -6,7 +6,7 @@
     </div>
     <el-scrollbar>
       <el-menu
-        :default-active="route.path"
+        :default-active="activeMenu"
         :collapse="appStore.sidebarCollapsed"
         :collapse-transition="false"
         background-color="#ffffff"
@@ -57,6 +57,14 @@ const appStore = useAppStore()
 const permissionStore = usePermissionStore()
 
 const menuList = computed(() => permissionStore.menuList)
+
+/**
+ * 当前应高亮的菜单项。
+ * 页面子路由（新增/编辑/详情/分配）的 path 带动态段（如 /system/admin/edit/1），
+ * 与菜单项 index（/system/admin）对不上，直接用 route.path 会导致菜单不定位、父级菜单不展开；
+ * 故优先取 meta.activeMenu 归位到所属列表页。
+ */
+const activeMenu = computed(() => (route.meta.activeMenu as string | undefined) || route.path)
 </script>
 
 <style lang="scss" scoped>

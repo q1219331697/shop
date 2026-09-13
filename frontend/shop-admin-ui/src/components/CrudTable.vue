@@ -16,8 +16,8 @@
       </SearchBar>
     </template>
 
-    <!-- 按钮区 -->
-    <template #actions>
+    <!-- 按钮区：schema 未配置、或按钮全部隐藏（只读页）时不渲染，避免留下空占位 -->
+    <template v-if="hasToolbarActions" #actions>
       <ActionBar
         :actions="resolvedSchema.actions?.toolbar ?? undefined"
         :extra-actions="resolvedSchema.actions?.extraToolbar"
@@ -268,6 +268,20 @@ const queryParamsModel = computed({
     })
     Object.assign(queryParams, val)
   },
+})
+
+/**
+ * 是否存在可见的工具栏按钮。
+ * 只读页（如登录日志）会在 schema.actions 里把默认按钮全部 visible: false，
+ * 此时不渲染按钮区，页面无需自己写 CSS 去隐藏这块空占位。
+ */
+const hasToolbarActions = computed(() => {
+  const actions = resolvedSchema.value.actions
+  // 未配置 actions：ActionBar 会渲染默认按钮（新增/编辑/详情/删除）
+  if (!actions) return true
+  const items = [...(actions.toolbar ?? []), ...(actions.extraToolbar ?? [])]
+  // visible 为函数的按钮需要运行期上下文，保守视为可见
+  return items.some((item) => typeof item.visible !== 'boolean' || item.visible)
 })
 
 /** 处理工具栏操作 */

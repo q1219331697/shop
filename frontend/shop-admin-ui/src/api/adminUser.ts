@@ -101,6 +101,16 @@ export function getAdminRoleIds(userId: IdType) {
   return request.get<number[]>(endpoints.adminUser.roleIds(userId))
 }
 
+/**
+ * 获取当前登录用户的权限编码列表
+ *
+ * 区别于菜单树：菜单树只含目录/菜单（type 1、2），此处返回角色关联的全部编码
+ * （含按钮级 system:xxx:update 等），供路由级权限校验使用。
+ */
+export function getMyPermissionCodes() {
+  return request.get<string[]>(endpoints.adminUser.permissions)
+}
+
 /** 管理员用户模块 API 聚合对象（供 CrudTable :api 直接使用，亦可直接调用） */
 export const adminUserApi = {
   list: getAdminUserList,
@@ -117,4 +127,5 @@ export const adminUserApi = {
   batchRestore: batchRestoreAdminUser,
   assignRoles: assignAdminRoles,
   getRoleIds: getAdminRoleIds,
+  permissions: getMyPermissionCodes,
 }

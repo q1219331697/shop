@@ -41,6 +41,8 @@ export const endpoints = {
     batchRestore: '/adminUser/batch-restore',
     assignRoles: (id: number | string) => `/adminUser/${id}/roles`,
     roleIds: (id: number | string) => `/adminUser/${id}/roles`,
+    /** 当前登录用户的权限编码列表（含按钮级 system:xxx:update 等） */
+    permissions: '/adminUser/permissions',
   },
 
   // ==================== 角色 ====================

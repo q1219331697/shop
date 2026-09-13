@@ -1,8 +1,5 @@
 <template>
   <PageContainer>
-    <template #actions>
-      <el-button @click="goBack">返回</el-button>
-    </template>
     <div class="form-page">
       <CrudForm
         ref="formRef"

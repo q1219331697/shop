@@ -1,8 +1,5 @@
 <template>
   <PageContainer>
-    <template #actions>
-      <el-button @click="goBack">返回</el-button>
-    </template>
     <div v-loading="loading" class="permission-assign-content">
       <p class="permission-role-info">
         角色：<strong>{{ currentRole?.roleName }}</strong>

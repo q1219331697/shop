@@ -27,10 +27,3 @@ import { loginLogSchema } from './schema'
 
 const crudTableRef = ref<InstanceType<typeof CrudTable>>()
 </script>
-
-<style lang="scss" scoped>
-// 只读页无任何按钮，工具栏区为空，隐藏以免占位留白
-:deep(.page-container__actions) {
-  display: none;
-}
-</style>

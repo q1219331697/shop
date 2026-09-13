@@ -26,6 +26,16 @@ export function setupGuards(router: Router) {
     NProgress.start()
 
     const loggedIn = hasTokenCookie()
+    const permissionStore = usePermissionStore()
+
+    /**
+     * 路由级权限校验：目标路由声明了 meta.permissionCode 时，校验当前用户是否具备该权限码；
+     * 不具备则按「路由不存在」处理，避免仅靠隐藏菜单、却能通过直接输入地址访问受限页面。
+     */
+    const lacksPermission = () => {
+      const code = to.meta.permissionCode as string | undefined
+      return !!code && !permissionStore.hasPermission(code)
+    }
 
     if (loggedIn) {
       if (to.path === '/login') {
@@ -37,7 +47,6 @@ export function setupGuards(router: Router) {
           isRefreshing = true
           isNavigationPending = true
           startAutoRefreshToken()
-          const permissionStore = usePermissionStore()
 
           try {
             const routes = await permissionStore.generateRoutes()
@@ -65,7 +74,11 @@ export function setupGuards(router: Router) {
             next(`/login?redirect=${to.path}`)
           }
         } else if (hasAddedRoutes) {
-          // 路由已加载，直接放行
+          // 路由已加载：先做路由级权限校验（含「弹窗改页面」的 create/edit/detail/assign 子路由）
+          if (lacksPermission()) {
+            next({ path: '/404', replace: true })
+            return
+          }
           next()
         } else {
           // 正在加载中，延迟处理

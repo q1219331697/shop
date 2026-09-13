@@ -1,8 +1,5 @@
 <template>
   <PageContainer>
-    <template #actions>
-      <el-button @click="goBack">返回</el-button>
-    </template>
     <div v-loading="loading" class="role-assign-content">
       <p class="role-user-info">
         管理员：<strong>{{ currentAdminUser?.username }}</strong>

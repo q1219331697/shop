@@ -1,5 +1,5 @@
 <template>
-  <div class="data-area">
+  <div ref="rootRef" class="data-area" :style="rowHeightStyle">
     <!-- 完全替换数据展示区（如树形表格） -->
     <slot v-if="$slots['data-content']" name="data-content" :loading="loading" />
 
@@ -15,7 +15,7 @@
         :border="border"
         :stripe="stripe"
         :row-key="rowKey"
-        :height="tableHeight"
+        :max-height="maxHeight"
         :highlight-current-row="highlightCurrentRow"
         @selection-change="handleSelectionChange"
         @row-click="handleRowClick"
@@ -173,7 +173,7 @@
       </el-table>
 
       <!-- 分页 -->
-      <div v-if="pagination" class="data-area__pagination">
+      <div v-if="pagination" ref="paginationRef" class="data-area__pagination">
         <slot
           name="pagination"
           :total="pagination.total"
@@ -211,6 +211,7 @@
 import { Edit, View, Delete } from '@element-plus/icons-vue'
 import { ref, computed } from 'vue'
 
+import { useTableMaxHeight } from '@/composables/use-table-height'
 import { formatDate } from '@/utils/date'
 
 import type { TableColumn, ActionItem, RowData } from './CrudTable/types'
@@ -229,8 +230,8 @@ const props = withDefaults(
     selectable?: boolean
     /** 是否支持展开行 */
     expandable?: boolean
-    /** 表格高度 */
-    height?: number | string
+    /** 行高（px，固定值，默认 40） */
+    rowHeight?: number
     /** 是否显示边框 */
     border?: boolean
     /** 是否显示斑马纹 */
@@ -258,7 +259,7 @@ const props = withDefaults(
     loading: false,
     selectable: true,
     expandable: false,
-    height: '100%',
+    rowHeight: 40,
     border: true,
     stripe: true,
     highlightCurrentRow: false,
@@ -275,9 +276,11 @@ const emit = defineEmits<{
 }>()
 
 const tableRef = ref()
+const rootRef = ref<HTMLElement>()
+const paginationRef = ref<HTMLElement>()
 
-/** 表格高度 - 始终使用 height prop，由 flex 布局控制容器自适应 */
-const tableHeight = computed(() => props.height)
+/** 表格高度上限（公共约定，见 useTableMaxHeight）：内容自适应，超出才内部滚动 */
+const { maxHeight } = useTableMaxHeight(rootRef, paginationRef)
 
 /** 默认行操作按钮 */
 const defaultRowActions: ActionItem[] = [
@@ -383,6 +386,14 @@ function handleRowAction(action: string, row: RowData) {
   }
 }
 
+// ==================== 行高 ====================
+
+/**
+ * 行高固定值（px）：注入到公共变量 --row-height（PageContainer 统一消费，
+ * td 设 height 即最小行高），保证所有列表页行高一致、可预期。
+ */
+const rowHeightStyle = computed(() => ({ '--row-height': `${props.rowHeight}px` }))
+
 /** 暴露 tableRef 供外部使用 */
 defineExpose({
   tableRef,
@@ -401,17 +412,19 @@ defineExpose({
   flex-direction: column;
   box-sizing: border-box;
 
-  // 表格填满剩余空间
+  // 表格按内容高度渲染（不拉伸占满）：行少时表格与分页之间不留空白，
+  // 超出 max-height 时由表格内部滚动（表头固定）
   :deep(.el-table) {
-    flex: 1;
+    flex: none;
   }
 }
 
 .data-area__pagination {
   display: flex;
   justify-content: flex-end;
-  margin-top: 16px;
-  padding-bottom: 8px;
+  /* 表格与分页之间的留白加在这里（区块间距），不加在表格内部，避免行尾出现“空行”感 */
+  margin-top: 12px;
+  padding-bottom: 0;
 }
 
 .action-link {

@@ -1,8 +1,5 @@
 <template>
   <PageContainer>
-    <template #actions>
-      <el-button @click="goBack">返回</el-button>
-    </template>
     <div v-loading="loading" class="detail-page">
       <CrudDetailContent :fields="permissionDetailFields" :data="detail" :loading="loading">
         <template #detail-parentId="{ value }">
@@ -19,7 +16,7 @@
  * <p>复用 permissionDetailFields，上级权限名称通过插槽回显。</p>
  */
 import { computed, onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 
 import { api, type PermissionItem } from '@/api'
 import CrudDetailContent from '@/components/CrudDetailContent.vue'
@@ -28,7 +25,6 @@ import { flattenPermissionTree } from '@/utils/permissionTree'
 import { permissionDetailFields } from './schema'
 
 const route = useRoute()
-const router = useRouter()
 
 const detail = ref<Record<string, unknown>>({})
 const loading = ref(false)
@@ -58,10 +54,6 @@ onMounted(async () => {
     loading.value = false
   }
 })
-
-function goBack() {
-  router.back()
-}
 </script>
 
 <style lang="scss" scoped>

@@ -10,8 +10,8 @@
       <slot name="actions" />
     </div>
 
-    <!-- 数据展示区 -->
-    <div class="page-container__data">
+    <!-- 数据展示区（仅在使用该插槽时占位，否则 flex:1 会撑出大片空白、把默认插槽内容顶到页面底部） -->
+    <div v-if="$slots.data" class="page-container__data">
       <slot name="data" />
     </div>
 
@@ -32,7 +32,14 @@
 </script>
 
 <style lang="scss" scoped>
+// ============================================================
+// 页面布局规格（全站列表页统一在此定义，页面里不要再各写一套）
+// - $section-spacing：搜索区/按钮区 与 表格 之间的留白（加在区块下外边距）
+// - $search-row-gap：搜索条件换行时的行间距
+// - --row-height：表格行高（默认 40px），由 DataArea 按 props.rowHeight 注入
+// ============================================================
 $section-spacing: 12px;
+$search-row-gap: 8px;
 
 .page-container {
   width: 100%;
@@ -44,13 +51,20 @@ $section-spacing: 12px;
   box-sizing: border-box;
   color: #1f2937;
 
-  // 加深表格文字颜色
+  // 加深表格文字颜色 + 统一表格规格（页面内的任意 el-table 都生效，含自定义树形表格）
   :deep(.el-table) {
     color: #1f2937;
 
     th.el-table__cell {
+      padding: 8px 0;
       color: #111827;
       font-weight: 600;
+    }
+
+    td.el-table__cell {
+      padding: 4px 0;
+      // td 的 height 是「最小行高」语义：内容更高时行会自然变高
+      height: var(--row-height, 40px);
     }
   }
 
@@ -75,6 +89,15 @@ $section-spacing: 12px;
 
 .page-container__search {
   margin-bottom: $section-spacing;
+
+  // 搜索条件换行成多行时，行与行之间保留间距（row-gap 只作用于换行处，
+  // 单行搜索不会产生多余的下方空白）
+  :deep(.el-form) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    row-gap: $search-row-gap;
+  }
 
   :deep(.el-form-item) {
     margin-bottom: 0;

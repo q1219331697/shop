@@ -150,16 +150,22 @@ export const usePermissionStore = defineStore('permission', () => {
       const menus = await api.permission.menus()
       console.log('[路由转换] 获取到菜单数据:', menus)
 
-      // 收集所有权限编码
-      const codes: string[] = []
+      // 菜单树只含目录/菜单（type 1、2），拿不到按钮级编码（如 system:admin:update）；
+      // 而路由级权限校验需要全量编码，故优先取 /adminUser/permissions，失败时回退到菜单树编码。
+      const menuCodes: string[] = []
       function collectCodes(items: PermissionItem[]) {
         items.forEach((item) => {
-          codes.push(item.permissionCode)
+          menuCodes.push(item.permissionCode)
           if (item.children) collectCodes(item.children)
         })
       }
       collectCodes(menus)
-      permissionCodes.value = codes
+      try {
+        permissionCodes.value = await api.adminUser.permissions()
+      } catch (error) {
+        console.warn('[路由转换] 获取权限编码失败，回退为菜单树编码:', error)
+        permissionCodes.value = menuCodes
+      }
 
       // 转换为路由
       console.log('[路由转换] 开始转换菜单为路由...')

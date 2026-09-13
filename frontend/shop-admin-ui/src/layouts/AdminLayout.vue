@@ -48,7 +48,8 @@ const appStore = useAppStore()
 
 .app-main {
   flex: 1;
-  padding: 24px;
+  /* 竖向留白：页面上下各 8px（搜索区上方、分页下方），兼顾紧凑与呼吸感 */
+  padding: 8px 16px;
   background: #ffffff;
   overflow-y: auto;
 }

@@ -29,7 +29,7 @@
 
     <!-- 数据展示区：权限树形表格（无分页） -->
     <template #data>
-      <div v-loading="loading" class="permission-table">
+      <div ref="dataRef" v-loading="loading" class="permission-table">
         <el-table
           ref="tableRef"
           :data="tableData"
@@ -37,7 +37,7 @@
           :tree-props="{ children: 'children' }"
           border
           stripe
-          height="100%"
+          :max-height="maxHeight"
           @selection-change="handleSelectionChange"
         >
           <el-table-column type="selection" width="50" align="center" />
@@ -107,7 +107,8 @@
             <template #default="{ row }">{{ formatDate(row.createTime) }}</template>
           </el-table-column>
 
-          <el-table-column label="操作" width="260" align="center" fixed="right">
+          <!-- 宽度按「新增下级/编辑/详情/删除」四个行内按钮单行排布取整，避免换行把行高撑到 40 以上 -->
+        <el-table-column label="操作" width="300" align="center" fixed="right">
             <template #default="{ row }">
               <el-button
                 v-if="row.permissionType === 1"
@@ -157,6 +158,7 @@ import type { PermissionItem, PermissionTreeResult } from '@/api'
 import { PageContainer, SearchBar, ActionBar } from '@/components/CrudTable'
 import type { TagMap } from '@/components/CrudTable/types'
 import { useCrud } from '@/composables/use-crud'
+import { useTableMaxHeight } from '@/composables/use-table-height'
 import { formatDate } from '@/utils/date'
 import { getPermissionList, invalidatePermissionTreeCache } from '@/utils/permissionTree'
 
@@ -262,6 +264,10 @@ const queryParamsModel = computed({
 // ==================== 树形表格展开控制 ====================
 
 const tableRef = ref()
+
+/** 数据区容器：表格高度上限由它计算（公共约定，见 useTableMaxHeight；本页无分页） */
+const dataRef = ref<HTMLElement>()
+const { maxHeight } = useTableMaxHeight(dataRef)
 /** 是否处于全部展开状态 */
 const expanded = ref(true)
 
@@ -411,9 +417,9 @@ onMounted(() => {
   flex-direction: column;
   box-sizing: border-box;
 
-  // 表格填满剩余空间
+  // 树形表格同样按内容高度渲染、超出 max-height 才内部滚动（与其他列表页一致）
   :deep(.el-table) {
-    flex: 1;
+    flex: none;
   }
 }
 

@@ -10,6 +10,11 @@ import { defineConfig, devices } from '@playwright/test'
  * - 不得删除任何现有配置项
  * - 不得添加新的测试项目或更改运行参数
  *
+ * [AI 规则 · dev server] 优先使用已运行的 Vite dev server
+ * - 若 5173 上已有 dev server，reuseExistingServer: true 会直接复用：不要额外启一个，也不要重启它；
+ * - 页面改动交给 Vite 热更新生效，不要以“清缓存 / 让改动生效”为由重启；
+ * - 仅当能确定是 dev server 自身的问题（例如确实返回了旧模块）时，才允许重启该服务。
+ *
  * 本文件用于 E2E 测试自动化，严禁 AI 自动化编辑或修改
  */
 
@@ -51,6 +56,9 @@ export default defineConfig({
   // 重要：webServer 启动本地 Vite 开发服务器
   // 本地运行：cd frontend/shop-admin-ui && npm run dev
   // 不需要 Docker 环境配置，避免 AI 修改为 Docker
+  //
+  // [AI 规则 · dev server] reuseExistingServer: true = 若 5173 上已有 Vite dev server 就直接复用。
+  // 优先复用、不要重启；确认是 dev server 自身问题（如返回旧模块）时才允许重启，详见文件头。
   // ============================================================
   webServer: {
     command: 'npm run dev',

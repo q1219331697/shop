@@ -1,8 +1,5 @@
 <template>
   <PageContainer>
-    <template #actions>
-      <el-button @click="goBack">返回</el-button>
-    </template>
     <div class="detail-page">
       <CrudDetailContent
         :fields="adminUserSchema.detailFields ?? []"
@@ -19,7 +16,7 @@
  * <p>复用 adminUserSchema 的 detailFields，与弹窗共享同一套详情渲染。</p>
  */
 import { onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 
 import { api } from '@/api'
 import CrudDetailContent from '@/components/CrudDetailContent.vue'
@@ -27,7 +24,6 @@ import CrudDetailContent from '@/components/CrudDetailContent.vue'
 import { adminUserSchema } from './schema'
 
 const route = useRoute()
-const router = useRouter()
 
 const detail = ref<Record<string, unknown>>({})
 const loading = ref(false)
@@ -44,10 +40,6 @@ onMounted(async () => {
     loading.value = false
   }
 })
-
-function goBack() {
-  router.back()
-}
 </script>
 
 <style lang="scss" scoped>
