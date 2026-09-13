@@ -120,7 +120,7 @@
               <el-button link class="action-link" @click="handleEditRow(row)">
                 <el-icon><Edit /></el-icon>编辑
               </el-button>
-              <el-button link class="action-link" @click="openDetailDialog(row)">
+              <el-button link class="action-link" @click="handleDetailRow(row)">
                 <el-icon><View /></el-icon>详情
               </el-button>
               <el-button link class="action-link action-link--danger" @click="handleDeleteRow(row)">
@@ -135,55 +135,6 @@
         </el-table>
       </div>
     </template>
-
-    <!-- 新增/编辑对话框 -->
-    <CrudFormDialog
-      v-model="formDialogVisible"
-      name="权限"
-      width="640px"
-      :fields="permissionFormFields"
-      :form-data="formData"
-      :rules="permissionFormRules"
-      :is-edit="isEdit"
-      :submitting="submitting"
-      :label-width="formLabelWidth"
-      @submit="handleSubmitForm"
-    >
-      <!-- 上级权限：树形选择（仅菜单可作为上级） -->
-      <template #form-parentId="{ model }">
-        <ElTreeSelect
-          v-model="model.parentId"
-          :data="parentOptions"
-          :props="parentTreeProps"
-          node-key="id"
-          check-strictly
-          default-expand-all
-          :render-after-expand="false"
-          placeholder="请选择上级权限"
-          clearable
-          style="width: 100%"
-        />
-      </template>
-
-      <!-- 菜单图标：图标选择器 -->
-      <template #form-icon="{ model }">
-        <IconSelect v-model="model.icon" />
-      </template>
-    </CrudFormDialog>
-
-    <!-- 详情对话框 -->
-    <CrudDetailDialog
-      v-model="detailDialogVisible"
-      name="权限"
-      width="580px"
-      :fields="permissionDetailFields"
-      :data="detailData"
-      :loading="detailLoading"
-    >
-      <template #detail-parentId="{ value }">
-        {{ permissionNameMap.get(Number(value)) ?? '-' }}
-      </template>
-    </CrudDetailDialog>
   </PageContainer>
 </template>
 
@@ -193,39 +144,26 @@
  *
  * 权限天然是树形结构且后端仅提供全量树接口（无分页），
  * 因此不使用 CrudTable 的分页表格，而是基于 useCrud 自由组装：
- * PageContainer + SearchBar + ActionBar + 树形表格 + 表单/详情对话框
+ * PageContainer + SearchBar + ActionBar + 树形表格。
+ *
+ * 交互形态（弹窗改页面）：新增/编辑/详情跳转独立页面；删除保持原位确认。
  */
 import { Delete, Edit, Plus, Refresh, Sort, View } from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox, ElTreeSelect } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 
 import type { PermissionItem, PermissionTreeResult } from '@/api'
-import {
-  PageContainer,
-  SearchBar,
-  ActionBar,
-  CrudFormDialog,
-  CrudDetailDialog,
-} from '@/components/CrudTable'
-import type { RowData, TagMap } from '@/components/CrudTable/types'
-import IconSelect from '@/components/IconSelect.vue'
+import { PageContainer, SearchBar, ActionBar } from '@/components/CrudTable'
+import type { TagMap } from '@/components/CrudTable/types'
 import { useCrud } from '@/composables/use-crud'
 import { formatDate } from '@/utils/date'
-import {
-  getPermissionList,
-  flattenPermissionTree,
-  invalidatePermissionTreeCache,
-} from '@/utils/permissionTree'
+import { getPermissionList, invalidatePermissionTreeCache } from '@/utils/permissionTree'
 
-// API 通过自动导入的 api 聚合对象使用（无需 import）
 import {
   PERMISSION_TYPE_TAG_MAP,
   STATUS_TAG_MAP,
   VISIBLE_TAG_MAP,
-  permissionDefaultFormData,
-  permissionDetailFields,
-  permissionFormFields,
-  permissionFormRules,
   permissionSearchFields,
   permissionToolbarActions,
 } from './schema'
@@ -275,6 +213,8 @@ async function listApiWithTree(
   return result
 }
 
+const router = useRouter()
+
 const {
   loading,
   tableData,
@@ -288,16 +228,6 @@ const {
   actionContext,
   handleToolbarAction: crudHandleToolbarAction,
   handleBatchDelete,
-  formDialogVisible,
-  isEdit,
-  submitting,
-  formData,
-  openFormDialog,
-  handleSubmitForm: crudHandleSubmitForm,
-  openDetailDialog,
-  detailDialogVisible,
-  detailLoading,
-  detailData,
 } = useCrud<PermissionItem>({
   listApi: listApiWithTree,
   detailApi: api.permission.detail,
@@ -307,6 +237,9 @@ const {
   searchFields: permissionSearchFields,
   rowKey: 'id',
 })
+
+/** 完整权限树（由列表请求填充，供后续页面使用） */
+const permissionTree = ref<PermissionItem[]>([])
 
 /**
  * 查询参数双向绑定代理：
@@ -326,70 +259,6 @@ const queryParamsModel = computed({
   },
 })
 
-/** 表单标签宽度 - 根据字段 label 自动估算 */
-const formLabelWidth = computed(() => {
-  const maxLen = permissionFormFields.reduce((max: number, f) => Math.max(max, f.label.length), 0)
-  // 每个中文字符约 14px + 12px 间距
-  return Math.max(80, maxLen * 14 + 12) + 'px'
-})
-
-// ==================== 权限树元信息 ====================
-
-/** 完整权限树（用于上级权限选择和名称回显，不受搜索条件影响） */
-const permissionTree = ref<PermissionItem[]>([])
-
-/** 权限 ID -> 权限名称 */
-const permissionNameMap = computed(() => {
-  const map = new Map<number, string>()
-  flattenPermissionTree(permissionTree.value).forEach((node) => {
-    map.set(node.id, node.permissionName)
-  })
-  map.set(0, '顶级权限')
-  return map
-})
-
-// ==================== 上级权限选择 ====================
-
-/** 上级权限选项节点 */
-interface ParentOption {
-  id: number
-  permissionName: string
-  children?: ParentOption[]
-}
-
-/** 树形选择器字段映射 */
-const parentTreeProps = {
-  children: 'children',
-  label: 'permissionName',
-}
-
-/** 构建上级权限选项：仅菜单类型可作为上级，且排除自身及其子孙 */
-function buildParentOptions(nodes: PermissionItem[], excludeIds: Set<number>): ParentOption[] {
-  return nodes
-    .filter((node) => node.permissionType === 1 && !excludeIds.has(node.id))
-    .map((node) => {
-      const children = buildParentOptions(node.children ?? [], excludeIds)
-      return children.length > 0
-        ? { id: node.id, permissionName: node.permissionName, children }
-        : { id: node.id, permissionName: node.permissionName }
-    })
-}
-
-/** 上级权限选项树，顶部固定"顶级权限"（id=0） */
-const parentOptions = computed<ParentOption[]>(() => {
-  const excludeIds = new Set<number>()
-  const selfId = isEdit.value ? Number(formData.id) : NaN
-  if (Number.isFinite(selfId)) {
-    const self = flattenPermissionTree(permissionTree.value).find((node) => node.id === selfId)
-    if (self) {
-      flattenPermissionTree([self]).forEach((node) => excludeIds.add(node.id))
-    }
-  }
-  const root: ParentOption = { id: 0, permissionName: '顶级权限' }
-  const children = buildParentOptions(permissionTree.value, excludeIds)
-  return children.length > 0 ? [{ ...root, children }] : [root]
-})
-
 // ==================== 树形表格展开控制 ====================
 
 const tableRef = ref()
@@ -399,10 +268,25 @@ const expanded = ref(true)
 /** 应用展开状态（树数据刷新后需重新展开，行对象是新的引用） */
 function applyExpandState() {
   void nextTick(() => {
-    flattenPermissionTree(tableData.value).forEach((row) => {
+    flattenPermissionTreeForExpand(tableData.value).forEach((row) => {
       tableRef.value?.toggleRowExpansion(row, expanded.value)
     })
   })
+}
+
+/** 扁平化树形表格数据（仅用于展开控制，复用工具函数） */
+function flattenPermissionTreeForExpand(nodes: PermissionItem[]): PermissionItem[] {
+  const result: PermissionItem[] = []
+  const walk = (list: PermissionItem[]) => {
+    for (const node of list) {
+      result.push(node)
+      if (node.children && node.children.length > 0) {
+        walk(node.children)
+      }
+    }
+  }
+  walk(nodes)
+  return result
 }
 
 /** 切换全部展开/折叠 */
@@ -424,7 +308,7 @@ async function handleRefresh() {
   await fetchData()
 }
 
-/** 工具栏操作 */
+/** 工具栏操作：表单类跳转独立页面，删除走确认 */
 async function handleToolbarAction(action: string) {
   if (action === 'delete') {
     invalidatePermissionTreeCache()
@@ -432,27 +316,38 @@ async function handleToolbarAction(action: string) {
     return
   }
   if (action === 'create') {
-    openFormDialog(false)
-    Object.assign(formData, permissionDefaultFormData)
+    router.push('/system/permission/create')
+    return
+  }
+  const row = selectedRows.value[0] as PermissionItem | undefined
+  if (!row) return
+  if (action === 'edit') {
+    router.push(`/system/permission/edit/${row.id}`)
+    return
+  }
+  if (action === 'detail') {
+    router.push(`/system/permission/detail/${row.id}`)
     return
   }
   await crudHandleToolbarAction(action)
 }
 
-/** 编辑单行 */
+/** 编辑单行 -> 页面 */
 function handleEditRow(row: PermissionItem) {
-  openFormDialog(true, row)
+  router.push(`/system/permission/edit/${row.id}`)
 }
-/** 新增下级权限 */
+/** 新增下级权限 -> 页面并预填上级 */
 function handleCreateChild(row: PermissionItem) {
-  openFormDialog(false)
-  Object.assign(formData, permissionDefaultFormData, { parentId: row.id })
+  router.push(`/system/permission/create?parentId=${row.id}`)
+}
+/** 详情 -> 页面 */
+function handleDetailRow(row: PermissionItem) {
+  router.push(`/system/permission/detail/${row.id}`)
 }
 
 /**
  * 工具栏删除：与行内删除使用同一种确认提示，
- * 单选时提示具体权限名，与行内按钮文案保持一致；
- * 多选时与通用批量删除一致。
+ * 单选时提示具体权限名，与行内按钮文案保持一致；多选时与通用批量删除一致。
  */
 async function handleToolbarDelete() {
   if (selectedIds.value.length === 0) return
@@ -472,7 +367,7 @@ async function handleToolbarDelete() {
       ElMessage.success('删除成功')
       await fetchData()
     } catch {
-      // 请求工具已处理错误提示
+      /* 请求工具已处理错误提示 */
     }
     return
   }
@@ -496,27 +391,8 @@ async function handleDeleteRow(row: PermissionItem) {
     invalidatePermissionTreeCache()
     await fetchData()
   } catch {
-    // 请求工具已处理错误提示
+    /* 请求工具已处理错误提示 */
   }
-}
-
-/** 构造提交数据：剔除树形结构与只读字段，避免脏字段回传后端 */
-function buildSubmitPayload(data: RowData): RowData {
-  const payload: RowData = {}
-  Object.keys(data).forEach((key) => {
-    if (['children', 'createTime', 'updateTime', 'deleted'].includes(key)) {
-      return
-    }
-    payload[key] = data[key]
-  })
-  return payload
-}
-
-/** 提交新增/编辑 */
-async function handleSubmitForm(data: RowData) {
-  await crudHandleSubmitForm(buildSubmitPayload(data))
-  invalidatePermissionTreeCache()
-  await fetchData()
 }
 
 // ==================== 初始化 ====================

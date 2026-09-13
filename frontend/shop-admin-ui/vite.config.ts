@@ -1,3 +1,10 @@
+/**
+ * ⚠️ 禁止 AI 改写本文件（DO NOT MODIFY BY AI）
+ *
+ * 本文件为人工维护的构建/代理配置，涉及前后端接口前缀、
+ * 代理转发与测试链路的一致性，AI 不得自动修改。
+ * 如需变更，请由人工确认后手动修改。
+ */
 import path from 'path'
 
 import vue from '@vitejs/plugin-vue'

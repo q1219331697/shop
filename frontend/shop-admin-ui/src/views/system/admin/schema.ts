@@ -74,11 +74,9 @@ export const adminUserSchema: CrudSchema<AdminUserItem> = {
   // ---- 按钮区 ----
   actions: {
     toolbar: [
-      {
-        action: 'edit',
-        disabled: (ctx) =>
-          ctx.selectedCount !== 1 || ctx.selectedRows.some((r: AdminUserItem) => r.deleted),
-      },
+      // 编辑/详情改为行内或独立页面，不占用工具栏（隐藏默认按钮）
+      { action: 'edit', visible: false },
+      { action: 'detail', visible: false },
       {
         action: 'delete',
         disabled: (ctx) => !ctx.selectedRows.some((r: AdminUserItem) => !r.deleted),
@@ -111,16 +109,8 @@ export const adminUserSchema: CrudSchema<AdminUserItem> = {
         disabled: (ctx) => !ctx.selectedRows.some((r: AdminUserItem) => r.deleted),
         handler: handleBatchRestore,
       },
-      {
-        action: 'assignRole',
-        label: '分配角色',
-        icon: 'Key',
-        type: 'primary',
-        disabled: (ctx) =>
-          ctx.selectedCount !== 1 || ctx.selectedRows.some((r: AdminUserItem) => r.deleted),
-      },
     ],
-    // 行操作由 row-actions-extra 插槽自定义渲染（编辑/删除/禁用/启用/恢复/分配角色）
+    // 行内操作：详情走默认按钮（跳页面）；编辑/禁用/启用/恢复/分配角色由 row-actions-extra 插槽渲染
     rowActions: [
       {
         action: 'detail',

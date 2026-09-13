@@ -7,6 +7,7 @@ import type { RouteRecordRaw } from 'vue-router'
 
 import type { PermissionItem } from '@/api'
 import dashboardRoutes from '@/router/modules/dashboard'
+import systemRoutes from '@/router/modules/system'
 
 /**
  * 后端菜单 component 字段到前端组件的映射
@@ -80,6 +81,24 @@ function transformMenusToRoutes(menus: PermissionItem[]): RouteRecordRaw[] {
 }
 
 /**
+ * 收集“弹窗改页面”后新增的独立页面子路由（新增/编辑/详情/分配角色/分配权限）。
+ * 这些页面不在后端菜单中（菜单仅含列表页），若仅靠菜单动态生成则无法经路由守卫导航访问（404）。
+ * 故在此从静态 systemRoutes 中提取其叶子页面路由，挂到 Layout 下静态注册。
+ */
+function collectPageSubRoutes(routes: RouteRecordRaw[], parentPath = ''): RouteRecordRaw[] {
+  const result: RouteRecordRaw[] = []
+  for (const r of routes) {
+    const fullPath = `/${parentPath}/${r.path}`.replace(/\/+/g, '/')
+    if (r.children && r.children.length > 0) {
+      result.push(...collectPageSubRoutes(r.children, fullPath))
+    } else if (/(\/create|\/edit|\/detail|\/assign)/.test(fullPath)) {
+      result.push({ ...r, path: fullPath })
+    }
+  }
+  return result
+}
+
+/**
  * 递归转换树形菜单为路由
  */
 function transformTreeToRoutes(menus: PermissionItem[]): RouteRecordRaw[] {
@@ -147,7 +166,9 @@ export const usePermissionStore = defineStore('permission', () => {
       const transformedRoutes = transformMenusToRoutes(menus)
 
       // 将固定仪表盘路由添加到最前面
-      const allRoutes = [dashboardRoutes, ...transformedRoutes]
+      // 并补充“弹窗改页面”后的独立页面子路由（新增/编辑/详情/分配角色/分配权限），使其可经路由守卫导航
+      const pageSubRoutes = collectPageSubRoutes([systemRoutes])
+      const allRoutes = [dashboardRoutes, ...transformedRoutes, ...pageSubRoutes]
 
       dynamicRoutes.value = allRoutes
       menuList.value = filterHiddenRoutes(allRoutes)

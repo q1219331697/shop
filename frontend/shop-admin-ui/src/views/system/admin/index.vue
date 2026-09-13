@@ -1,13 +1,16 @@
 <template>
-  <!-- :methods 可覆盖内置 CRUD 行为，如：:methods="{ onCreate: handleCreate, onUpdate: handleUpdate, onDelete: handleDelete }" -->
+  <!-- :methods 覆盖内置 CRUD 行为：新增/详情跳转独立页面（弹窗改页面） -->
   <CrudTable
     ref="crudTableRef"
     :schema="adminUserSchema"
     :api="api.adminUser"
-    :handlers="toolbarHandlers"
+    :methods="crudMethods"
   >
-    <!-- 行操作追加：禁用/启用/恢复/分配角色 -->
+    <!-- 行内操作：编辑/禁用/启用/恢复/分配角色（分配角色改为跳转独立页面） -->
     <template #row-actions-extra="{ row }">
+      <el-button v-if="!row.deleted" link class="action-link" @click="goEdit(row)">
+        <el-icon><Edit /></el-icon>编辑
+      </el-button>
       <el-button
         v-if="!row.deleted && row.status === 1"
         link
@@ -27,19 +30,11 @@
       <el-button v-if="row.deleted" link class="action-link" @click="handleRestore(row)">
         <el-icon><RefreshRight /></el-icon>恢复
       </el-button>
-      <el-button
-        v-if="!row.deleted"
-        link
-        class="action-link"
-        @click="assignRoleDialogRef?.open(row)"
-      >
+      <el-button v-if="!row.deleted" link class="action-link" @click="goAssignRole(row)">
         <el-icon><Key /></el-icon>分配角色
       </el-button>
     </template>
   </CrudTable>
-
-  <!-- 分配角色对话框 -->
-  <AssignRoleDialog ref="assignRoleDialogRef" @success="refreshList" />
 </template>
 
 <script setup lang="ts">
@@ -48,60 +43,42 @@
  * <p>
  * 管理后台账号（AdminUserEntity），区别于 C 端会员（UserEntity）。
  * </p>
+ * <p>交互形态（弹窗改页面）：新增/编辑/详情/分配角色跳转独立页面；禁用/启用/恢复/删除保持弹窗或原位确认。</p>
  */
-
-// ==================== 依赖引入 ====================
-
-// Vue 核心
-import { Lock, Unlock, RefreshRight, Key } from '@element-plus/icons-vue'
+import { Edit, Lock, Unlock, RefreshRight, Key } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-// API 聚合对象（显式导入，避免依赖 auto-import 在该视图未注入）
 import { api } from '@/api'
-
-// Element Plus
-
-// 业务组件
 import type { AdminUserItem } from '@/api'
 import { CrudTable } from '@/components/CrudTable'
-import type { ActionContext } from '@/components/CrudTable'
 
-import AssignRoleDialog from './AssignRoleDialog.vue'
-
-// Schema 配置
 import { adminUserSchema } from './schema'
 
-// 类型
-// API 通过自动导入的 api 聚合对象使用（无需 import）
-
-// ==================== 组件引用 ====================
-
+const router = useRouter()
 const crudTableRef = ref<InstanceType<typeof CrudTable>>()
-const assignRoleDialogRef = ref<InstanceType<typeof AssignRoleDialog>>()
-
-// ==================== 通用方法 ====================
 
 /** 刷新列表 */
 function refreshList() {
   crudTableRef.value?.crud.fetchData()
 }
 
-// ==================== 工具栏按钮 handler ====================
-
-/** 分配角色（disabled 已保证选中1条且未删除） */
-function handleAssignRole(ctx: ActionContext<AdminUserItem>) {
-  assignRoleDialogRef.value?.open(ctx.selectedRows[0])
+// 表单类动作改路由跳转（弹窗 -> 页面）
+const crudMethods = {
+  onCreate: () => router.push('/system/admin/create'),
+  onDetail: (row: AdminUserItem) => router.push(`/system/admin/detail/${row.id}`),
 }
 
-/** 工具栏按钮 handler 映射（只配需要组件交互的，其余已在 schema 中配置） */
-const toolbarHandlers = {
-  assignRole: handleAssignRole,
+// 行内编辑/分配角色跳转
+function goEdit(row: AdminUserItem) {
+  router.push(`/system/admin/edit/${row.id}`)
+}
+function goAssignRole(row: AdminUserItem) {
+  router.push(`/system/admin/assign-role/${row.id}`)
 }
 
-// ==================== 行操作 ====================
-
-/** 禁用管理员 */
+// 禁用/启用/恢复（确认类，保持原逻辑）
 async function handleDisable(row: AdminUserItem) {
   try {
     await api.adminUser.disable(row.id)
@@ -111,8 +88,6 @@ async function handleDisable(row: AdminUserItem) {
     /* 请求工具已处理 */
   }
 }
-
-/** 启用管理员 */
 async function handleEnable(row: AdminUserItem) {
   try {
     await api.adminUser.enable(row.id)
@@ -122,8 +97,6 @@ async function handleEnable(row: AdminUserItem) {
     /* 请求工具已处理 */
   }
 }
-
-/** 恢复管理员 */
 async function handleRestore(row: AdminUserItem) {
   try {
     await api.adminUser.restore(row.id)

@@ -16,10 +16,8 @@
 // Vue 核心
 import { ref } from 'vue'
 
-// API 聚合对象（显式导入，避免依赖 auto-import 在该视图未注入）
+// API 聚合对象（显式导入，避免依赖 auto-import 在该视图未注入）/ 业务组件
 import { api } from '@/api'
-
-// 业务组件
 import { CrudTable } from '@/components/CrudTable'
 
 // Schema 配置
