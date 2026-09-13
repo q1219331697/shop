@@ -155,4 +155,5 @@ temp/
 # ========================
 # UI 表格驱动测试报告（运行期生成，不入库）
 # ========================
-**/test-results/cases-report-*.csv
+**/test-results/
+playwright-report/
