@@ -13,7 +13,11 @@
         @confirm="handleAction(item.action)"
       >
         <template #reference>
-          <el-button :type="item.type || 'default'" :disabled="isDisabled(item)">
+          <el-button
+            :type="item.type || 'default'"
+            :plain="item.plain"
+            :disabled="isDisabled(item)"
+          >
             <el-icon v-if="item.icon">
               <component :is="item.icon" />
             </el-icon>
@@ -26,6 +30,7 @@
       <el-button
         v-else
         :type="item.type || 'default'"
+        :plain="item.plain"
         :disabled="isDisabled(item)"
         @click="handleAction(item.action)"
       >
@@ -86,21 +91,21 @@ const emit = defineEmits<{
   (e: 'action', action: string): void
 }>()
 
-/** 默认工具栏按钮 */
+/** 默认工具栏按钮：顺序为「新增 → 详情 → 编辑 → 删除」，与列表行内操作（详情在编辑前）保持一致 */
 const defaultToolbar: ActionItem[] = [
   { action: 'create', label: '新增', icon: Plus, type: 'primary' },
-  {
-    action: 'edit',
-    label: '编辑',
-    icon: Edit,
-    type: 'warning',
-    disabled: (ctx) => ctx.selectedCount !== 1,
-  },
   {
     action: 'detail',
     label: '详情',
     icon: View,
     type: 'info',
+    disabled: (ctx) => ctx.selectedCount !== 1,
+  },
+  {
+    action: 'edit',
+    label: '编辑',
+    icon: Edit,
+    type: 'warning',
     disabled: (ctx) => ctx.selectedCount !== 1,
   },
   {

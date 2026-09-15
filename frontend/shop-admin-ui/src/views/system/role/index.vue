@@ -53,9 +53,10 @@ function refreshList() {
   crudTableRef.value?.crud.fetchData()
 }
 
-// 表单类动作改路由跳转（弹窗 -> 页面）
+// 表单类动作改路由跳转（弹窗 -> 页面）：工具栏与行内共用同一批跳转
 const crudMethods = {
   onCreate: () => router.push('/system/role/create'),
+  onUpdate: (row: RoleItem) => goEdit(row),
   onDetail: (row: RoleItem) => router.push(`/system/role/detail/${row.id}`),
 }
 
@@ -81,13 +82,5 @@ async function handleEnable(row: RoleItem) {
 </script>
 
 <style lang="scss" scoped>
-.action-link {
-  font-size: 14px;
-  color: #5a9cf8;
-  white-space: nowrap;
-
-  &:hover {
-    color: #2d7de6;
-  }
-}
+/* 行内操作链接样式由基础样式表提供（.action-link），页面不再重复定义 */
 </style>

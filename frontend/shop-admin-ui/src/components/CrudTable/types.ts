@@ -121,6 +121,8 @@ export interface ActionItem<T = RowData> {
   icon?: string | Component
   /** 按钮类型 */
   type?: 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'default'
+  /** 浅色（plain）形态：用于低频的次要操作，把视觉重心让给高频操作 */
+  plain?: boolean
   /** 是否显示，默认 true */
   visible?: boolean | ((ctx: ActionContext<T>) => boolean)
   /** 是否禁用 */

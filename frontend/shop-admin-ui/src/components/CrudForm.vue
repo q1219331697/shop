@@ -1,5 +1,14 @@
 <template>
-  <el-form ref="formRef" :model="localFormData" :rules="rules" :label-width="labelWidth">
+  <!-- label-position="left"：标签文字左对齐（不因字数不同而参差）；
+       require-asterisk-position="right"：必填星号放在文字之后，不占文字左侧空间 -->
+  <el-form
+    ref="formRef"
+    :model="localFormData"
+    :rules="rules"
+    :label-width="labelWidth"
+    label-position="left"
+    require-asterisk-position="right"
+  >
     <template v-for="field in visibleFields" :key="field.prop">
       <!-- 插槽类型 -->
       <el-form-item

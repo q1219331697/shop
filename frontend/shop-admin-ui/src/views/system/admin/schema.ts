@@ -74,20 +74,23 @@ export const adminUserSchema: CrudSchema<AdminUserItem> = {
   // ---- 按钮区 ----
   actions: {
     toolbar: [
-      // 编辑/详情改为行内或独立页面，不占用工具栏（隐藏默认按钮）
-      { action: 'edit', visible: false },
-      { action: 'detail', visible: false },
+      // 权重分层：新增 = 唯一实心主操作；编辑/详情用浅色主色（常用但次要）；
+      // 删除独立用危险色；编辑/详情未选中时禁用，单选后跳转独立页面（见 index.vue）
+      { action: 'edit', type: 'primary', plain: true },
+      { action: 'detail', type: 'primary', plain: true },
       {
         action: 'delete',
         disabled: (ctx) => !ctx.selectedRows.some((r: AdminUserItem) => !r.deleted),
       },
     ],
     extraToolbar: [
+      // 低频批量操作使用浅色描边，让视觉重心留在高频操作上
       {
         action: 'disable',
         label: '禁用',
         icon: 'Lock',
         type: 'warning',
+        plain: true,
         disabled: (ctx) =>
           !ctx.selectedRows.some((r: AdminUserItem) => !r.deleted && r.status === 1),
         handler: handleBatchDisable,
@@ -97,6 +100,7 @@ export const adminUserSchema: CrudSchema<AdminUserItem> = {
         label: '启用',
         icon: 'Unlock',
         type: 'success',
+        plain: true,
         disabled: (ctx) =>
           !ctx.selectedRows.some((r: AdminUserItem) => !r.deleted && r.status === 0),
         handler: handleBatchEnable,
@@ -106,6 +110,7 @@ export const adminUserSchema: CrudSchema<AdminUserItem> = {
         label: '恢复',
         icon: 'RefreshRight',
         type: 'success',
+        plain: true,
         disabled: (ctx) => !ctx.selectedRows.some((r: AdminUserItem) => r.deleted),
         handler: handleBatchRestore,
       },

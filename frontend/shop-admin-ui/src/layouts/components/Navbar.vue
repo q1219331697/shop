@@ -1,84 +1,38 @@
 <template>
   <el-header class="navbar">
     <div class="navbar-left">
-      <el-icon class="collapse-btn" @click="appStore.toggleSidebar">
-        <Fold v-if="!appStore.sidebarCollapsed" />
-        <Expand v-else />
-      </el-icon>
-      <!-- 子页面（新增/编辑/详情/分配）返回入口：置于页面左上角、面包屑前。
+      <!-- 任务页（新增/编辑/详情/分配）返回入口：回到所属列表页。
            用带文字的按钮而非裸图标，保证「有明确的返回途径」 -->
-      <el-button v-if="isSubPage" class="back-btn" text @click="goBack">
+      <el-button v-if="isTaskPage" class="back-btn" text @click="goBack">
         <el-icon><ArrowLeft /></el-icon>
         <span>返回</span>
       </el-button>
       <Breadcrumb />
     </div>
-    <div class="navbar-right">
-      <el-dropdown trigger="click" @command="handleCommand">
-        <span class="user-info">
-          <el-avatar :size="30" icon="UserFilled" />
-          <span class="username">{{ userStore.username || '管理员' }}</span>
-          <el-icon><ArrowDown /></el-icon>
-        </span>
-        <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item command="logout">退出登录</el-dropdown-item>
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
-    </div>
   </el-header>
 </template>
 
 <script setup lang="ts">
-import { Fold, Expand, ArrowDown, ArrowLeft } from '@element-plus/icons-vue'
-import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ArrowLeft } from '@element-plus/icons-vue'
 
-import { useAppStore } from '@/stores/modules/app'
-import { usePermissionStore } from '@/stores/modules/permission'
-import { useUserStore } from '@/stores/modules/user'
+import { usePageNav } from '@/composables/use-page-nav'
 
 import Breadcrumb from './Breadcrumb.vue'
 
-const route = useRoute()
-const router = useRouter()
-const appStore = useAppStore()
-const userStore = useUserStore()
-const permissionStore = usePermissionStore()
+/** 任务页判定与返回行为统一由 usePageNav 提供，与页面内「取消/返回」共用同一实现 */
+const { isTaskPage, goBackToList } = usePageNav()
 
-/** 是否为「列表页 → 子页面」形态（子页面通过 meta.activeMenu 归位到所属列表页） */
-const isSubPage = computed(() => !!route.meta.activeMenu)
-
-/** 返回上一页；直接输入地址进入（无历史）时回退到所属列表页 */
+/** 返回所属列表页 */
 function goBack() {
-  const canGoBack = !!router.options.history.state.back
-  const activeMenu = route.meta.activeMenu as string | undefined
-  if (canGoBack) {
-    router.back()
-  } else if (activeMenu) {
-    router.push(activeMenu)
-  }
-}
-
-async function handleCommand(command: string) {
-  if (command === 'logout') {
-    permissionStore.resetPermission()
-    try {
-      await userStore.logout()
-    } catch {
-      // 后端异常不影响前端注销，本地状态已在 finally 中清除
-    }
-    router.push('/login')
-  }
+  goBackToList()
 }
 </script>
 
 <style lang="scss" scoped>
+/* 位置行：只承载「返回 + 面包屑」，紧贴内容区，高度比工作区行更轻 */
 .navbar {
-  --navbar-h-padding: 20px;
-  height: 48px !important;
-  padding: 0 var(--navbar-h-padding) !important;
+  height: 40px !important;
+  padding: 0 20px !important;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -92,52 +46,31 @@ async function handleCommand(command: string) {
   align-items: center;
 }
 
-.collapse-btn {
-  font-size: 20px;
-  cursor: pointer;
-  margin-right: 16px;
-  color: #535966;
-
-  &:hover {
-    color: #006bb4;
-  }
-}
-
-.navbar-right {
-  display: flex;
-  align-items: center;
-}
-
+/* 与同行的面包屑保持同一套文字规格：14px / 常规字重 / 同色 / 同字体栈。
+   font-family: inherit 是关键——el-button 默认用 element 自己的字体变量（实际落到 Arial），
+   中文回退字形与正文系统字体栈不同，会导致「看着大小粗细不一致、基线差半像素」。
+   hover 只变色、不出背景块，避免和整行文字风格割裂 */
 .back-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
   margin-right: 12px;
-  padding: 0 10px;
-  height: 28px;
+  padding: 0 4px;
+  font-family: inherit;
   font-size: 14px;
+  font-weight: 400;
+  line-height: 14px;
   color: #535966;
+  background-color: transparent;
 
-  &:hover {
+  &:hover,
+  &:focus {
     color: #006bb4;
-    background-color: #f5f7fa;
+    background-color: transparent;
   }
 
   .el-icon {
     margin-right: 4px;
-  }
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  padding-right: 0;
-  color: #535966;
-
-  &:hover {
-    color: #006bb4;
-  }
-
-  .username {
-    margin: 0 8px;
     font-size: 14px;
   }
 }

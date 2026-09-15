@@ -1,0 +1,62 @@
+/**
+ * 基础（公共）样式类
+ *
+ * 收纳「跨页面 / 跨组件重复」的样式，避免每个页面各写一份副本：
+ * - .action-link     表格行内操作链接（含危险色变体），页面插槽与 DataArea 共用
+ * - .data-container  数据展示区容器布局（撑满、表格按内容高度渲染、超出才内滚）
+ * - .info-bar        页面顶部信息提示行（如「管理员：admin（超级管理员）」）
+ *
+ * 页面与业务组件只挂类名，不再各自重复定义这些规则。
+ */
+
+/* 表格行内操作链接 */
+.action-link {
+  font-size: 14px;
+  color: #5a9cf8;
+  white-space: nowrap;
+
+  &:hover {
+    color: #2d7de6;
+  }
+
+  &.action-link--danger {
+    color: #f56c6c;
+
+    &:hover {
+      color: #e04040;
+    }
+  }
+}
+
+/* 数据展示区容器：
+   DataArea 与「自定义树形表格」等自组装页面共用同一套布局规格 */
+.data-container {
+  width: 100%;
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+
+  /* 表格按内容高度渲染（不拉伸占满），行少时表格与分页之间不留空白；
+     超出 max-height 时由表格内部滚动（表头固定） */
+  .el-table {
+    flex: none;
+  }
+}
+
+/* 信息提示行 */
+.info-bar {
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: #606266;
+
+  strong {
+    color: #303133;
+  }
+
+  .info-bar__extra {
+    margin-left: 4px;
+    color: #606266;
+  }
+}

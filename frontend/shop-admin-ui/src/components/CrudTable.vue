@@ -286,9 +286,20 @@ const hasToolbarActions = computed(() => {
 
 /** 处理工具栏操作 */
 function handleToolbarAction(action: string) {
-  // 优先调用 methods 约定方法
+  // 优先调用 methods 约定方法：
+  // 「弹窗改页面」形态下，工具栏的编辑/详情在单选时跳转独立页面，不落回内置弹窗
   if (action === 'create' && props.methods?.onCreate) {
     props.methods.onCreate()
+    return
+  }
+  if (action === 'edit' && props.methods?.onUpdate) {
+    const row = selectedRows.value[0] as RowData | undefined
+    if (row) props.methods.onUpdate(row)
+    return
+  }
+  if (action === 'detail' && props.methods?.onDetail) {
+    const row = selectedRows.value[0] as RowData | undefined
+    if (row) props.methods.onDetail(row)
     return
   }
   const builtinActions = ['create', 'edit', 'detail', 'delete']

@@ -29,7 +29,7 @@
 
     <!-- 数据展示区：权限树形表格（无分页） -->
     <template #data>
-      <div ref="dataRef" v-loading="loading" class="permission-table">
+      <div ref="dataRef" v-loading="loading" class="permission-table data-container">
         <el-table
           ref="tableRef"
           :data="tableData"
@@ -409,42 +409,12 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.permission-table {
-  width: 100%;
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-
-  // 树形表格同样按内容高度渲染、超出 max-height 才内部滚动（与其他列表页一致）
-  :deep(.el-table) {
-    flex: none;
-  }
-}
-
+/* 数据区容器布局与行内操作链接样式由基础样式表提供：
+   .data-container（撑满 / 按内容高度渲染 / 超出才内滚）、.action-link
+   此处只保留本页特有的图标样式 */
 .permission-icon {
   margin-right: 6px;
   vertical-align: -2px;
   color: #5a9cf8;
-}
-
-.action-link {
-  font-size: 14px;
-  color: #5a9cf8;
-  /* 保证按钮文本不换行 */
-  white-space: nowrap;
-
-  &:hover {
-    color: #2d7de6;
-  }
-
-  &.action-link--danger {
-    color: #f56c6c;
-
-    &:hover {
-      color: #e04040;
-    }
-  }
 }
 </style>

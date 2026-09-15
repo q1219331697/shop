@@ -1608,3 +1608,38 @@ TC-ADMLOG-06,7,click,css,.search-bar .el-button:has-text('重置'),-,-,-,点击�
 TC-ADMLOG-06,8,wait,-,-,-,-,-,等待重置结果渲染
 TC-ADMLOG-06,9,expectVisible,css,.el-table__body tr:first-child,-,-,-,恢复后有数据行
 TC-ADMLOG-06,10,expectText,css,.el-table__body tr:first-child td:nth-child(2),-,admin,-,恢复后首行为admin
+TC-NAV-01,1,setupApi,userCreate,desc=E2E-导航详情返回;status=1,-,-,-,造1条用户
+TC-NAV-01,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-NAV-01,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,搜索框输入用户名
+TC-NAV-01,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-NAV-01,5,clickRow,-,${userName},详情,-,-,打开详情页
+TC-NAV-01,6,expectURL,-,-,-,/system/admin/detail/\d+,url,URL切到详情页
+TC-NAV-01,7,expectVisible,css,.detail-footer .el-button,-,-,-,详情页底部有返回按钮
+TC-NAV-01,8,click,css,.detail-footer .el-button,-,-,-,点击返回
+TC-NAV-01,9,expectURL,-,-,-,/system/admin$,url,回到所属列表页
+TC-NAV-01,10,expectVisible,css,.el-table,-,-,-,列表已渲染
+TC-NAV-02,1,setupApi,userGen,-,-,-,-,生成一个不落库的用户名
+TC-NAV-02,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-NAV-02,3,click,css,.action-bar .el-button:has-text('新增'),-,-,-,点击新增
+TC-NAV-02,4,expectURL,-,-,-,/system/admin/create,url,URL切到新增页
+TC-NAV-02,5,fill,css,.form-page .el-input__inner[placeholder='请输入用户名'],${newUserName},-,-,填写用户名
+TC-NAV-02,6,click,css,.form-footer .el-button:not(.el-button--primary),-,-,-,点击取消
+TC-NAV-02,7,expectURL,-,-,-,/system/admin$,url,回到所属列表页
+TC-NAV-02,8,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${newUserName},-,-,搜索刚才填的用户名
+TC-NAV-02,9,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-NAV-02,10,expectCount,css,.el-table__body tr,-,0,-,取消后未落库无命中
+TC-NAV-03,1,setupApi,userCreate,desc=E2E-导航直开URL;status=1,-,-,-,造1条用户
+TC-NAV-03,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-NAV-03,3,goto,-,/dashboard,-,-,-,先离开列表页让浏览器上一页不是列表
+TC-NAV-03,4,goto,-,/system/admin/detail/${userId},-,-,-,直接打开详情页URL
+TC-NAV-03,5,expectVisible,css,.detail-page,-,-,-,详情页已打开
+TC-NAV-03,6,click,css,.back-btn,-,-,-,点击顶栏返回
+TC-NAV-03,7,expectURL,-,-,-,/system/admin$,url,回到所属列表页而非浏览器上一页
+TC-NAV-03,8,expectVisible,css,.el-table,-,-,-,列表已渲染
+TC-NAV-04,1,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-NAV-04,2,expectHidden,css,.back-btn,-,-,-,列表页无顶栏返回按钮
+TC-NAV-04,3,goto,-,/system/admin/create,-,-,-,打开新增页
+TC-NAV-04,4,expectText,css,.sub-page__title,-,新增管理员,text,任务页标题等于路由标题
+TC-NAV-04,5,expectText,css,.el-breadcrumb,-,管理员管理,text,面包屑含所属列表页
+TC-NAV-04,6,expectText,css,.el-breadcrumb,-,新增管理员,text,面包屑末级等于页面标题
+TC-NAV-04,7,expectVisible,css,.back-btn,-,-,-,任务页有顶栏返回入口

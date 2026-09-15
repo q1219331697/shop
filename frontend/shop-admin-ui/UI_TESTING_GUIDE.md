@@ -29,11 +29,11 @@ cd frontend/shop-admin-ui
 # 运行所有测试（无头模式）
 npm run test
 
-# 运行特定测试文件
-npx playwright test tests/e2e/specs/auth.spec.ts
+# 运行特定测试文件（specs 目录下现仅有这一个表格驱动 spec）
+npx playwright test tests/e2e/specs/excel-driven.spec.ts
 
-# 运行特定测试用例
-npx playwright test tests/e2e/specs/auth.spec.ts -g "登录成功"
+# 运行特定测试用例（按用例ID 过滤）
+npx playwright test -g "TC-NAV-03"
 ```
 
 ## 📑 表格驱动测试（CSV 管理用例）
@@ -50,7 +50,14 @@ tests/e2e/
 ├─ keyword/
 │  ├─ csv.ts                 ← csv-parse 读取并组装用例
 │  ├─ locator.ts             ← 定位方式 → Playwright locator
-│  └─ runner.ts              ← 操作 → Playwright 动作（dispatch）
+│  ├─ runner.ts              ← 操作 → Playwright 动作（dispatch）
+│  └─ setupRegistry.ts       ← setupApi 造数注册表（TS 造数 + 变量回灌）
+├─ common/
+│  ├─ apiClient.ts           ← 后端接口封装（apiUrl / auth / unwrap）
+│  ├─ dataFactory.ts         ← 数据工厂（创建用户 / 角色 / 权限实体）
+│  └─ e2eFixtures.ts         ← 用例前缀、expect 等测试基元
+├─ fixtures/
+│  └─ credentials.ts         ← 测试账号（admin / admin123）
 ├─ specs/
 │  └─ excel-driven.spec.ts   ← 读 CSV，按"是否启用=是"动态生成 test()
 └─ reporter/
@@ -117,11 +124,14 @@ TC-PERM-05,7,setupApi,permCreate,type=1;path=/e2e/parent;component=views/test/pa
 
 ### 迁移状态（截至当前）
 
-- **登录（4）、仪表盘（2）、权限（8 UI + 1 纯 API）、角色（23）、用户管理（27）已全部迁到 CSV**，`tests/e2e/specs/excel-driven.spec.ts` 现统一驱动 **63 个**用例（全绿）。
-- 用户管理模块复用角色模块新增的全部关键字（`selectRow` / `clickRow` / `expectCell` / `expectEnabled` / `expectChecked` / `toggleTree` / `expectTreeChecked`），**未新增任何关键字**。
+- **全部 UI 用例已迁到 CSV**，`tests/e2e/specs/excel-driven.spec.ts` 现统一驱动 **146 个**用例（全绿）。
+- 各模块用例数：登录 4、仪表盘 2、管理员管理 50、角色管理 40、权限管理 40、登录日志 6、通用导航 4。
+- 通用导航（`TC-NAV-*`）守护任务页出口的一致性：详情页底部「返 回」、新增页「取 消」、顶栏「返 回」三条出口都回到所属列表页（**直接输 URL 打开时也回列表，而不是退回浏览器上一页**），以及「任务页标题 = 面包屑末级 = 路由标题」「列表页不显示顶栏返回按钮」。
+  - 定位这类按钮请用结构/类型选择器（如 `.form-footer .el-button:not(.el-button--primary)`），**不要用 `:has-text('取消')`**：Playwright 只折叠空白、不做去空格匹配，匹配不到页面上带空格的「取 消」。
+- 用户管理模块复用角色模块新增的全部关键字（`selectRow` / `clickRow` / `expectCell` / `expectEnabled` / `expectChecked` / `toggleTree` / `expectTreeChecked`），**未新增任何关键字**；通用导航用例同样零新增，全部复用 `userCreate` / `userGen` / `uiLogin` / `expectURL` / `expectHidden`。
 - 注册表新增用户造数：`userGen`（仅生成用户名供 UI 新增回灌）、`userCreate`（单条，暴露 `userName`）、`userBatch`（批量，暴露 `user0..N` / `userPrefix`）；以及 `uiLogin`（整页刷新会丢登录态，用户管理每个用例独立 context，需各自 UI 登录后进入页面）。
-- 原 `login.spec.ts` / `dashboard.spec.ts` / `permissions.spec.ts` / `roles.spec.ts` 已删除；权限授权纯 API 编排保留为 `permissions-api.spec.ts`；**`admin.spec.ts` 迁移后待删除**（删除后即可避免与 CSV 重复运行）。
-- 测试标题已改为「用例ID + 标题」（`${c.用例ID} ${c.标题}`），避免不同模块标题重名导致的 Playwright 重复标题报错。
+- 早期手写的 `login.spec.ts` / `dashboard.spec.ts` / `permissions.spec.ts` / `roles.spec.ts` / `admin.spec.ts` / `permissions-api.spec.ts` 均已删除，`specs/` 目录下只剩 `excel-driven.spec.ts`。
+- 测试标题为「用例ID + 标题」（`${c.用例ID} ${c.标题}`），避免不同模块标题重名导致的 Playwright 重复标题报错。
 - `expectTreeChecked` 对权限树异步回显做了轮询重试（≤8s），避免大套件并行下对话框重开时树未渲染完就断言。
 
 ### 如何新增一个用例
@@ -182,10 +192,10 @@ npm run test:e2e:table
 ### 1. 运行特定测试
 ```bash
 # 运行特定文件
-npx playwright test tests/e2e/specs/login.spec.ts
+npx playwright test tests/e2e/specs/excel-driven.spec.ts
 
-# 运行特定测试用例
-npx playwright test tests/e2e/specs/login.spec.ts -g "should login successfully"
+# 运行特定测试用例（标题与 tag 均含用例ID，用 ID 过滤最稳）
+npx playwright test -g "TC-NAV-03"
 ```
 
 ### 3. 启用慢动作模式

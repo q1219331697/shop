@@ -1,63 +1,66 @@
 <template>
-  <PageContainer>
-    <div class="form-page">
-      <CrudForm
-        ref="formRef"
-        :fields="permissionFormFields"
-        :form-data="formData"
-        :rules="permissionFormRules"
-        :is-edit="isEdit"
-        :submitting="submitting"
-        :label-width="labelWidth"
-        @submit="handleSubmit"
-      >
-        <!-- 上级权限：树形选择（仅菜单可作为上级） -->
-        <template #form-parentId="{ model }">
-          <ElTreeSelect
-            v-model="model.parentId"
-            :data="parentOptions"
-            :props="parentTreeProps"
-            node-key="id"
-            check-strictly
-            default-expand-all
-            :render-after-expand="false"
-            placeholder="请选择上级权限"
-            clearable
-            style="width: 100%"
-          />
-        </template>
+  <SubPage body-class="form-page" footer-class="form-footer">
+    <CrudForm
+      ref="formRef"
+      :fields="permissionFormFields"
+      :form-data="formData"
+      :rules="permissionFormRules"
+      :is-edit="isEdit"
+      :submitting="submitting"
+      :label-width="labelWidth"
+      @submit="handleSubmit"
+    >
+      <!-- 上级权限：树形选择（仅菜单可作为上级） -->
+      <template #form-parentId="{ model }">
+        <ElTreeSelect
+          v-model="model.parentId"
+          :data="parentOptions"
+          :props="parentTreeProps"
+          node-key="id"
+          check-strictly
+          default-expand-all
+          :render-after-expand="false"
+          placeholder="请选择上级权限"
+          clearable
+          style="width: 100%"
+        />
+      </template>
 
-        <!-- 菜单图标：图标选择器 -->
-        <template #form-icon="{ model }">
-          <IconSelect v-model="model.icon" />
-        </template>
-      </CrudForm>
-      <div class="form-footer">
-        <el-button @click="goBack">取 消</el-button>
-        <el-button type="primary" :loading="submitting" @click="formRef?.submit()">保 存</el-button>
-      </div>
-    </div>
-  </PageContainer>
+      <!-- 菜单图标：图标选择器 -->
+      <template #form-icon="{ model }">
+        <IconSelect v-model="model.icon" />
+      </template>
+    </CrudForm>
+
+    <template #footer>
+      <el-button @click="goBack">取 消</el-button>
+      <el-button type="primary" :loading="submitting" @click="formRef?.submit()">保 存</el-button>
+    </template>
+  </SubPage>
 </template>
 
 <script setup lang="ts">
 /**
  * 权限 - 新增/编辑页（弹窗改页面）
  * <p>复用 permissionFormFields / permissionFormRules，表单内上级权限、图标选择器通过插槽渲染。</p>
+ * <p>骨架（边距 / 宽度 / 底部操作区）统一由 SubPage 提供。</p>
  */
 import { ElMessage, ElTreeSelect } from 'element-plus'
 import { computed, onMounted, reactive, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 
 import { api, type PermissionItem } from '@/api'
 import CrudForm from '@/components/CrudForm.vue'
 import IconSelect from '@/components/IconSelect.vue'
+import SubPage from '@/components/SubPage.vue'
+import { usePageNav } from '@/composables/use-page-nav'
 import { flattenPermissionTree, invalidatePermissionTreeCache } from '@/utils/permissionTree'
 
 import { permissionDefaultFormData, permissionFormFields, permissionFormRules } from './schema'
 
 const route = useRoute()
-const router = useRouter()
+/** 统一返回：回到所属列表页（/system/permission） */
+const { goBackToList } = usePageNav()
 
 const formRef = ref<InstanceType<typeof CrudForm>>()
 
@@ -116,10 +119,8 @@ const parentOptions = computed<ParentOption[]>(() => {
   return children.length > 0 ? [{ ...root, children }] : [root]
 })
 
-const labelWidth = computed(() => {
-  const maxLen = permissionFormFields.reduce((max: number, f) => Math.max(max, f.label.length), 0)
-  return Math.max(80, maxLen * 14 + 12) + 'px'
-})
+/** 标签宽度与其他任务页表单保持一致 */
+const labelWidth = '96px'
 
 onMounted(async () => {
   // 加载权限树（用于上级权限选择）
@@ -164,7 +165,7 @@ async function handleSubmit(data: Record<string, unknown>) {
       ElMessage.success('新增成功')
     }
     invalidatePermissionTreeCache()
-    router.back()
+    goBackToList()
   } catch {
     /* 请求工具已处理 */
   } finally {
@@ -173,18 +174,6 @@ async function handleSubmit(data: Record<string, unknown>) {
 }
 
 function goBack() {
-  router.back()
+  goBackToList()
 }
 </script>
-
-<style lang="scss" scoped>
-.form-page {
-  padding: 16px;
-  max-width: 640px;
-}
-
-.form-footer {
-  margin-top: 24px;
-  text-align: right;
-}
-</style>

@@ -1,5 +1,5 @@
 <template>
-  <div ref="rootRef" class="data-area" :style="rowHeightStyle">
+  <div ref="rootRef" class="data-area data-container" :style="rowHeightStyle">
     <!-- 完全替换数据展示区（如树形表格） -->
     <slot v-if="$slots['data-content']" name="data-content" :loading="loading" />
 
@@ -404,43 +404,14 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
-.data-area {
-  width: 100%;
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-
-  // 表格按内容高度渲染（不拉伸占满）：行少时表格与分页之间不留空白，
-  // 超出 max-height 时由表格内部滚动（表头固定）
-  :deep(.el-table) {
-    flex: none;
-  }
-}
-
+/* 数据区容器布局（撑满 / 按内容高度渲染 / 超出才内滚）与行内操作链接样式
+   统一由基础样式表提供：.data-container、.action-link
+   此处只保留分页样式 */
 .data-area__pagination {
   display: flex;
   justify-content: flex-end;
   /* 表格与分页之间的留白加在这里（区块间距），不加在表格内部，避免行尾出现“空行”感 */
   margin-top: 12px;
   padding-bottom: 0;
-}
-
-.action-link {
-  font-size: 14px;
-  color: #5a9cf8;
-
-  &:hover {
-    color: #2d7de6;
-  }
-
-  &.action-link--danger {
-    color: #f56c6c;
-
-    &:hover {
-      color: #e04040;
-    }
-  }
 }
 </style>

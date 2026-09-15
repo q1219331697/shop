@@ -49,6 +49,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
+import { usePageNav } from '@/composables/use-page-nav'
 import { useAppStore } from '@/stores/modules/app'
 import { usePermissionStore } from '@/stores/modules/permission'
 
@@ -56,15 +57,18 @@ const route = useRoute()
 const appStore = useAppStore()
 const permissionStore = usePermissionStore()
 
+/** 任务页归属的列表页路径由 usePageNav 统一提供，与面包屑、顶栏返回读同一份元数据 */
+const { listPath } = usePageNav()
+
 const menuList = computed(() => permissionStore.menuList)
 
 /**
  * 当前应高亮的菜单项。
- * 页面子路由（新增/编辑/详情/分配）的 path 带动态段（如 /system/admin/edit/1），
+ * 任务页（新增/编辑/详情/分配）的 path 带动态段（如 /system/admin/edit/1），
  * 与菜单项 index（/system/admin）对不上，直接用 route.path 会导致菜单不定位、父级菜单不展开；
- * 故优先取 meta.activeMenu 归位到所属列表页。
+ * 故归位到所属列表页（meta.activeMenu）。
  */
-const activeMenu = computed(() => (route.meta.activeMenu as string | undefined) || route.path)
+const activeMenu = computed(() => listPath.value || route.path)
 </script>
 
 <style lang="scss" scoped>

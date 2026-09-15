@@ -1,43 +1,48 @@
 <template>
-  <PageContainer>
-    <div v-loading="loading" class="permission-assign-content">
-      <p class="permission-role-info">
-        角色：<strong>{{ currentRole?.roleName }}</strong>
-      </p>
-      <el-tree
-        ref="treeRef"
-        :data="permissionTree"
-        :props="treeProps"
-        node-key="id"
-        show-checkbox
-        default-expand-all
-        :check-strictly="false"
-      />
-      <el-empty v-if="permissionTree.length === 0 && !loading" description="暂无可分配权限" />
-      <div class="permission-assign-footer">
-        <el-button @click="goBack">取 消</el-button>
-        <el-button type="primary" :loading="submitting" @click="handleSubmit">
-          {{ submitting ? '提交中...' : '确 定' }}
-        </el-button>
-      </div>
-    </div>
-  </PageContainer>
+  <SubPage
+    :loading="loading"
+    body-max-height="420px"
+    body-class="permission-assign-content"
+    footer-class="permission-assign-footer"
+  >
+    <InfoBar label="角色" :value="currentRole?.roleName" />
+    <el-tree
+      ref="treeRef"
+      :data="permissionTree"
+      :props="treeProps"
+      node-key="id"
+      show-checkbox
+      default-expand-all
+      :check-strictly="false"
+    />
+    <el-empty v-if="permissionTree.length === 0 && !loading" description="暂无可分配权限" />
+
+    <template #footer>
+      <el-button @click="goBack">取 消</el-button>
+      <el-button type="primary" :loading="submitting" @click="handleSubmit">确 定</el-button>
+    </template>
+  </SubPage>
 </template>
 
 <script setup lang="ts">
 /**
  * 角色 - 分配权限页（弹窗改页面）
  * <p>从 AssignPermissionDialog 迁移为独立页面，逻辑保持一致。</p>
+ * <p>骨架（边距 / 底部操作区）统一由 SubPage 提供。</p>
  */
 import type { ElTree } from 'element-plus'
 import { ElMessage } from 'element-plus'
-import { nextTick, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { nextTick, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
 
 import { api, type PermissionItem, type RoleItem } from '@/api'
+import InfoBar from '@/components/InfoBar.vue'
+import SubPage from '@/components/SubPage.vue'
+import { usePageNav } from '@/composables/use-page-nav'
 
 const route = useRoute()
-const router = useRouter()
+/** 统一返回：回到所属列表页（/system/role） */
+const { goBackToList } = usePageNav()
 
 const currentRole = ref<RoleItem | null>(null)
 const loading = ref(false)
@@ -100,7 +105,7 @@ async function handleSubmit() {
     const permissionIds: number[] = [...new Set([...checkedKeys, ...halfCheckedKeys])]
     await api.role.assignPermissions(currentRole.value.id, permissionIds)
     ElMessage.success('权限分配成功')
-    router.back()
+    goBackToList()
   } catch {
     /* 请求工具已处理错误提示 */
   } finally {
@@ -109,30 +114,7 @@ async function handleSubmit() {
 }
 
 function goBack() {
-  router.back()
+  goBackToList()
 }
 </script>
 
-<style lang="scss" scoped>
-.permission-assign-content {
-  padding: 16px;
-  min-height: 200px;
-  max-height: 420px;
-  overflow-y: auto;
-}
-
-.permission-role-info {
-  margin-bottom: 16px;
-  font-size: 14px;
-  color: #606266;
-
-  strong {
-    color: #303133;
-  }
-}
-
-.permission-assign-footer {
-  margin-top: 24px;
-  text-align: right;
-}
-</style>

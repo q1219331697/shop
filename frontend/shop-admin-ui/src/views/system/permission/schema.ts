@@ -60,21 +60,23 @@ export const permissionSearchFields: SearchField[] = [
   },
 ]
 
-/** 工具栏按钮配置 */
+/** 工具栏按钮配置：新增为唯一实心主操作，编辑/详情用浅色主色，删除用危险色 */
 export const permissionToolbarActions: ActionItem[] = [
   { action: 'create', label: '新增', icon: 'Plus', type: 'primary' },
   {
     action: 'edit',
     label: '编辑',
     icon: 'Edit',
-    type: 'warning',
+    type: 'primary',
+    plain: true,
     disabled: (ctx) => ctx.selectedCount !== 1,
   },
   {
     action: 'detail',
     label: '详情',
     icon: 'View',
-    type: 'info',
+    type: 'primary',
+    plain: true,
     disabled: (ctx) => ctx.selectedCount !== 1,
   },
   {

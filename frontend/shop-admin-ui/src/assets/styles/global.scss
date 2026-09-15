@@ -1,4 +1,5 @@
 @use './reset.scss';
+@use './components.scss';
 
 /* 全局通用样式 */
 .flex {
@@ -166,4 +167,83 @@
 /* 全局禁止点击遮罩关闭 Dialog */
 .el-dialog__overlay {
   pointer-events: none;
+}
+
+/* ============================================================
+ * 次要操作按钮（plain 形态）
+ * 工具栏里高频操作保持深色实心（新增 / 编辑 / 详情）与危险色（删除），
+ * 低频的批量操作（禁用 / 启用 / 恢复）使用浅色描边，让视觉重心落在高频操作上。
+ * 选择器特异性高于上方 .el-button--xxx 规则，可覆盖其 !important 填充色。
+ * ============================================================ */
+.el-button.is-plain {
+  background-color: #fff !important;
+
+  &.el-button--primary {
+    color: var(--el-color-primary) !important;
+    border-color: var(--el-color-primary-light-5) !important;
+
+    &:hover,
+    &:focus {
+      background-color: var(--el-color-primary-light-9) !important;
+      color: var(--el-color-primary) !important;
+      border-color: var(--el-color-primary) !important;
+    }
+  }
+
+  &.el-button--success {
+    color: var(--el-color-success) !important;
+    border-color: var(--el-color-success-light-5) !important;
+
+    &:hover,
+    &:focus {
+      background-color: var(--el-color-success-light-9) !important;
+      color: var(--el-color-success) !important;
+      border-color: var(--el-color-success) !important;
+    }
+  }
+
+  &.el-button--warning {
+    color: var(--el-color-warning) !important;
+    border-color: var(--el-color-warning-light-5) !important;
+
+    &:hover,
+    &:focus {
+      background-color: var(--el-color-warning-light-9) !important;
+      color: var(--el-color-warning) !important;
+      border-color: var(--el-color-warning) !important;
+    }
+  }
+
+  &.el-button--danger {
+    color: var(--el-color-danger) !important;
+    border-color: var(--el-color-danger-light-5) !important;
+
+    &:hover,
+    &:focus {
+      background-color: var(--el-color-danger-light-9) !important;
+      color: var(--el-color-danger) !important;
+      border-color: var(--el-color-danger) !important;
+    }
+  }
+
+  &.el-button--info {
+    color: var(--el-color-info) !important;
+    border-color: var(--el-color-info-light-5) !important;
+
+    &:hover,
+    &:focus {
+      background-color: var(--el-color-info-light-9) !important;
+      color: var(--el-color-info) !important;
+      border-color: var(--el-color-info) !important;
+    }
+  }
+
+  /* 禁用态统一浅灰，避免浅色按钮在禁用时仍显示彩色 */
+  &.is-disabled,
+  &.is-disabled:hover,
+  &.is-disabled:focus {
+    background-color: #fff !important;
+    color: var(--el-text-color-placeholder) !important;
+    border-color: var(--el-border-color-light) !important;
+  }
 }

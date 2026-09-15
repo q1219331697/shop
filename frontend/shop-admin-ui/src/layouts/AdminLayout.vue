@@ -2,8 +2,10 @@
   <el-container class="admin-layout" :class="{ 'sidebar-collapsed': appStore.sidebarCollapsed }">
     <Sidebar />
     <el-container class="main-container">
-      <Navbar />
+      <!-- 上方：工作区（折叠开关 + 标签页 + 用户） -->
       <TabBar />
+      <!-- 下方：位置（返回 + 面包屑），紧贴内容区 -->
+      <Navbar />
       <el-main class="app-main">
         <router-view />
       </el-main>

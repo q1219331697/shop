@@ -12,29 +12,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-
-const route = useRoute()
-const router = useRouter()
+import { usePageNav } from '@/composables/use-page-nav'
 
 /**
- * 面包屑匹配链。
- *
- * 子页面（新增/编辑/详情/分配）是静态注册在 Layout 下的独立路由，不在菜单树里，
- * 其 route.matched 只有自身一条，左上角会丢掉「系统管理 / 角色管理」前缀；
- * 因此用 meta.activeMenu 解析出所属列表页的匹配链补在前面。
+ * 面包屑层级链由 usePageNav 统一提供：
+ * 与侧栏高亮、任务页标题读同一份路由元数据，保证三处位置指示一致。
  */
-const breadcrumbs = computed(() => {
-  const current = route.matched.filter((item) => item.meta?.title)
-  const activeMenu = route.meta.activeMenu as string | undefined
-  if (!activeMenu) return current
-
-  const parent = router
-    .resolve(activeMenu)
-    .matched.filter((item) => item.meta?.title && item.name !== 'NotFound')
-  return parent.length > 0 ? [...parent, ...current] : current
-})
+const { breadcrumbs } = usePageNav()
 </script>
 
 <style lang="scss" scoped>
