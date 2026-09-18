@@ -39,14 +39,18 @@ INSERT IGNORE INTO t_admin_permission (id, parent_id, permission_name, permissio
 (40304, 403, '权限删除', 'system:permission:delete', 3, NULL, NULL, 'views/system/permission/index.vue', 4, 1, 1),
 -- 登录日志
 (404, 4, '登录日志', 'system:loginlog', 2, '/system/loginLog', 'Document', 'views/system/loginLog/index.vue', 4, 1, 1),
-(40401, 404, '登录日志查询', 'system:loginlog:query', 3, '/system/loginLog/list', NULL, 'views/system/loginLog/index.vue', 1, 1, 1);
+(40401, 404, '登录日志查询', 'system:loginlog:query', 3, '/system/loginLog/list', NULL, 'views/system/loginLog/index.vue', 1, 1, 1),
+-- 店铺设置（功能未实现，页面暂用占位页 views/shop/setting/index.vue）
+(5, 0, '店铺设置', 'shop', 2, '/shop', 'Shop', 'views/shop/setting/index.vue', 5, 1, 1),
+-- 支付设置（功能未实现，页面暂用占位页 views/payment/setting/index.vue）
+(6, 0, '支付设置', 'payment', 2, '/payment', 'CreditCard', 'views/payment/setting/index.vue', 6, 1, 1);
 
 INSERT IGNORE INTO t_admin_user_role (user_id, role_id) VALUES
 (1, 1);
 
 INSERT IGNORE INTO t_admin_role_permission (role_id, permission_id) VALUES
--- 顶级目录
-(1, 1), (1, 2), (1, 3), (1, 4),
+-- 顶级菜单（含店铺设置 5、支付设置 6）
+(1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6),
 -- 用户管理
 (1, 401), (1, 40101), (1, 40102), (1, 40103), (1, 40104), (1, 40105),
 -- 角色管理
