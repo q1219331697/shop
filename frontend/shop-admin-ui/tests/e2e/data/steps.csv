@@ -394,6 +394,147 @@ TC-ADM-50,17,selectRow,-,${user0},-,-,-,勾选用户
 TC-ADM-50,18,clickRow,-,${user0},分配角色,-,-,重新进入分配角色页
 TC-ADM-50,19,expectChecked,css,.role-checkbox:has-text('${roleName0}') .el-checkbox__input,-,false,-,角色0不勾选
 TC-ADM-50,20,expectChecked,css,.role-checkbox:has-text('${roleName1}') .el-checkbox__input,-,false,-,角色1不勾选（没有任何角色被勾选）
+TC-ADM-51,1,setupApi,userCreate,desc=E2E-自助改密;status=1,-,-,-,造临时管理员(初始密码 testpass123)
+TC-ADM-51,2,setupApi,uiLoginAs,user=userName;password=testpass123;path=/system/admin/password,-,-,-,以临时账号登录并进入修改密码页
+TC-ADM-51,3,expectURL,-,-,-,/system/admin/password,url,改密页路由正确(静态注册页无需权限码)
+TC-ADM-51,4,expectVisible,css,.form-page,-,-,-,改密表单可见
+TC-ADM-51,5,fill,css,input[placeholder='请输入原密码'],testpass123,-,-,填原密码
+TC-ADM-51,6,fill,css,input[placeholder='请输入新密码'],newpass456,-,-,填新密码
+TC-ADM-51,7,fill,css,input[placeholder='请输入确认新密码'],wrongpass789,-,-,先填不一致的确认密码
+TC-ADM-51,8,click,css,.form-footer button.el-button--primary,-,-,-,提交改密(两次输入不一致)
+TC-ADM-51,9,expectText,css,.el-message--error,-,两次输入的密码不一致,text,两次输入不一致被前端拦截
+TC-ADM-51,10,fill,css,input[placeholder='请输入确认新密码'],newpass456,-,-,改为一致的确认密码
+TC-ADM-51,11,click,css,.form-footer button.el-button--primary,-,-,-,重新提交改密
+TC-ADM-51,12,expectURL,-,-,-,/login,url,改密成功后强制回到登录页(旧会话不再继续)
+TC-ADM-51,13,fill,placeholder,请输入用户名,${userName},-,-,用新密码重新登录-填用户名
+TC-ADM-51,14,fill,placeholder,请输入密码,newpass456,-,-,填新密码
+TC-ADM-51,15,click,css,.login-btn,-,-,-,点击登录
+TC-ADM-51,16,expectURL,-,-,-,/dashboard,url,新密码可正常登录
+TC-ADM-52,1,setupApi,userCreate,desc=E2E-改密最小长度;status=1,-,-,-,造临时管理员(初始密码 testpass123)
+TC-ADM-52,2,setupApi,uiLoginAs,user=userName;password=testpass123;path=/system/admin/password,-,-,-,以临时账号进入修改密码页
+TC-ADM-52,3,expectURL,-,-,-,/system/admin/password,url,改密页路由正确
+TC-ADM-52,4,fill,css,input[placeholder='请输入原密码'],testpass123,-,-,填原密码
+TC-ADM-52,5,fill,css,input[placeholder='请输入新密码'],pw04,-,-,填4位新密码(长度最小值)
+TC-ADM-52,6,fill,css,input[placeholder='请输入确认新密码'],pw04,-,-,填确认新密码
+TC-ADM-52,7,click,css,.form-footer button.el-button--primary,-,-,-,提交改密
+TC-ADM-52,8,expectURL,-,-,-,/login,url,改密成功强制回登录页
+TC-ADM-52,9,fill,placeholder,请输入用户名,${userName},-,-,用4位新密码重新登录-填用户名
+TC-ADM-52,10,fill,placeholder,请输入密码,pw04,-,-,填4位新密码
+TC-ADM-52,11,click,css,.login-btn,-,-,-,点击登录
+TC-ADM-52,12,expectURL,-,-,-,/dashboard,url,4位新密码可正常登录
+TC-ADM-53,1,setupApi,userCreate,desc=E2E-改密最大长度;status=1,-,-,-,造临时管理员(初始密码 testpass123)
+TC-ADM-53,2,setupApi,uiLoginAs,user=userName;password=testpass123;path=/system/admin/password,-,-,-,以临时账号进入修改密码页
+TC-ADM-53,3,expectURL,-,-,-,/system/admin/password,url,改密页路由正确
+TC-ADM-53,4,fill,css,input[placeholder='请输入原密码'],testpass123,-,-,填原密码
+TC-ADM-53,5,fill,css,input[placeholder='请输入新密码'],abc123abc123abc123abc123abc123,-,-,填30位新密码(长度最大值)
+TC-ADM-53,6,fill,css,input[placeholder='请输入确认新密码'],abc123abc123abc123abc123abc123,-,-,填确认新密码
+TC-ADM-53,7,expectValue,css,input[placeholder='请输入新密码'],-,abc123abc123abc123abc123abc123,-,30位未被截断
+TC-ADM-53,8,click,css,.form-footer button.el-button--primary,-,-,-,提交改密
+TC-ADM-53,9,expectURL,-,-,-,/login,url,改密成功强制回登录页
+TC-ADM-53,10,fill,placeholder,请输入用户名,${userName},-,-,用30位新密码重新登录-填用户名
+TC-ADM-53,11,fill,placeholder,请输入密码,abc123abc123abc123abc123abc123,-,-,填30位新密码
+TC-ADM-53,12,click,css,.login-btn,-,-,-,点击登录
+TC-ADM-53,13,expectURL,-,-,-,/dashboard,url,30位新密码可正常登录
+TC-ADM-54,1,setupApi,userCreate,desc=E2E-改密长度不足;status=1,-,-,-,造临时管理员(初始密码 testpass123)
+TC-ADM-54,2,setupApi,uiLoginAs,user=userName;password=testpass123;path=/system/admin/password,-,-,-,以临时账号进入修改密码页
+TC-ADM-54,3,expectURL,-,-,-,/system/admin/password,url,改密页路由正确
+TC-ADM-54,4,fill,css,input[placeholder='请输入原密码'],testpass123,-,-,填原密码
+TC-ADM-54,5,fill,css,input[placeholder='请输入新密码'],np3,-,-,填3位新密码(低于最小值)
+TC-ADM-54,6,fill,css,input[placeholder='请输入确认新密码'],np3,-,-,填确认新密码
+TC-ADM-54,7,click,css,.form-footer button.el-button--primary,-,-,-,提交改密
+TC-ADM-54,8,expectText,css,.form-page,-,密码长度需在4-30位之间,text,3位新密码被前端拦截
+TC-ADM-54,9,expectURL,-,-,-,/system/admin/password,url,未提交成功仍停在改密页
+TC-ADM-55,1,setupApi,userCreate,desc=E2E-改密超长截断;status=1,-,-,-,造临时管理员(初始密码 testpass123)
+TC-ADM-55,2,setupApi,uiLoginAs,user=userName;password=testpass123;path=/system/admin/password,-,-,-,以临时账号进入修改密码页
+TC-ADM-55,3,expectURL,-,-,-,/system/admin/password,url,改密页路由正确
+TC-ADM-55,4,fill,css,input[placeholder='请输入原密码'],testpass123,-,-,填原密码
+TC-ADM-55,5,fill,css,input[placeholder='请输入新密码'],-,-,-,清空新密码(替换原值)
+TC-ADM-55,6,type,css,input[placeholder='请输入新密码'],abc123abc123abc123abc123abc123z,-,-,输入31位新密码(超长)
+TC-ADM-55,7,expectValue,css,input[placeholder='请输入新密码'],-,abc123abc123abc123abc123abc123,-,被前端maxlength截断为30位
+TC-ADM-55,8,fill,css,input[placeholder='请输入确认新密码'],abc123abc123abc123abc123abc123,-,-,填确认新密码(与截断后一致)
+TC-ADM-55,9,click,css,.form-footer button.el-button--primary,-,-,-,提交改密
+TC-ADM-55,10,expectURL,-,-,-,/login,url,改密成功强制回登录页
+TC-ADM-55,11,fill,placeholder,请输入用户名,${userName},-,-,用截断后的30位密码重新登录-填用户名
+TC-ADM-55,12,fill,placeholder,请输入密码,abc123abc123abc123abc123abc123,-,-,填截断后的30位密码
+TC-ADM-55,13,click,css,.login-btn,-,-,-,点击登录
+TC-ADM-55,14,expectURL,-,-,-,/dashboard,url,截断后的密码可正常登录
+TC-ADM-56,1,setupApi,userCreate,desc=E2E-改密原密码错误;status=1,-,-,-,造临时管理员(初始密码 testpass123)
+TC-ADM-56,2,setupApi,uiLoginAs,user=userName;password=testpass123;path=/system/admin/password,-,-,-,以临时账号进入修改密码页
+TC-ADM-56,3,expectURL,-,-,-,/system/admin/password,url,改密页路由正确
+TC-ADM-56,4,fill,css,input[placeholder='请输入原密码'],wrongpwd,-,-,填错误原密码
+TC-ADM-56,5,fill,css,input[placeholder='请输入新密码'],newpwd123,-,-,填合法新密码
+TC-ADM-56,6,fill,css,input[placeholder='请输入确认新密码'],newpwd123,-,-,填确认新密码
+TC-ADM-56,7,click,css,.form-footer button.el-button--primary,-,-,-,提交改密
+TC-ADM-56,8,expectText,css,.el-message--error,-,原密码错误,text,后端返回原密码错误提示
+TC-ADM-56,9,expectURL,-,-,-,/system/admin/password,url,失败后仍停在改密页
+TC-ADM-57,1,setupApi,userCreate,desc=E2E-改密与原密码相同;status=1,-,-,-,造临时管理员(初始密码 testpass123)
+TC-ADM-57,2,setupApi,uiLoginAs,user=userName;password=testpass123;path=/system/admin/password,-,-,-,以临时账号进入修改密码页
+TC-ADM-57,3,expectURL,-,-,-,/system/admin/password,url,改密页路由正确
+TC-ADM-57,4,fill,css,input[placeholder='请输入原密码'],testpass123,-,-,填原密码
+TC-ADM-57,5,fill,css,input[placeholder='请输入新密码'],testpass123,-,-,新密码与原密码相同(4-30位内但被拒)
+TC-ADM-57,6,fill,css,input[placeholder='请输入确认新密码'],testpass123,-,-,填确认新密码
+TC-ADM-57,7,click,css,.form-footer button.el-button--primary,-,-,-,提交改密
+TC-ADM-57,8,expectText,css,.el-message--error,-,新密码不能与原密码相同,text,后端拒绝新密码与原密码相同
+TC-ADM-57,9,expectURL,-,-,-,/system/admin/password,url,失败后仍停在改密页
+TC-ADM-58,1,setupApi,userCreate,desc=E2E-改密必填校验;status=1,-,-,-,造临时管理员(初始密码 testpass123)
+TC-ADM-58,2,setupApi,uiLoginAs,user=userName;password=testpass123;path=/system/admin/password,-,-,-,以临时账号进入修改密码页
+TC-ADM-58,3,expectURL,-,-,-,/system/admin/password,url,改密页路由正确
+TC-ADM-58,4,click,css,.form-footer button.el-button--primary,-,-,-,直接提交(三项全空)
+TC-ADM-58,5,expectText,css,.form-page,-,请输入原密码,text,原密码必填提示
+TC-ADM-58,6,expectText,css,.form-page,-,请输入新密码,text,新密码必填提示
+TC-ADM-58,7,expectText,css,.form-page,-,请再次输入新密码,text,确认新密码必填提示
+TC-ADM-58,8,expectURL,-,-,-,/system/admin/password,url,未提交成功仍停在改密页
+TC-ADM-59,1,setupApi,userCreate,desc=E2E-改密旧密码失效;status=1,-,-,-,造临时管理员(初始密码 testpass123)
+TC-ADM-59,2,setupApi,uiLoginAs,user=userName;password=testpass123;path=/system/admin/password,-,-,-,以临时账号进入修改密码页
+TC-ADM-59,3,fill,css,input[placeholder='请输入原密码'],testpass123,-,-,填原密码
+TC-ADM-59,4,fill,css,input[placeholder='请输入新密码'],newpwd456,-,-,填新密码
+TC-ADM-59,5,fill,css,input[placeholder='请输入确认新密码'],newpwd456,-,-,填确认新密码
+TC-ADM-59,6,click,css,.form-footer button.el-button--primary,-,-,-,提交改密
+TC-ADM-59,7,expectURL,-,-,-,/login,url,改密成功强制回登录页
+TC-ADM-59,8,fill,placeholder,请输入用户名,${userName},-,-,用旧密码尝试登录-填用户名
+TC-ADM-59,9,fill,placeholder,请输入密码,testpass123,-,-,填旧密码
+TC-ADM-59,10,click,css,.login-btn,-,-,-,点击登录
+TC-ADM-59,11,expectText,css,.el-message--error,-,密码错误,text,旧密码已失效无法登录
+TC-ADM-59,12,expectURL,-,-,-,/login,url,登录失败仍停留在登录页
+TC-ADM-60,1,setupApi,userCreate,desc=E2E-接口自助改密;status=1,-,-,-,造临时管理员(初始密码 testpass123)
+TC-ADM-60,2,setupApi,loginAs,user=userName;password=testpass123;tokenVar=userToken,-,-,-,以临时账号登录接口并缓存其token
+TC-ADM-60,3,apiCurrentAdmin,var,userToken,${userName},-,-,当前账号接口按token返回本人(非硬编码超管)
+TC-ADM-60,4,setupApi,changePasswordAs,token=userToken;old=testpass123;new=newpwd789,-,-,-,以本人token调自助改密接口成功
+TC-ADM-60,5,setupApi,loginAs,user=userName;password=newpwd789,-,-,-,新密码可登录(接口级收口)
+TC-ADM-61,1,apiReject,adminPassword,-,newPassword=abc123abc123abc123abc123abc123z,密码长度需在4-30位之间,-,后端拒绝超长新密码31位(绕过前端maxlength)
+TC-ADM-62,1,apiReject,adminPassword,-,newPassword=,请输入原密码与新密码,-,后端拒绝空新密码(绕过前端必填)
+TC-ADM-63,1,apiReject,adminPassword,-,oldPassword=,请输入原密码与新密码,-,后端拒绝空原密码(绕过前端必填)
+TC-ADM-64,1,setupApi,userCreate,desc=超;status=1,-,-,-,造一个他人账号(姓名取超字便于与自己同屏)
+TC-ADM-64,2,setupApi,uiLogin,path=/system/admin,-,-,-,登录并进入管理员列表
+TC-ADM-64,3,expectText,css,.user-info .username,-,admin,text,顶栏账号名与登录账号一致
+TC-ADM-64,4,fill,css,.search-bar .el-input__inner[placeholder='请输入姓名'],超,-,-,按姓名搜索(自己与他人同屏)
+TC-ADM-64,5,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-64,6,expectVisible,css,.el-table__body tr:has(td:nth-child(3) .cell:text-is('admin')),-,-,-,自己所在行可见
+TC-ADM-64,7,expectVisible,css,.el-table__body tr:has(td:nth-child(3) .cell:text-is('${userName}')),-,-,-,他人所在行可见
+TC-ADM-64,8,expectCount,css,.el-table__body tr:has(td:nth-child(3) .cell:text-is('admin')) .el-checkbox__input.is-disabled,-,1,-,自己的复选框为禁用态
+TC-ADM-64,9,expectCount,css,.el-table__body tr:has(td:nth-child(3) .cell:text-is('admin')) .action-link:has-text('禁用'),-,0,-,自己行不显示禁用入口
+TC-ADM-64,10,click,css,.el-table__body tr:has(td:nth-child(3) .cell:text-is('admin')) td:nth-child(3) .cell,-,-,-,点击自己所在行(点用户名单元格)
+TC-ADM-64,11,expectChecked,css,.el-table__body tr:has(td:nth-child(3) .cell:text-is('admin')) .el-checkbox__input,-,false,-,点击整行后仍未选中自己
+TC-ADM-64,12,click,css,.el-table__header .el-checkbox__input,-,-,-,点击表头全选
+TC-ADM-64,13,expectChecked,css,.el-table__body tr:has(td:nth-child(3) .cell:text-is('${userName}')) .el-checkbox__input,-,true,-,全选勾中他人
+TC-ADM-64,14,expectChecked,css,.el-table__body tr:has(td:nth-child(3) .cell:text-is('admin')) .el-checkbox__input,-,false,-,全选时自己仍未被勾选
+TC-ADM-65,1,setupApi,uiLogin,path=/system/admin,-,-,-,登录并进入管理员列表
+TC-ADM-65,2,expectText,css,.user-info .username,-,admin,text,刷新前账号名正确
+TC-ADM-65,3,goto,-,/system/admin,-,-,-,整页刷新(模拟已登录的旧会话)
+TC-ADM-65,4,expectText,css,.user-info .username,-,admin,text,刷新后账号名由后端回填
+TC-ADM-65,5,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],admin,-,-,搜索自己
+TC-ADM-65,6,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-65,7,expectVisible,css,.el-table__body tr:has(td:nth-child(3) .cell:text-is('admin')),-,-,-,自己所在行可见
+TC-ADM-65,8,expectCount,css,.el-table__body tr:has(td:nth-child(3) .cell:text-is('admin')) .el-checkbox__input.is-disabled,-,1,-,刷新后自己的复选框仍为禁用态
+TC-ADM-65,9,expectCount,css,.el-table__body tr:has(td:nth-child(3) .cell:text-is('admin')) .action-link:has-text('禁用'),-,0,-,刷新后仍不显示禁用入口
+TC-ADM-66,1,setupApi,userCreate,desc=E2E-后端自身保护;status=1,-,-,-,造一个他人账号
+TC-ADM-66,2,apiSelf,delete,-,-,-,-,删除自己:静默成功且自身未变
+TC-ADM-66,3,apiSelf,disable,-,-,-,-,禁用自己:静默成功且自身状态未变
+TC-ADM-66,4,apiSelf,batchDisable,${userName},-,-,-,批量禁用[自己+他人]:自身不变且他人被禁用
+TC-ADM-66,5,apiSelf,batchDelete,${userName},-,-,-,批量删除[自己+他人]:自身不变且他人被删除
+TC-ADM-66,6,apiSelf,batchDelete,-,-,-,-,批量只含自己:静默成功且自己仍在
+TC-ADM-67,1,apiCurrentAdmin,auth,-,-,-,-,带token取当前登录账号:返回本人且密码置空
+TC-ADM-67,2,apiCurrentAdmin,anonymous,-,-,-,-,不带token被安全层拒绝(HTTP200+000401)
 TC-DASH-01,1,goto,-,/login,-,-,-,打开登录页
 TC-DASH-01,2,fill,placeholder,请输入用户名,admin,-,-,输入用户名
 TC-DASH-01,3,fill,placeholder,请输入密码,admin123,-,-,输入密码
@@ -619,7 +760,7 @@ TC-PERM-19,12,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
 TC-PERM-19,13,fill,placeholder,请输入权限名称,${nodePrefix}-edit,-,-,搜索新名称
 TC-PERM-19,14,click,css,button:has-text('搜索'),-,-,-,点击搜索
 TC-PERM-19,15,expectVisible,css,.el-table__row:has-text('${nodePrefix}-edit'),-,-,-,新名称节点可见
-TC-PERM-19,16,expectCount,css,.el-table__row:has(td:nth-child(2):text-is('${createdName}')),-,0,-,旧名称(权限名称列)已不存在
+TC-PERM-19,16,expectCount,css,.el-table__row:has(td:nth-child(2) .cell:text-is('${createdName}')),-,0,-,旧名称(权限名称列)已不存在
 TC-PERM-20,1,setupApi,permCreate,type=2,-,-,-,造待编辑权限
 TC-PERM-20,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
 TC-PERM-20,3,goto,-,/system/permission,-,-,-,进入权限管理页
@@ -940,6 +1081,63 @@ TC-PERM-40,19,expectTreeChecked,-,${menuName},-,false,-,父节点回显未勾选
 TC-PERM-40,20,expectTreeChecked,-,${leaf1},-,false,-,资源1不勾选
 TC-PERM-40,21,expectTreeChecked,-,${leaf2},-,false,-,资源2不勾选
 TC-PERM-40,22,expectTreeChecked,-,${leaf3},-,false,-,没有任何资源被勾选
+TC-PERM-41,1,setupApi,uiLogin,path=/system/permission,-,-,-,登录并进入权限管理页
+TC-PERM-41,2,setupApi,permTree,-,-,-,-,造目录-菜单-操作权限子树
+TC-PERM-41,3,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-41,4,fill,placeholder,请输入权限名称,${menuName},-,-,按名称搜索菜单节点
+TC-PERM-41,5,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-41,6,expectVisible,css,.el-table__row:has-text('${menuName}') button:has-text('新增下级'),-,-,-,菜单行显示新增下级入口
+TC-PERM-41,7,click,css,.el-table__row:has-text('${menuName}') button:has-text('新增下级'),-,-,-,点击菜单行新增下级
+TC-PERM-41,8,expectVisible,css,.form-page,-,-,-,新增页可见
+TC-PERM-41,9,expectText,css,.el-form-item:has(.el-form-item__label:text-is('上级权限')),-,${menuName},text,上级权限预填为该菜单
+TC-PERM-41,10,expectText,css,.el-form-item:has(.el-form-item__label:text-is('权限类型')) .el-radio.is-checked,-,操作,text,默认权限类型为操作
+TC-PERM-41,11,expectCount,css,.form-page input[placeholder='如 /system/admin'],-,0,-,操作类型下路径字段不渲染
+TC-PERM-42,1,setupApi,uiLogin,path=/system/permission,-,-,-,登录并进入权限管理页
+TC-PERM-42,2,setupApi,permTree,-,-,-,-,造目录-菜单-操作权限子树
+TC-PERM-42,3,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-42,4,fill,placeholder,请输入权限名称,${dirName},-,-,按名称搜索目录节点
+TC-PERM-42,5,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-42,6,expectVisible,css,.el-table__row:has-text('${dirName}') button:has-text('新增下级'),-,-,-,目录行显示新增下级入口
+TC-PERM-42,7,click,css,.el-table__row:has-text('${dirName}') button:has-text('新增下级'),-,-,-,点击目录行新增下级
+TC-PERM-42,8,expectVisible,css,.form-page,-,-,-,新增页可见
+TC-PERM-42,9,expectText,css,.el-form-item:has(.el-form-item__label:text-is('上级权限')),-,${dirName},text,上级权限预填为该目录
+TC-PERM-42,10,expectText,css,.el-form-item:has(.el-form-item__label:text-is('权限类型')) .el-radio.is-checked,-,菜单,text,默认权限类型为菜单
+TC-PERM-42,11,expectVisible,css,.form-page input[placeholder='如 /system/admin'],-,-,-,菜单类型下路径字段可见
+TC-PERM-43,1,setupApi,uiLogin,path=/system/permission,-,-,-,登录并进入权限管理页
+TC-PERM-43,2,setupApi,permTree,-,-,-,-,造目录-菜单-操作权限子树
+TC-PERM-43,3,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-43,4,fill,placeholder,请输入权限名称,${actionName},-,-,按名称搜索操作节点
+TC-PERM-43,5,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-43,6,expectVisible,css,.el-table__row:has-text('${actionName}') button:has-text('编辑'),-,-,-,操作行已渲染且有编辑入口
+TC-PERM-43,7,expectCount,css,.el-table__row:has-text('${actionName}') button:has-text('新增下级'),-,0,-,叶子操作行不显示新增下级入口
+TC-PERM-44,1,setupApi,uiLogin,path=/system/permission,-,-,-,登录并进入权限管理页
+TC-PERM-44,2,setupApi,permTree,-,-,-,-,造目录-菜单-操作权限子树
+TC-PERM-44,3,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-44,4,fill,placeholder,请输入权限名称,${menuName},-,-,按名称搜索菜单节点
+TC-PERM-44,5,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-44,6,click,css,.el-table__row:has-text('${menuName}') button:has-text('新增下级'),-,-,-,点击菜单行新增下级
+TC-PERM-44,7,expectVisible,css,.form-page,-,-,-,新增页可见
+TC-PERM-44,8,fill,css,input[placeholder='请输入权限名称'],${treePrefix}-leaf,-,-,填子节点名称
+TC-PERM-44,9,fill,css,input[placeholder='如 system:user:list'],${treePrefix}-leaf:code,-,-,填子节点权限编码
+TC-PERM-44,10,click,css,.form-footer button.el-button--primary,-,-,-,提交保存(操作类型无需路径)
+TC-PERM-44,11,expectVisible,css,.el-table,-,-,-,提交成功回到列表
+TC-PERM-44,12,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-44,13,fill,placeholder,请输入权限名称,${treePrefix}-leaf,-,-,搜索新建子节点
+TC-PERM-44,14,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-44,15,expectVisible,css,.el-table__row:has-text('${treePrefix}-leaf'),-,-,-,子节点已落库并出现在树中
+TC-PERM-44,16,expectText,css,.el-table__row:has-text('${treePrefix}-leaf'),-,操作,text,新建子节点类型为操作
+TC-PERM-45,1,setupApi,uiLogin,path=/system/permission,-,-,-,登录并进入权限管理页
+TC-PERM-45,2,setupApi,permTree,-,-,-,-,造目录-菜单-操作权限子树
+TC-PERM-45,3,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-45,4,fill,placeholder,请输入权限名称,${dirName},-,-,按名称搜索目录节点
+TC-PERM-45,5,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-45,6,click,css,.el-table__row:has-text('${dirName}') button:has-text('新增下级'),-,-,-,点击目录行新增下级
+TC-PERM-45,7,expectVisible,css,.form-page,-,-,-,新增页可见
+TC-PERM-45,8,fill,css,input[placeholder='请输入权限名称'],${treePrefix}-dup,-,-,填子节点名称
+TC-PERM-45,9,fill,css,input[placeholder='如 system:user:list'],${treePrefix}-dir,-,-,填已存在的权限编码(与目录重复)
+TC-PERM-45,10,click,css,.form-footer button.el-button--primary,-,-,-,提交新建
+TC-PERM-45,11,expectText,css,.el-message--error,-,权限编码已存在,text,后端拒绝重复权限编码
+TC-PERM-45,12,expectVisible,css,.form-page,-,-,-,提交失败仍停在新增页
 TC-ROLE-01,1,setupApi,uiLogin,path=/system/role,-,-,-,登录并进入角色管理页
 TC-ROLE-01,2,expectVisible,css,.el-table,-,-,-,等待表格加载
 TC-ROLE-01,3,expectVisible,css,.page-container,-,-,-,页面容器存在

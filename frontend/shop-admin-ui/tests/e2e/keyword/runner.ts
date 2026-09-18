@@ -1,9 +1,11 @@
 import { Page, expect } from '@playwright/test'
+import type { APIResponse } from '@playwright/test'
 import { toLocator } from './locator'
 import { runSetup, type Vars } from './setupRegistry'
 import { auth, apiUrl, unwrap } from '../common/apiClient'
 import { endpoints } from '../../../src/api/endpoints'
-import { PARAM_ERROR } from '../../../src/api/resultCode'
+import { PARAM_ERROR, SUCCESS, UNAUTHORIZED } from '../../../src/api/resultCode'
+import { testCredentials } from '../fixtures/credentials'
 import type { Step } from './csv'
 
 // 将 ${var} 替换为 vars 中的值（找不到则保留原样）
@@ -27,6 +29,24 @@ function treeNode(page: Page, name: string) {
     .first()
 }
 
+/** 管理员行（列表接口返回的最小字段集） */
+interface AdminUserRow {
+  id: number
+  username: string
+  status: number
+  deleted: number
+}
+
+/** 按用户名查询管理员（含已删除，绕过逻辑删除过滤），取精确同名记录 */
+async function findAdminUser(page: Page, username: string): Promise<AdminUserRow | undefined> {
+  const resp = await page.request.get(apiUrl(endpoints.adminUser.list), {
+    params: { username, pageNum: 1, pageSize: 20 },
+    headers: auth(),
+  })
+  const result = await unwrap<{ records?: AdminUserRow[] }>(resp)
+  return (result.records ?? []).find((r) => r.username === username)
+}
+
 // 将"操作"列分发为具体的 Playwright 动作
 export async function dispatch(step: Step, page: Page, vars: Vars): Promise<void> {
   // 造数：注册表式调用。注册名在「定位方式」列，参数（key=value;...）在「定位值」列
@@ -43,6 +63,18 @@ export async function dispatch(step: Step, page: Page, vars: Vars): Promise<void
   // 后端安全层校验的契约断言：绕过前端直接调用创建接口，断言非法入参被拒绝（HTTP 200 + code=PARAM_ERROR）
   if (step.操作 === 'apiReject') {
     await apiReject(page, step.定位方式, 输入值, 预期)
+    return
+  }
+
+  // 后端自身保护契约断言：直接对「当前登录管理员」调用删除/禁用类接口（见 apiSelf 说明）
+  if (step.操作 === 'apiSelf') {
+    await apiSelf(page, step.定位方式, 定位值)
+    return
+  }
+
+  // 后端「当前登录账号」接口契约断言：GET /adminUser/current（见 apiCurrentAdmin 说明）
+  if (step.操作 === 'apiCurrentAdmin') {
+    await apiCurrentAdmin(page, step.定位方式, 定位值, 输入值, vars)
     return
   }
 
@@ -239,14 +271,18 @@ export async function dispatch(step: Step, page: Page, vars: Vars): Promise<void
  * 后端安全层校验的契约断言：绕过前端直接调用接口，断言非法入参被拒绝
  * （HTTP 200 + code=PARAM_ERROR + 指定错误文案）。
  *
- * - 定位方式：实体名（user / role / permission）
+ * - 定位方式：实体名（user / role / permission / adminPassword）
  * - 输入值：覆盖字段（key=value;key=value）。若含 `id=`，则走【更新接口】（编辑态校验）；
- *          否则走创建接口。其余字段用各实体的合法基线值补全，故只需关注被改动的“非法字段”。
+ *          否则走创建接口（adminPassword 走自助改密接口 PUT /adminUser/password）。
+ *          其余字段用各实体的合法基线值补全，故只需关注被改动的“非法字段”。
  * - 预期：错误文案子串（可选）；断言 body.message 包含它，证明是“该字段”被拒
  *
  * 基线值已覆盖必填字段，故单测某字段时只覆盖那一个非法值即可。
  * permissionCode 必须给出（实体 @NotBlank），且为静态值——非法用例在控制器层即被拒、
  * 不会真正落库，故不与其它用例的编码冲突。
+ *
+ * ⚠️ adminPassword 的基线是「合法且非当前密码」，用于验证前端 maxlength / 必填拦不到的后端兜底；
+ *    使用它的用例必须覆盖一个必然导致失败的字段（超长 / 空串），否则会真的改掉超管密码。
  */
 async function apiReject(
   page: Page,
@@ -266,6 +302,7 @@ async function apiReject(
       status: 1,
       visible: 1,
     },
+    adminPassword: { oldPassword: testCredentials.admin.password, newPassword: 'e2e-newpwd' },
   }
   const epCreate: Record<string, string> = {
     user: endpoints.adminUser.create,
@@ -276,6 +313,10 @@ async function apiReject(
     user: endpoints.adminUser.update,
     role: endpoints.role.update,
     permission: endpoints.permission.update,
+  }
+  /** 固定地址的接口（无 id 概念，直接 PUT 覆盖字段） */
+  const epDirect: Record<string, string> = {
+    adminPassword: endpoints.adminUser.changePassword,
   }
   const body: Record<string, unknown> = { ...(base[entity] ?? {}) }
   let id: string | undefined
@@ -291,15 +332,151 @@ async function apiReject(
       body[k] = v
     }
   }
-  const resp =
-    id !== undefined
-      ? await page.request.put(apiUrl(epUpdate[entity](id)), { data: body, headers: auth() })
-      : await page.request.post(apiUrl(epCreate[entity]), { data: body, headers: auth() })
+  let resp: APIResponse
+  if (epDirect[entity]) {
+    resp = await page.request.put(apiUrl(epDirect[entity]), { data: body, headers: auth() })
+  } else if (id !== undefined) {
+    resp = await page.request.put(apiUrl(epUpdate[entity](id)), { data: body, headers: auth() })
+  } else {
+    resp = await page.request.post(apiUrl(epCreate[entity]), { data: body, headers: auth() })
+  }
   // 后端约定：所有响应 HTTP 均为 200，失败靠 body.code 区分（PARAM_ERROR = '000002'）
   await expect(resp.status()).toBe(200)
   const b = (await resp.json()) as { code?: string; message?: string }
   await expect(b.code).toBe(PARAM_ERROR)
   if (expectMsg) {
     await expect(b.message ?? '').toContain(expectMsg)
+  }
+}
+
+/**
+ * 后端「自身保护」契约断言：对当前登录管理员调用删除/禁用类接口，断言三件事：
+ * 1. 接口静默成功（code=SUCCESS）：自身被过滤掉，不返回任何错误提示；
+ * 2. 自身数据未被改动（deleted 仍为 0、status 仍为 1，且账号仍能登录）；
+ * 3. 批量场景下，非自身的其他目标照常生效（证明只是「剔除自己」而非整体跳过）。
+ *
+ * 定位方式：动作（delete / disable / batchDelete / batchDisable）
+ * 定位值：批量场景下「其他目标」的用户名（如 ${userName}；- 表示目标只有自己）
+ */
+async function apiSelf(page: Page, action: string, otherUsername: string): Promise<void> {
+  const me = await unwrap<AdminUserRow>(
+    await page.request.get(apiUrl(endpoints.adminUser.current), { headers: auth() }),
+  )
+
+  const hasOther = !!otherUsername && otherUsername !== '-'
+  const other = hasOther ? await findAdminUser(page, otherUsername) : undefined
+  if (hasOther && !other) {
+    throw new Error(`apiSelf 未找到其他目标用户: ${otherUsername}`)
+  }
+  const ids = [me.id, ...(other ? [other.id] : [])]
+
+  let resp: APIResponse
+  switch (action) {
+    case 'delete':
+      resp = await page.request.delete(apiUrl(endpoints.adminUser.delete(me.id)), { headers: auth() })
+      break
+    case 'disable':
+      resp = await page.request.put(apiUrl(endpoints.adminUser.disable(me.id)), { headers: auth() })
+      break
+    case 'batchDelete':
+      resp = await page.request.delete(apiUrl(endpoints.adminUser.batchDelete), {
+        data: { ids },
+        headers: auth(),
+      })
+      break
+    case 'batchDisable':
+      resp = await page.request.put(apiUrl(endpoints.adminUser.batchDisable), {
+        data: { ids },
+        headers: auth(),
+      })
+      break
+    default:
+      throw new Error(`未知 apiSelf 动作: ${action}`)
+  }
+
+  const body = (await resp.json()) as { code?: string; message?: string }
+  if (body.code !== SUCCESS) {
+    throw new Error(
+      `apiSelf(${action}) 期望静默成功，实际 code=${body.code} message=${body.message ?? ''}`,
+    )
+  }
+
+  // 自身既不能被逻辑删除，也不能被禁用
+  const meAfter = await findAdminUser(page, me.username)
+  if (!meAfter || meAfter.deleted !== 0 || meAfter.status !== 1) {
+    throw new Error(`apiSelf(${action}) 自身数据被改动: ${JSON.stringify(meAfter)}`)
+  }
+
+  // 自身账号仍能登录（被禁用/删除都会导致登录失败）；仅超管账号可校验密码
+  if (me.username === testCredentials.admin.username) {
+    const login = await page.request.post(apiUrl(endpoints.auth.login), {
+      data: { username: me.username, password: testCredentials.admin.password },
+    })
+    const loginBody = (await login.json()) as { code?: string }
+    if (loginBody.code !== SUCCESS) {
+      throw new Error(`apiSelf(${action}) 自身账号已无法登录: code=${loginBody.code}`)
+    }
+  }
+
+  // 批量场景：其他目标必须照常生效
+  if (other) {
+    const otherAfter = await findAdminUser(page, other.username)
+    if (action === 'batchDelete' && (!otherAfter || otherAfter.deleted !== 1)) {
+      throw new Error(`apiSelf(${action}) 其他目标未被删除: ${JSON.stringify(otherAfter)}`)
+    }
+    if (action === 'batchDisable' && (!otherAfter || otherAfter.status !== 0)) {
+      throw new Error(`apiSelf(${action}) 其他目标未被禁用: ${JSON.stringify(otherAfter)}`)
+    }
+  }
+}
+
+/**
+ * 后端「当前登录账号」接口契约断言（GET /adminUser/current）：
+ * - 定位方式=auth：以全局超管 Token 调用，断言返回超管本人、ID 非空、密码字段已置空（不泄漏凭据）；
+ * - 定位方式=anonymous：不带 Token 调用，断言被安全层拒绝（HTTP 200 + code=UNAUTHORIZED）；
+ * - 定位方式=var：以「定位值」指定的变量中的 Token 调用（如 userToken），断言返回「输入值」指定的用户名
+ *   ——证明该接口按 Token 归属返回，而不是硬编码当前超管。
+ *
+ * 定位值：var 模式下的 Token 变量名；输入值：var 模式下的期望用户名
+ */
+async function apiCurrentAdmin(
+  page: Page,
+  mode: string,
+  tokenVar: string,
+  expectUsername: string,
+  vars: Vars,
+): Promise<void> {
+  const options =
+    mode === 'anonymous'
+      ? {}
+      : { headers: mode === 'var' ? { Authorization: `Bearer ${vars[tokenVar] ?? ''}` } : auth() }
+  const resp = await page.request.get(apiUrl(endpoints.adminUser.current), options)
+  const body = (await resp.json()) as {
+    code?: string
+    message?: string
+    data?: { id?: number; username?: string; password?: string }
+  }
+
+  // 未登录：安全层统一返回 HTTP 200 + UNAUTHORIZED，浏览器不被中断
+  if (mode === 'anonymous') {
+    if (body.code !== UNAUTHORIZED) {
+      throw new Error(`apiCurrentAdmin 未携带 Token 未被拒绝: code=${body.code}`)
+    }
+    return
+  }
+
+  if (body.code !== SUCCESS) {
+    throw new Error(`apiCurrentAdmin 调用失败: code=${body.code} message=${body.message ?? ''}`)
+  }
+  const me = body.data ?? {}
+  if (me.password) {
+    throw new Error('apiCurrentAdmin 返回体泄漏了密码字段')
+  }
+  const wantUsername = mode === 'var' ? expectUsername : testCredentials.admin.username
+  if (me.username !== wantUsername) {
+    throw new Error(`apiCurrentAdmin 返回账号不符: 期望 ${wantUsername} 实际 ${me.username}`)
+  }
+  if (!me.id) {
+    throw new Error('apiCurrentAdmin 未返回账号ID')
   }
 }

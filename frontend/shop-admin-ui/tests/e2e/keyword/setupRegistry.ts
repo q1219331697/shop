@@ -306,7 +306,8 @@ export const setupRegistry: Record<
 
   // 用「用户名 + 密码」直接调登录接口，验证该账号密码可用
   // （新增默认密码 / 重置密码类用例的收口断言：密码真的能登录，而不只是接口返回成功）
-  // 参数：user=用户名变量名（默认 userName，其次 newUserName）；password=密码（默认系统默认密码）
+  // 参数：user=用户名变量名（默认 userName，其次 newUserName）；password=密码（默认系统默认密码）；
+  //       tokenVar=Token 存放的变量名（默认 userToken），供「以该账号身份调接口」的用例复用
   async loginAs(page, args, vars) {
     const username = vars[args.user ?? ''] ?? vars.userName ?? vars.newUserName
     if (!username) {
@@ -316,13 +317,32 @@ export const setupRegistry: Record<
     const resp = await page.request.post(apiUrl(endpoints.auth.login), {
       data: { username, password },
     })
-    const body = (await resp.json()) as { code?: string; message?: string }
+    const body = (await resp.json()) as { code?: string; message?: string; data?: string }
     if (body.code !== SUCCESS) {
       throw new Error(
         `loginAs 登录失败：username=${username} code=${body.code} message=${body.message ?? ''}` +
           `（用例 ${vars.用例ID}）`,
       )
     }
+    vars[args.tokenVar ?? 'userToken'] = String(body.data ?? '')
+  },
+
+  // 以指定账号的 Token 调「自助改密」接口（接口级正向），断言接口返回成功
+  // 参数：token=Token 变量名（默认 userToken）；old=原密码（默认系统默认密码）；new=新密码（必填）
+  async changePasswordAs(page, args, vars) {
+    const token = vars[args.token ?? 'userToken']
+    if (!token) {
+      throw new Error(`changePasswordAs 未找到 Token（用例 ${vars.用例ID}）`)
+    }
+    const newPassword = args.new
+    if (!newPassword) {
+      throw new Error(`changePasswordAs 缺少新密码 new（用例 ${vars.用例ID}）`)
+    }
+    const resp = await page.request.put(apiUrl(endpoints.adminUser.changePassword), {
+      data: { oldPassword: args.old ?? testCredentials.defaultAdminPassword, newPassword },
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    await unwrap(resp)
   },
 
   // UI 登录（整页刷新会清空登录态，admin 模块每个用例独立 context，需各自登录）
@@ -343,6 +363,32 @@ export const setupRegistry: Record<
     // 目标页为懒加载 chunk，等表格渲染再返回，避免首屏竞态
     // （权限管理页是 el-table 树形表格，同属 .el-table）
     await page.waitForSelector('.el-table', { timeout: 30000 })
+  },
+
+  // 指定账号的 UI 登录：uiLogin 固定用超管 admin，改密类用例绝不能改超管密码
+  // （否则后续所有依赖 admin/admin123 的用例都会失败），故需以「被造账号」身份操作 UI。
+  // 参数：user=用户名变量名（默认 userName，其次 newUserName）；password=密码（默认系统默认密码）；
+  //       path=登录后要进入的目标页（默认 /dashboard，纯登录态校验可不传）
+  async uiLoginAs(page, args, vars) {
+    const username = vars[args.user ?? ''] ?? vars.userName ?? vars.newUserName
+    if (!username) {
+      throw new Error(`uiLoginAs 未找到用户（用例 ${vars.用例ID}）`)
+    }
+    const password = args.password ?? testCredentials.defaultAdminPassword
+    const path = args.path ?? '/dashboard'
+
+    await page.goto('/login')
+    await page.locator(".el-input__inner[placeholder='请输入用户名']").fill(username)
+    await page.locator(".el-input__inner[placeholder='请输入密码']").fill(password)
+    await page.locator('.login-btn').click()
+    // 必须等登录真正跳转完成（写 Cookie）后再 goto，否则会打断登录请求
+    await page.waitForURL('**/dashboard', { timeout: 30000 })
+
+    if (path !== '/dashboard') {
+      await page.goto(path)
+      // 无权限账号的菜单为空，任务页是静态注册路由；等 SubPage 骨架渲染再返回
+      await page.waitForSelector('.sub-page', { timeout: 30000 })
+    }
   },
 }
 
