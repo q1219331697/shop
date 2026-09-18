@@ -110,8 +110,9 @@
           <!-- 宽度按「新增下级/编辑/详情/删除」四个行内按钮单行排布取整，避免换行把行高撑到 40 以上 -->
         <el-table-column label="操作" width="300" align="center" fixed="right">
             <template #default="{ row }">
+              <!-- 目录(1)与菜单(2)均可挂下级（目录→菜单/目录，菜单→操作）；操作(3)为叶子节点，无下级 -->
               <el-button
-                v-if="row.permissionType === 1"
+                v-if="row.permissionType !== 3"
                 link
                 class="action-link"
                 @click="handleCreateChild(row)"

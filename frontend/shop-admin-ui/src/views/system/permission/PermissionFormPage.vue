@@ -10,7 +10,7 @@
       :label-width="labelWidth"
       @submit="handleSubmit"
     >
-      <!-- 上级权限：树形选择（仅菜单可作为上级） -->
+      <!-- 上级权限：树形选择（目录/菜单可作为上级，操作不可） -->
       <template #form-parentId="{ model }">
         <ElTreeSelect
           v-model="model.parentId"
@@ -96,7 +96,8 @@ const parentTreeProps = {
 
 function buildParentOptions(nodes: PermissionItem[], excludeIds: Set<number>): ParentOption[] {
   return nodes
-    .filter((node) => node.permissionType === 1 && !excludeIds.has(node.id))
+    // 目录(1)与菜单(2)可作为上级，操作(3)是叶子节点不可作为上级
+    .filter((node) => node.permissionType !== 3 && !excludeIds.has(node.id))
     .map((node) => {
       const children = buildParentOptions(node.children ?? [], excludeIds)
       return children.length > 0
@@ -140,6 +141,15 @@ onMounted(async () => {
     Object.assign(formData, permissionDefaultFormData)
     if (parentIdFromQuery.value !== undefined) {
       formData.parentId = parentIdFromQuery.value
+      // 新增下级时按上级类型给出下一层级的默认类型：目录下默认菜单，菜单下默认操作
+      const parent = flattenPermissionTree(permissionTree.value).find(
+        (node) => node.id === parentIdFromQuery.value,
+      )
+      if (parent?.permissionType === 1) {
+        formData.permissionType = 2
+      } else if (parent?.permissionType === 2) {
+        formData.permissionType = 3
+      }
     }
   }
 })
