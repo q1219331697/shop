@@ -57,6 +57,16 @@ public interface AdminUserService extends IService<AdminUserEntity> {
     Result<Void> resetPassword(Long id);
 
     /**
+     * 修改当前登录管理员的密码（需校验原密码）
+     *
+     * @param adminUserId 当前登录管理员ID
+     * @param oldPassword 原密码
+     * @param newPassword 新密码
+     * @return 修改结果
+     */
+    Result<Void> changePassword(Long adminUserId, String oldPassword, String newPassword);
+
+    /**
      * 获取系统默认密码（供前端提示展示）
      *
      * @return 默认密码
@@ -121,27 +131,33 @@ public interface AdminUserService extends IService<AdminUserEntity> {
 
     /**
      * 删除管理员（同时清除角色关联和权限缓存）
+     * <p>当前登录管理员自身会被静默过滤：不执行删除，也不返回提示。</p>
      *
      * @param id 管理员ID
+     * @param currentUserId 当前登录管理员ID（自身保护）
      * @return 删除结果
      */
-    Result<Void> deleteAdminUser(Long id);
+    Result<Void> deleteAdminUser(Long id, Long currentUserId);
 
     /**
      * 批量删除管理员（同时清除角色关联和权限缓存）
+     * <p>列表中的当前登录管理员自身会被静默过滤：不执行删除，也不返回提示。</p>
      *
      * @param ids 管理员ID列表
+     * @param currentUserId 当前登录管理员ID（自身保护）
      * @return 删除结果
      */
-    Result<Void> batchDeleteAdminUser(List<Long> ids);
+    Result<Void> batchDeleteAdminUser(List<Long> ids, Long currentUserId);
 
     /**
      * 禁用管理员
+     * <p>当前登录管理员自身会被静默过滤：不执行禁用，也不返回提示。</p>
      *
      * @param id 管理员ID
+     * @param currentUserId 当前登录管理员ID（自身保护）
      * @return 禁用结果
      */
-    Result<Void> disableAdminUser(Long id);
+    Result<Void> disableAdminUser(Long id, Long currentUserId);
 
     /**
      * 启用管理员
@@ -161,11 +177,13 @@ public interface AdminUserService extends IService<AdminUserEntity> {
 
     /**
      * 批量禁用管理员
+     * <p>列表中的当前登录管理员自身会被静默过滤：不执行禁用，也不返回提示。</p>
      *
      * @param ids 管理员ID列表
+     * @param currentUserId 当前登录管理员ID（自身保护）
      * @return 禁用结果
      */
-    Result<Void> batchDisableAdminUser(List<Long> ids);
+    Result<Void> batchDisableAdminUser(List<Long> ids, Long currentUserId);
 
     /**
      * 批量启用管理员

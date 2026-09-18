@@ -7,6 +7,7 @@ import type { Router } from 'vue-router'
 import { startAutoRefreshToken, stopAutoRefreshToken } from '@/api/auth'
 import { usePermissionStore } from '@/stores/modules/permission'
 import { useTabsStore } from '@/stores/modules/tabs'
+import { useUserStore } from '@/stores/modules/user'
 import { hasTokenCookie } from '@/utils/storage'
 
 const WHITE_LIST = ['/login']
@@ -27,6 +28,7 @@ export function setupGuards(router: Router) {
 
     const loggedIn = hasTokenCookie()
     const permissionStore = usePermissionStore()
+    const userStore = useUserStore()
 
     /**
      * 路由级权限校验：目标路由声明了 meta.permissionCode 时，校验当前用户是否具备该权限码；
@@ -50,6 +52,8 @@ export function setupGuards(router: Router) {
 
           try {
             const routes = await permissionStore.generateRoutes()
+            // 回填「我是谁」：刷新后 Store 重建，账号身份（ID/用户名）只能从后端取
+            await userStore.loadProfile()
 
             routes.forEach((route) => {
               router.addRoute('Layout', route)

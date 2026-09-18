@@ -144,29 +144,31 @@ public class AdminUserController {
     }
 
     /**
-     * 删除管理员
+     * 删除管理员（当前登录管理员自身会被静默过滤，不返回提示）
      *
      * @param id 管理员ID
+     * @param request HTTP请求
      * @return 删除结果
      */
     @PreAuthorize("hasAuthority('system:admin:delete')")
     @Operation(summary = "删除管理员")
     @DeleteMapping("/{id}")
-    public Result<Void> delete(@PathVariable Long id) {
-        return adminUserService.deleteAdminUser(id);
+    public Result<Void> delete(@PathVariable Long id, HttpServletRequest request) {
+        return adminUserService.deleteAdminUser(id, currentAdminUserId(request));
     }
 
     /**
-     * 批量删除管理员
+     * 批量删除管理员（当前登录管理员自身会被静默过滤，不返回提示）
      *
      * @param params 包含ids列表
+     * @param request HTTP请求
      * @return 删除结果
      */
     @PreAuthorize("hasAuthority('system:admin:delete')")
     @Operation(summary = "批量删除管理员")
     @DeleteMapping("/batch")
-    public Result<Void> batchDelete(@RequestBody Map<String, List<Long>> params) {
-        return adminUserService.batchDeleteAdminUser(params.get("ids"));
+    public Result<Void> batchDelete(@RequestBody Map<String, List<Long>> params, HttpServletRequest request) {
+        return adminUserService.batchDeleteAdminUser(params.get("ids"), currentAdminUserId(request));
     }
 
     /**
@@ -198,16 +200,17 @@ public class AdminUserController {
     }
 
     /**
-     * 禁用管理员
+     * 禁用管理员（当前登录管理员自身会被静默过滤，不返回提示）
      *
      * @param id 管理员ID
+     * @param request HTTP请求
      * @return 禁用结果
      */
     @PreAuthorize("hasAuthority('system:admin:update')")
     @Operation(summary = "禁用管理员")
     @PutMapping("/{id}/disable")
-    public Result<Void> disable(@PathVariable Long id) {
-        return adminUserService.disableAdminUser(id);
+    public Result<Void> disable(@PathVariable Long id, HttpServletRequest request) {
+        return adminUserService.disableAdminUser(id, currentAdminUserId(request));
     }
 
     /**
@@ -237,16 +240,17 @@ public class AdminUserController {
     }
 
     /**
-     * 批量禁用管理员
+     * 批量禁用管理员（当前登录管理员自身会被静默过滤，不返回提示）
      *
      * @param params 包含ids列表
+     * @param request HTTP请求
      * @return 禁用结果
      */
     @PreAuthorize("hasAuthority('system:admin:update')")
     @Operation(summary = "批量禁用管理员")
     @PutMapping("/batch-disable")
-    public Result<Void> batchDisable(@RequestBody Map<String, List<Long>> params) {
-        return adminUserService.batchDisableAdminUser(params.get("ids"));
+    public Result<Void> batchDisable(@RequestBody Map<String, List<Long>> params, HttpServletRequest request) {
+        return adminUserService.batchDisableAdminUser(params.get("ids"), currentAdminUserId(request));
     }
 
     /**
@@ -284,8 +288,7 @@ public class AdminUserController {
     @Operation(summary = "获取当前登录管理员的菜单树")
     @GetMapping("/menus")
     public Result<List<AdminPermissionEntity>> getCurrentUserMenus(HttpServletRequest request) {
-        Long adminUserId = (Long) request.getAttribute("adminUserId");
-        List<AdminPermissionEntity> menus = adminPermissionService.getMenuTreeByUserId(adminUserId);
+        List<AdminPermissionEntity> menus = adminPermissionService.getMenuTreeByUserId(currentAdminUserId(request));
         return Result.success(menus);
     }
 
@@ -298,9 +301,35 @@ public class AdminUserController {
     @Operation(summary = "获取当前登录管理员的权限编码列表")
     @GetMapping("/permissions")
     public Result<List<String>> getCurrentUserPermissions(HttpServletRequest request) {
-        Long adminUserId = (Long) request.getAttribute("adminUserId");
-        List<String> permissionCodes = adminPermissionService.getPermissionCodesByUserId(adminUserId);
-        return Result.success(permissionCodes);
+        List<String> codes = adminPermissionService.getPermissionCodesByUserId(currentAdminUserId(request));
+        return Result.success(codes);
+    }
+
+    /**
+     * 获取当前登录管理员信息（密码置空）
+     * <p>Token 存 Cookie，刷新后前端需回后端取回「我是谁」，用于顶栏账号展示与自身保护判断。</p>
+     *
+     * @param request HTTP请求
+     * @return 当前登录管理员信息
+     */
+    @Operation(summary = "获取当前登录管理员信息")
+    @GetMapping("/current")
+    public Result<AdminUserEntity> getCurrentUser(HttpServletRequest request) {
+        return adminUserService.getAdminUserInfo(currentAdminUserId(request));
+    }
+
+    /**
+     * 修改当前登录管理员的密码（自助改密，仅需登录态，无需额外权限）
+     *
+     * @param params  包含原密码 oldPassword 与新密码 newPassword
+     * @param request HTTP请求
+     * @return 修改结果
+     */
+    @Operation(summary = "修改当前登录管理员密码")
+    @PutMapping("/password")
+    public Result<Void> changePassword(@RequestBody Map<String, String> params, HttpServletRequest request) {
+        return adminUserService.changePassword(currentAdminUserId(request),
+                params.get("oldPassword"), params.get("newPassword"));
     }
 
     /**
@@ -327,6 +356,16 @@ public class AdminUserController {
         vo.setPermissionCodes(adminPermissionService.getPermissionCodesByUserId(id));
         vo.setMenus(adminPermissionService.getMenuTreeByUserId(id));
         return Result.success(vo);
+    }
+
+    /**
+     * 从请求属性中取当前登录管理员ID（由 AdminAuthFilter 在认证通过后写入）
+     *
+     * @param request HTTP请求
+     * @return 当前登录管理员ID，未认证时为 null
+     */
+    private Long currentAdminUserId(HttpServletRequest request) {
+        return (Long) request.getAttribute("adminUserId");
     }
 
 }

@@ -380,6 +380,8 @@ export interface CrudSchema<T extends RowData = RowData> {
   columns: TableColumn<T>[]
   /** 是否支持多选，默认 true */
   selectable?: boolean
+  /** 多选列按行判断是否可勾选：返回 false 的行复选框禁用（如管理员列表禁止勾选当前登录账号） */
+  rowSelectable?: (row: T) => boolean
   /** 是否支持展开行 */
   expandable?: boolean
   /** 是否显示边框，默认 true */

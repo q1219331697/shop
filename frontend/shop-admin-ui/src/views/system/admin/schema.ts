@@ -9,7 +9,25 @@ import { ElMessage } from 'element-plus'
 
 import type { AdminUserItem } from '@/api'
 import type { CrudSchema, ActionContext } from '@/components/CrudTable'
+import { useUserStore } from '@/stores/modules/user'
 // API 通过自动导入的 api 聚合对象使用（无需 import）
+
+/**
+ * 判断某行是否为当前登录管理员自身。
+ * <p>自身的账号不允许被删除/禁用：列表不勾选、行内不显示禁用入口，
+ * 后端亦会将自身从删除/禁用目标中静默过滤。</p>
+ * <p>优先按登录账号ID比对（登录后由 /adminUser/current 回填），ID 缺失时退化为用户名比对。</p>
+ *
+ * @param row 管理员行数据
+ * @returns true-是当前登录账号 false-其他人
+ */
+export function isSelfRow(row: AdminUserItem): boolean {
+  const { userId, username } = useUserStore()
+  if (userId != null) {
+    return row.id === userId
+  }
+  return !!username && row.username === username
+}
 
 /** 批量操作通用逻辑 */
 async function handleBatchAction(
@@ -125,9 +143,13 @@ export const adminUserSchema: CrudSchema<AdminUserItem> = {
   },
 
   // ---- 数据区 ----
+  /** 自身保护：当前登录账号所在行不可勾选（因此不会被批量删除/禁用选中） */
+  rowSelectable: (row: AdminUserItem) => !isSelfRow(row),
+  // 列宽：仅用户名一列由 130 收窄到 90（其余列维持原值不动），
+  // 用于缓解列表横向滚动；进一步压缩方案另行确认后再动
   columns: [
     { prop: 'id', label: 'ID', width: 70, align: 'center' },
-    { prop: 'username', label: '用户名', width: 130, showOverflowTooltip: true },
+    { prop: 'username', label: '用户名', width: 90, showOverflowTooltip: true },
     { prop: 'realName', label: '姓名', minWidth: 120, showOverflowTooltip: true },
     {
       prop: 'status',

@@ -41,6 +41,7 @@
         :data="tableData"
         :loading="loading"
         :selectable="resolvedSchema.selectable !== false"
+        :row-selectable="resolvedSchema.rowSelectable"
         :expandable="resolvedSchema.expandable || false"
         :border="resolvedSchema.border !== false"
         :stripe="resolvedSchema.stripe !== false"

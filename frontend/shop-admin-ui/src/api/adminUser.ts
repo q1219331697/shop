@@ -56,6 +56,19 @@ export function getAdminDefaultPassword() {
   return request.get<string>(endpoints.adminUser.defaultPassword)
 }
 
+/** 修改密码参数 */
+export interface ChangePasswordParams {
+  /** 原密码 */
+  oldPassword: string
+  /** 新密码 */
+  newPassword: string
+}
+
+/** 修改当前登录管理员密码（自助改密，失败原因由后端返回：如原密码错误） */
+export function changeAdminPassword(data: ChangePasswordParams) {
+  return request.put(endpoints.adminUser.changePassword, data)
+}
+
 /** 编辑管理员用户 */
 export function updateAdminUser(id: IdType, data: Partial<AdminUserItem>) {
   return request.put(endpoints.adminUser.update(id), data)
@@ -121,6 +134,11 @@ export function getMyPermissionCodes() {
   return request.get<string[]>(endpoints.adminUser.permissions)
 }
 
+/** 获取当前登录管理员信息（密码已由后端置空） */
+export function getCurrentAdminUser() {
+  return request.get<AdminUserItem>(endpoints.adminUser.current)
+}
+
 /** 管理员用户模块 API 聚合对象（供 CrudTable :api 直接使用，亦可直接调用） */
 export const adminUserApi = {
   list: getAdminUserList,
@@ -134,10 +152,12 @@ export const adminUserApi = {
   restore: restoreAdminUser,
   resetPassword: resetAdminPassword,
   defaultPassword: getAdminDefaultPassword,
+  changePassword: changeAdminPassword,
   batchDisable: batchDisableAdminUser,
   batchEnable: batchEnableAdminUser,
   batchRestore: batchRestoreAdminUser,
   assignRoles: assignAdminRoles,
   getRoleIds: getAdminRoleIds,
   permissions: getMyPermissionCodes,
+  current: getCurrentAdminUser,
 }

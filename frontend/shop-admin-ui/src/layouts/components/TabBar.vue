@@ -44,6 +44,7 @@
       </span>
       <template #dropdown>
         <el-dropdown-menu>
+          <el-dropdown-item command="changePassword">修改密码</el-dropdown-item>
           <el-dropdown-item command="logout">退出登录</el-dropdown-item>
         </el-dropdown-menu>
       </template>
@@ -128,8 +129,13 @@ const appStore = useAppStore()
 const userStore = useUserStore()
 const permissionStore = usePermissionStore()
 
-/** 用户菜单：退出登录 */
+/** 用户菜单：修改密码 / 退出登录 */
 async function handleCommand(command: string) {
+  if (command === 'changePassword') {
+    // 弹窗改页面：跳转独立的修改密码任务页（改密成功后由该页登出并回到登录页）
+    router.push('/system/admin/password')
+    return
+  }
   if (command !== 'logout') return
   permissionStore.resetPermission()
   try {

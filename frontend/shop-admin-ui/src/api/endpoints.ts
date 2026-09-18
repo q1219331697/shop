@@ -40,6 +40,8 @@ export const endpoints = {
     resetPassword: (id: number | string) => `/adminUser/${id}/reset-password`,
     /** 系统默认密码（新增/重置密码提示展示用） */
     defaultPassword: '/adminUser/default-password',
+    /** 修改当前登录管理员密码（自助改密） */
+    changePassword: '/adminUser/password',
     batchDisable: '/adminUser/batch-disable',
     batchEnable: '/adminUser/batch-enable',
     batchRestore: '/adminUser/batch-restore',
@@ -47,6 +49,8 @@ export const endpoints = {
     roleIds: (id: number | string) => `/adminUser/${id}/roles`,
     /** 当前登录用户的权限编码列表（含按钮级 system:xxx:update 等） */
     permissions: '/adminUser/permissions',
+    /** 当前登录管理员信息（刷新后前端据此识别「我是谁」） */
+    current: '/adminUser/current',
   },
 
   // ==================== 角色 ====================

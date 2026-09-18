@@ -11,8 +11,9 @@
       <el-button v-if="!row.deleted" link class="action-link" @click="goEdit(row)">
         <el-icon><Edit /></el-icon>编辑
       </el-button>
+      <!-- 自身保护：当前登录账号不能禁用自己，故不显示禁用入口 -->
       <el-button
-        v-if="!row.deleted && row.status === 1"
+        v-if="!row.deleted && row.status === 1 && !isSelfRow(row)"
         link
         class="action-link"
         @click="handleDisable(row)"
@@ -57,7 +58,7 @@ import { api } from '@/api'
 import type { AdminUserItem } from '@/api'
 import { CrudTable } from '@/components/CrudTable'
 
-import { adminUserSchema } from './schema'
+import { adminUserSchema, isSelfRow } from './schema'
 
 const router = useRouter()
 const crudTableRef = ref<InstanceType<typeof CrudTable>>()

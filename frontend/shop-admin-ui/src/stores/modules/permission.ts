@@ -81,9 +81,10 @@ function transformMenusToRoutes(menus: PermissionItem[]): RouteRecordRaw[] {
 }
 
 /**
- * 收集“弹窗改页面”后新增的独立页面子路由（新增/编辑/详情/分配角色/分配权限）。
+ * 收集“弹窗改页面”后新增的独立页面子路由（新增/编辑/详情/分配角色/分配权限/修改密码）。
  * 这些页面不在后端菜单中（菜单仅含列表页），若仅靠菜单动态生成则无法经路由守卫导航访问（404）。
  * 故在此从静态 systemRoutes 中提取其叶子页面路由，挂到 Layout 下静态注册。
+ * 命中规则按任务页路径后缀白名单（create/edit/detail/assign/password），新增同类页面需同步补充。
  */
 function collectPageSubRoutes(routes: RouteRecordRaw[], parentPath = ''): RouteRecordRaw[] {
   const result: RouteRecordRaw[] = []
@@ -91,7 +92,7 @@ function collectPageSubRoutes(routes: RouteRecordRaw[], parentPath = ''): RouteR
     const fullPath = `/${parentPath}/${r.path}`.replace(/\/+/g, '/')
     if (r.children && r.children.length > 0) {
       result.push(...collectPageSubRoutes(r.children, fullPath))
-    } else if (/(\/create|\/edit|\/detail|\/assign)/.test(fullPath)) {
+    } else if (/(\/create|\/edit|\/detail|\/assign|\/password)/.test(fullPath)) {
       result.push({ ...r, path: fullPath })
     }
   }

@@ -20,8 +20,14 @@
         @selection-change="handleSelectionChange"
         @row-click="handleRowClick"
       >
-        <!-- 多选列 -->
-        <el-table-column v-if="selectable" type="selection" width="50" align="center" />
+        <!-- 多选列：rowSelectable 返回 false 的行复选框禁用（el-table 的行点击切换同样遵循该判断） -->
+        <el-table-column
+          v-if="selectable"
+          type="selection"
+          width="50"
+          align="center"
+          :selectable="rowSelectable"
+        />
 
         <!-- 展开行 -->
         <el-table-column v-if="expandable || $slots['table-expand']" type="expand">
@@ -228,6 +234,8 @@ const props = withDefaults(
     loading?: boolean
     /** 是否支持多选 */
     selectable?: boolean
+    /** 多选列按行判断是否可勾选（对应 el-table-column type=selection 的 selectable） */
+    rowSelectable?: (row: RowData) => boolean
     /** 是否支持展开行 */
     expandable?: boolean
     /** 行高（px，固定值，默认 40） */
@@ -360,6 +368,9 @@ function handleRowClick(row: RowData, column: RowData) {
   // 默认行为：点击行切换选中（排除操作列和选择列）
   if (props.selectable && column) {
     if (column.property === undefined && column.type !== 'selection') return
+    // 不可勾选的行（如「自身保护」）点击整行同样不选中：
+    // el-table 暴露的 toggleRowSelection 不会走行级可勾选判断，故在此自行拦截
+    if (props.rowSelectable && !props.rowSelectable(row)) return
     tableRef.value?.toggleRowSelection(row)
   }
 }

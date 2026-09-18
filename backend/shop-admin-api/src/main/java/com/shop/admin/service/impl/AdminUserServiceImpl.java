@@ -35,6 +35,12 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUserEntity> implements AdminUserService {
 
+    /** 密码最小长度（与 AdminUserEntity 的 @Size 契约保持一致） */
+    private static final int MIN_PASSWORD_LENGTH = 4;
+
+    /** 密码最大长度（与 AdminUserEntity 的 @Size 契约保持一致） */
+    private static final int MAX_PASSWORD_LENGTH = 30;
+
     private final AdminTokenService adminTokenService;
     private final AdminUserRoleMapper userRoleMapper;
     private final AdminPermissionService adminPermissionService;
@@ -187,6 +193,53 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
     @Override
     public String getDefaultPassword() {
         return adminProperties.getDefaultPassword();
+    }
+
+    /**
+     * 修改当前登录管理员的密码（需校验原密码）
+     *
+     * @param adminUserId 当前登录管理员ID
+     * @param oldPassword 原密码
+     * @param newPassword 新密码
+     * @return 修改结果
+     */
+    @Override
+    public Result<Void> changePassword(Long adminUserId, String oldPassword, String newPassword) {
+        log.info("修改管理员密码请求, adminUserId: {}", adminUserId);
+
+        if (!StringUtils.hasText(oldPassword) || !StringUtils.hasText(newPassword)) {
+            log.info("修改管理员密码失败, 原密码或新密码为空, adminUserId: {}", adminUserId);
+            return Result.error(ResultCodeEnum.PARAM_ERROR, "请输入原密码与新密码");
+        }
+
+        AdminUserEntity existUser = baseMapper.selectByIdIgnoreDeleted(adminUserId);
+        if (existUser == null) {
+            log.info("修改管理员密码失败, 管理员不存在, adminUserId: {}", adminUserId);
+            return Result.error(ResultCodeEnum.USER_NOT_EXIST, "管理员不存在");
+        }
+
+        // 当前密码为明文比对（与登录校验保持一致）
+        if (!oldPassword.equals(existUser.getPassword())) {
+            log.info("修改管理员密码失败, 原密码错误, adminUserId: {}", adminUserId);
+            return Result.error(ResultCodeEnum.PASSWORD_ERROR, "原密码错误");
+        }
+
+        if (newPassword.length() < MIN_PASSWORD_LENGTH || newPassword.length() > MAX_PASSWORD_LENGTH) {
+            log.info("修改管理员密码失败, 新密码长度不合法, adminUserId: {}", adminUserId);
+            return Result.error(ResultCodeEnum.PARAM_ERROR, "密码长度需在4-30位之间");
+        }
+
+        if (newPassword.equals(oldPassword)) {
+            log.info("修改管理员密码失败, 新密码与原密码相同, adminUserId: {}", adminUserId);
+            return Result.error(ResultCodeEnum.PARAM_ERROR, "新密码不能与原密码相同");
+        }
+
+        AdminUserEntity update = new AdminUserEntity();
+        update.setId(adminUserId);
+        update.setPassword(newPassword);
+        baseMapper.updateByIdIgnoreDeleted(update);
+        log.info("修改管理员密码成功, adminUserId: {}", adminUserId);
+        return Result.success();
     }
 
     /**
@@ -349,15 +402,46 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
     }
 
     /**
+     * 判断目标ID是否为当前登录管理员自身
+     *
+     * @param id 目标管理员ID
+     * @param currentUserId 当前登录管理员ID
+     * @return true-是自身 false-不是自身
+     */
+    private boolean isCurrentAdmin(Long id, Long currentUserId) {
+        return id != null && id.equals(currentUserId);
+    }
+
+    /**
+     * 从目标ID列表中剔除当前登录管理员自身（静默过滤，不产生任何提示）
+     *
+     * @param ids 目标管理员ID列表
+     * @param currentUserId 当前登录管理员ID
+     * @return 过滤后的ID列表
+     */
+    private List<Long> excludeCurrentAdmin(List<Long> ids, Long currentUserId) {
+        return ids.stream()
+                .filter(id -> !isCurrentAdmin(id, currentUserId))
+                .collect(Collectors.toList());
+    }
+
+    /**
      * 删除管理员（同时清除角色关联和权限缓存）
+     * <p>当前登录管理员自身会被静默过滤：不执行删除，也不返回提示。</p>
      *
      * @param id 管理员ID
+     * @param currentUserId 当前登录管理员ID（自身保护）
      * @return 删除结果
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Result<Void> deleteAdminUser(Long id) {
+    public Result<Void> deleteAdminUser(Long id, Long currentUserId) {
         log.info("删除管理员请求, adminUserId: {}", id);
+        if (isCurrentAdmin(id, currentUserId)) {
+            log.info("删除管理员跳过, 目标为当前登录管理员自身, adminUserId: {}", id);
+            return Result.success();
+        }
+
         AdminUserEntity existUser = baseMapper.selectByIdIgnoreDeleted(id);
         if (existUser == null) {
             log.info("删除管理员失败, 管理员不存在, adminUserId: {}", id);
@@ -385,39 +469,55 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
 
     /**
      * 批量删除管理员（同时清除角色关联和权限缓存）
+     * <p>列表中的当前登录管理员自身会被静默过滤：不执行删除，也不返回提示。</p>
      *
      * @param ids 管理员ID列表
+     * @param currentUserId 当前登录管理员ID（自身保护）
      * @return 删除结果
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Result<Void> batchDeleteAdminUser(List<Long> ids) {
+    public Result<Void> batchDeleteAdminUser(List<Long> ids, Long currentUserId) {
         log.info("批量删除管理员请求, ids: {}", ids);
         if (ids == null || ids.isEmpty()) {
             return Result.error(ResultCodeEnum.PARAM_ERROR, "请选择要删除的管理员");
         }
 
-        for (Long id : ids) {
-            Result<Void> result = deleteAdminUser(id);
+        // 静默过滤自身：若过滤后无目标，视为无事发生（不提示）
+        List<Long> targets = excludeCurrentAdmin(ids, currentUserId);
+        if (targets.isEmpty()) {
+            log.info("批量删除管理员跳过, 目标均为当前登录管理员自身");
+            return Result.success();
+        }
+
+        for (Long id : targets) {
+            Result<Void> result = deleteAdminUser(id, currentUserId);
             if (!result.isSuccess()) {
                 log.info("批量删除管理员中断, 失败的adminUserId: {}", id);
                 return result;
             }
         }
 
-        log.info("批量删除管理员成功, 共删除{}条", ids.size());
+        log.info("批量删除管理员成功, 共删除{}条", targets.size());
         return Result.success();
     }
 
     /**
      * 禁用管理员
+     * <p>当前登录管理员自身会被静默过滤：不执行禁用，也不返回提示。</p>
      *
      * @param id 管理员ID
+     * @param currentUserId 当前登录管理员ID（自身保护）
      * @return 禁用结果
      */
     @Override
-    public Result<Void> disableAdminUser(Long id) {
+    public Result<Void> disableAdminUser(Long id, Long currentUserId) {
         log.info("禁用管理员请求, adminUserId: {}", id);
+        if (isCurrentAdmin(id, currentUserId)) {
+            log.info("禁用管理员跳过, 目标为当前登录管理员自身, adminUserId: {}", id);
+            return Result.success();
+        }
+
         AdminUserEntity existUser = baseMapper.selectByIdIgnoreDeleted(id);
         if (existUser == null) {
             log.info("禁用管理员失败, 管理员不存在, adminUserId: {}", id);
@@ -491,25 +591,35 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
 
     /**
      * 批量禁用管理员
+     * <p>列表中的当前登录管理员自身会被静默过滤：不执行禁用，也不返回提示。</p>
      *
      * @param ids 管理员ID列表
+     * @param currentUserId 当前登录管理员ID（自身保护）
      * @return 禁用结果
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Result<Void> batchDisableAdminUser(List<Long> ids) {
+    public Result<Void> batchDisableAdminUser(List<Long> ids, Long currentUserId) {
         log.info("批量禁用管理员请求, ids: {}", ids);
         if (ids == null || ids.isEmpty()) {
             return Result.error(ResultCodeEnum.PARAM_ERROR, "请选择要禁用的管理员");
         }
-        for (Long id : ids) {
-            Result<Void> result = disableAdminUser(id);
+
+        // 静默过滤自身：若过滤后无目标，视为无事发生（不提示）
+        List<Long> targets = excludeCurrentAdmin(ids, currentUserId);
+        if (targets.isEmpty()) {
+            log.info("批量禁用管理员跳过, 目标均为当前登录管理员自身");
+            return Result.success();
+        }
+
+        for (Long id : targets) {
+            Result<Void> result = disableAdminUser(id, currentUserId);
             if (!result.isSuccess()) {
                 log.info("批量禁用管理员中断, 失败的adminUserId: {}", id);
                 return result;
             }
         }
-        log.info("批量禁用管理员成功, 共禁用{}条", ids.size());
+        log.info("批量禁用管理员成功, 共禁用{}条", targets.size());
         return Result.success();
     }
 
