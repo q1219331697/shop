@@ -10,6 +10,7 @@ import javax.crypto.SecretKey;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * JWT工具类
@@ -21,6 +22,7 @@ import io.jsonwebtoken.security.Keys;
  * @author shop
  * @since 1.0.0
  */
+@Slf4j
 public class JwtUtil {
 
     private final String secret;
@@ -109,6 +111,7 @@ public class JwtUtil {
                     .parseSignedClaims(token);
             return !isTokenExpired(token);
         } catch (Exception e) {
+            log.warn("Token校验失败", e);
             return false;
         }
     }

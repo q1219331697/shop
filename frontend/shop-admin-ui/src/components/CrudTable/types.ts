@@ -123,6 +123,12 @@ export interface ActionItem<T = RowData> {
   type?: 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'default'
   /** 浅色（plain）形态：用于低频的次要操作，把视觉重心让给高频操作 */
   plain?: boolean
+  /**
+   * 自定义按钮样式类名：Element Plus 内置语义色之外的形态变体
+   * （见 global.scss 的 .el-button.btn-outline —— 白底 + 主色文字的线框按钮）。
+   * 特异性高于按钮自身的 type，会覆盖其填充色与边框。
+   */
+  colorClass?: string
   /** 是否显示，默认 true */
   visible?: boolean | ((ctx: ActionContext<T>) => boolean)
   /** 是否禁用 */

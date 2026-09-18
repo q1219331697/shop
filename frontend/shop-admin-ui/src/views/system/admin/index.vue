@@ -33,6 +33,9 @@
       <el-button v-if="!row.deleted" link class="action-link" @click="goAssignRole(row)">
         <el-icon><Key /></el-icon>分配角色
       </el-button>
+      <el-button v-if="!row.deleted" link class="action-link" @click="handleResetPassword(row)">
+        <el-icon><RefreshLeft /></el-icon>重置密码
+      </el-button>
     </template>
   </CrudTable>
 </template>
@@ -45,9 +48,9 @@
  * </p>
  * <p>交互形态（弹窗改页面）：新增/编辑/详情/分配角色跳转独立页面；禁用/启用/恢复/删除保持弹窗或原位确认。</p>
  */
-import { Edit, Lock, Unlock, RefreshRight, Key } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
-import { ref } from 'vue'
+import { Edit, Lock, Unlock, RefreshRight, Key, RefreshLeft } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { api } from '@/api'
@@ -58,6 +61,17 @@ import { adminUserSchema } from './schema'
 
 const router = useRouter()
 const crudTableRef = ref<InstanceType<typeof CrudTable>>()
+
+/** 系统默认密码（以后端配置为唯一来源；仅用于提示文案，接口异常时保留兜底值） */
+const defaultPassword = ref('admin123')
+
+onMounted(async () => {
+  try {
+    defaultPassword.value = await api.adminUser.defaultPassword()
+  } catch {
+    /* 请求工具已处理，保留兜底提示文案 */
+  }
+})
 
 /** 刷新列表 */
 function refreshList() {
@@ -103,6 +117,25 @@ async function handleRestore(row: AdminUserItem) {
     await api.adminUser.restore(row.id)
     ElMessage.success('恢复成功')
     refreshList()
+  } catch {
+    /* 请求工具已处理 */
+  }
+}
+
+/** 重置密码为系统默认密码（不可逆，先确认再执行） */
+async function handleResetPassword(row: AdminUserItem) {
+  try {
+    await ElMessageBox.confirm(
+      `确定将管理员「${row.username}」的密码重置为默认密码吗？`,
+      '重置密码',
+      { type: 'warning', confirmButtonText: '确定', cancelButtonText: '取消' },
+    )
+  } catch {
+    return // 用户取消
+  }
+  try {
+    await api.adminUser.resetPassword(row.id)
+    ElMessage.success(`密码已重置为默认密码：${defaultPassword.value}`)
   } catch {
     /* 请求工具已处理 */
   }

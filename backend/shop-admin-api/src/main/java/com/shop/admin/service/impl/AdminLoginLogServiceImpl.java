@@ -104,7 +104,7 @@ public class AdminLoginLogServiceImpl
             IPage<AdminLoginLogEntity> result = this.page(page, queryWrapper);
             return Result.success(result);
         } catch (DateTimeParseException e) {
-            log.warn("分页查询登录日志失败，时间格式不正确: {}", e.getMessage());
+            log.warn("分页查询登录日志失败，时间格式不正确", e);
             return Result.error(ResultCodeEnum.PARAM_ERROR, "时间格式不正确，请使用yyyy-MM-dd或yyyy-MM-dd HH:mm:ss");
         } catch (Exception e) {
             log.error("分页查询登录日志失败", e);

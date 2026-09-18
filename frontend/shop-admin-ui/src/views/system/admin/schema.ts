@@ -72,25 +72,26 @@ export const adminUserSchema: CrudSchema<AdminUserItem> = {
   ],
 
   // ---- 按钮区 ----
+  // 工具栏配色（Ant 商务蓝，见 global.scss 的 .op-btn）：
+  //   新增=实心蓝 详情=线框(黑字) 编辑=线框(蓝字) 删除=实心红
+  //   禁用=实心橙 启用=实心绿 恢复=实心绿（与启用同款）
   actions: {
     toolbar: [
-      // 权重分层：新增 = 唯一实心主操作；编辑/详情用浅色主色（常用但次要）；
-      // 删除独立用危险色；编辑/详情未选中时禁用，单选后跳转独立页面（见 index.vue）
-      { action: 'edit', type: 'primary', plain: true },
-      { action: 'detail', type: 'primary', plain: true },
+      // 编辑/详情未选中时禁用，单选后跳转独立页面（见 index.vue）
+      { action: 'edit', type: 'primary', colorClass: 'btn-outline' },
+      { action: 'detail', type: 'info' },
       {
         action: 'delete',
+        type: 'danger',
         disabled: (ctx) => !ctx.selectedRows.some((r: AdminUserItem) => !r.deleted),
       },
     ],
     extraToolbar: [
-      // 低频批量操作使用浅色描边，让视觉重心留在高频操作上
       {
         action: 'disable',
         label: '禁用',
         icon: 'Lock',
         type: 'warning',
-        plain: true,
         disabled: (ctx) =>
           !ctx.selectedRows.some((r: AdminUserItem) => !r.deleted && r.status === 1),
         handler: handleBatchDisable,
@@ -100,7 +101,6 @@ export const adminUserSchema: CrudSchema<AdminUserItem> = {
         label: '启用',
         icon: 'Unlock',
         type: 'success',
-        plain: true,
         disabled: (ctx) =>
           !ctx.selectedRows.some((r: AdminUserItem) => !r.deleted && r.status === 0),
         handler: handleBatchEnable,
@@ -110,7 +110,6 @@ export const adminUserSchema: CrudSchema<AdminUserItem> = {
         label: '恢复',
         icon: 'RefreshRight',
         type: 'success',
-        plain: true,
         disabled: (ctx) => !ctx.selectedRows.some((r: AdminUserItem) => r.deleted),
         handler: handleBatchRestore,
       },
@@ -152,19 +151,12 @@ export const adminUserSchema: CrudSchema<AdminUserItem> = {
     { prop: 'createTime', label: '创建时间', width: 170, align: 'center', type: 'date' },
     { prop: 'updateTime', label: '更新时间', width: 170, align: 'center', type: 'date' },
   ],
-  rowActionsWidth: 320,
+  rowActionsWidth: 400,
 
   // ---- 表单区 ----
+  // 密码不在表单里：新增时后端填充系统默认密码，改密走列表「重置密码」操作
   formFields: [
     { prop: 'username', label: '用户名', type: 'input', maxlength: 50 },
-    {
-      prop: 'password',
-      label: '密码',
-      type: 'input',
-      password: true,
-      maxlength: 30,
-      hidden: (_formData, isEdit) => isEdit,
-    },
     { prop: 'realName', label: '姓名', type: 'input', maxlength: 50 },
     {
       prop: 'status',
@@ -180,10 +172,6 @@ export const adminUserSchema: CrudSchema<AdminUserItem> = {
     username: [
       { required: true, message: '请输入用户名', trigger: 'blur' },
       { min: 1, max: 50, message: '用户名长度为1-50个字符', trigger: 'blur' },
-    ],
-    password: [
-      { required: true, message: '请输入密码', trigger: 'blur' },
-      { min: 4, max: 30, message: '密码长度为4-30个字符', trigger: 'blur' },
     ],
     realName: [{ max: 50, message: '姓名最多50个字符', trigger: 'blur' }],
     status: [{ required: true, message: '请选择状态', trigger: 'change' }],

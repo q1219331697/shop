@@ -8,4 +8,9 @@ export const testCredentials = {
     username: 'admin',
     password: 'admin123',
   },
+  /**
+   * 管理员默认密码（后端 app.admin.default-password 的默认值）。
+   * 用于两处：新增管理员不填密码时的初始密码、「重置密码」后的目标密码。
+   */
+  defaultAdminPassword: 'admin123',
 }

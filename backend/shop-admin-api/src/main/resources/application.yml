@@ -53,6 +53,9 @@ mybatis-plus:
 app:
   # 管理员配置
   admin:
+    # 管理员默认密码：新增管理员未指定密码时使用；「重置密码」也重置为该值
+    # 注意用 Spring 占位符语法 `${VAR:默认值}`（不能写 `:-`，否则默认值会被解析成 "-admin123"）
+    default-password: ${ADMIN_DEFAULT_PASSWORD:admin123}
     token:
       # Token过期时间（Spring Boot Duration格式）
       # 支持写法: 30s(秒), 30m(分钟), 2h(小时), 1d(天), PT2H30M(2小时30分钟)

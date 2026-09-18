@@ -64,13 +64,9 @@ public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRole
             role.setSortOrder(0);
         }
 
-        boolean success = this.save(role);
-        if (success) {
-            log.info("创建角色成功, roleId: {}, roleName: {}", role.getId(), role.getRoleName());
-        } else {
-            log.error("创建角色失败, roleName: {}", role.getRoleName());
-        }
-        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "创建角色失败");
+        this.save(role);
+        log.info("创建角色成功, roleId: {}, roleName: {}", role.getId(), role.getRoleName());
+        return Result.success();
     }
 
     @Override
@@ -92,15 +88,11 @@ public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRole
             }
         }
 
-        boolean success = this.updateById(role);
-        if (success) {
-            log.info("更新角色成功, roleId: {}", role.getId());
-            // 角色状态变更时，清除拥有该角色的所有用户的权限缓存
-            clearPermissionCacheByRoleId(role.getId());
-        } else {
-            log.error("更新角色失败, roleId: {}", role.getId());
-        }
-        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "更新角色失败");
+        this.updateById(role);
+        log.info("更新角色成功, roleId: {}", role.getId());
+        // 角色状态变更时，清除拥有该角色的所有用户的权限缓存
+        clearPermissionCacheByRoleId(role.getId());
+        return Result.success();
     }
 
     @Override
@@ -127,15 +119,11 @@ public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRole
         rolePermissionMapper.delete(rpWrapper);
 
         // 删除角色
-        boolean success = this.removeById(id);
-        if (success) {
-            log.info("删除角色成功, roleId: {}", id);
-            // 清除拥有该角色的所有用户的权限缓存
-            clearPermissionCacheByRoleId(id);
-        } else {
-            log.error("删除角色失败, roleId: {}", id);
-        }
-        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "删除角色失败");
+        this.removeById(id);
+        log.info("删除角色成功, roleId: {}", id);
+        // 清除拥有该角色的所有用户的权限缓存
+        clearPermissionCacheByRoleId(id);
+        return Result.success();
     }
 
     @Override
@@ -235,14 +223,10 @@ public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRole
         AdminRoleEntity update = new AdminRoleEntity();
         update.setId(id);
         update.setStatus(0);
-        boolean success = this.updateById(update);
-        if (success) {
-            log.info("禁用角色成功, roleId: {}", id);
-            clearPermissionCacheByRoleId(id);
-        } else {
-            log.error("禁用角色失败, roleId: {}", id);
-        }
-        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "禁用角色失败");
+        this.updateById(update);
+        log.info("禁用角色成功, roleId: {}", id);
+        clearPermissionCacheByRoleId(id);
+        return Result.success();
     }
 
     @Override
@@ -260,14 +244,10 @@ public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRole
         AdminRoleEntity update = new AdminRoleEntity();
         update.setId(id);
         update.setStatus(1);
-        boolean success = this.updateById(update);
-        if (success) {
-            log.info("启用角色成功, roleId: {}", id);
-            clearPermissionCacheByRoleId(id);
-        } else {
-            log.error("启用角色失败, roleId: {}", id);
-        }
-        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "启用角色失败");
+        this.updateById(update);
+        log.info("启用角色成功, roleId: {}", id);
+        clearPermissionCacheByRoleId(id);
+        return Result.success();
     }
 
     @Override

@@ -82,13 +82,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         }
 
         // 保存用户
-        boolean success = this.save(user);
-        if (success) {
-            log.info("用户注册成功, userId: {}, username: {}", user.getId(), user.getUsername());
-        } else {
-            log.error("用户注册失败, username: {}", user.getUsername());
-        }
-        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "注册失败");
+        this.save(user);
+        log.info("用户注册成功, userId: {}, username: {}", user.getId(), user.getUsername());
+        return Result.success();
     }
 
     @Override
@@ -124,12 +120,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
             }
         }
 
-        boolean success = this.updateById(user);
-        if (success) {
-            log.info("更新用户信息成功, userId: {}", user.getId());
-        } else {
-            log.error("更新用户信息失败, userId: {}", user.getId());
-        }
-        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "更新失败");
+        this.updateById(user);
+        log.info("更新用户信息成功, userId: {}", user.getId());
+        return Result.success();
     }
 }

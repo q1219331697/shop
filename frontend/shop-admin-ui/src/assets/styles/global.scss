@@ -1,6 +1,62 @@
 @use './reset.scss';
 @use './components.scss';
 
+/* ============================================================
+ * 主题色板（全项目唯一的颜色定义处）
+ *
+ * 换成 Ant Design 色板：Element Plus 默认主色是 #409EFF，与设计选定的
+ * #1677FF 并存时会出现「同为主色却是两种蓝」（搜索按钮 vs 新增按钮）。
+ * 这里连同推导色阶（light-3/5/7/8/9 用于 hover、浅底、标签底色，
+ * dark-2 用于按下态）一起覆盖，保证深浅色同源、不割裂。
+ *
+ * 只覆盖需要统一管理的主题色（主色 / 语义色及其色阶）：
+ * 主题色一律用 var(--el-color-xxx) 引用，调整配色就改这一处；
+ * 白底、灰边框、文字灰、滚动条这类具体固定值，直接写色值即可，
+ * 不必再绕一层变量。
+ *
+ * 注意必须带 !important：main.ts 里 global.scss 虽然晚于
+ * element-plus/dist/index.css 引入，但 Element Plus 属于 Vite 预构建依赖，
+ * 运行时其样式实际注入在我们之后，同特异性的 :root 声明会被它盖回去
+ * （实测不加 !important 时变量仍是 #409eff）。
+ * ============================================================ */
+:root {
+  /* 主色：Ant 商务蓝 #1677FF */
+  --el-color-primary: #1677ff !important;
+  --el-color-primary-light-3: #4096ff !important;
+  --el-color-primary-light-5: #69b1ff !important;
+  --el-color-primary-light-7: #91caff !important;
+  --el-color-primary-light-8: #bae0ff !important;
+  --el-color-primary-light-9: #e6f4ff !important;
+  --el-color-primary-dark-2: #0958d9 !important;
+
+  /* 成功色：Ant 绿 #52C41A */
+  --el-color-success: #52c41a !important;
+  --el-color-success-light-3: #73d13d !important;
+  --el-color-success-light-5: #95de64 !important;
+  --el-color-success-light-7: #b7eb8f !important;
+  --el-color-success-light-8: #dcf3d1 !important;
+  --el-color-success-light-9: #f6ffed !important;
+  --el-color-success-dark-2: #389e0d !important;
+
+  /* 警告色：Ant 橙 #FFA940 */
+  --el-color-warning: #ffa940 !important;
+  --el-color-warning-light-3: #ffc069 !important;
+  --el-color-warning-light-5: #ffd591 !important;
+  --el-color-warning-light-7: #ffe7ba !important;
+  --el-color-warning-light-8: #ffeed9 !important;
+  --el-color-warning-light-9: #fff7e6 !important;
+  --el-color-warning-dark-2: #d46b08 !important;
+
+  /* 危险色：Ant 红 #FF4D4F */
+  --el-color-danger: #ff4d4f !important;
+  --el-color-danger-light-3: #ff7875 !important;
+  --el-color-danger-light-5: #ffa39e !important;
+  --el-color-danger-light-7: #ffccc7 !important;
+  --el-color-danger-light-8: #ffdbdc !important;
+  --el-color-danger-light-9: #fff1f0 !important;
+  --el-color-danger-dark-2: #d9363e !important;
+}
+
 /* 全局通用样式 */
 .flex {
   display: flex;
@@ -49,8 +105,29 @@
   background: transparent;
 }
 
-/* 按钮默认使用深色填充配色 */
+/* ============================================================
+ * 全局按钮配色（全站唯一一套，Ant Design 商务蓝）
+ *
+ * 用「形态 + 颜色」区分操作权重，色值一律引用上方的主题变量，
+ * 这里只负责「哪颗按钮用哪档色」：
+ *   primary      实心主色    新增 / 搜索 / 表单提交等
+ *   info         白底线框    详情（只读，权重最低；全项目仅详情按钮用 info）
+ *   btn-outline  白底线框    编辑（白底 + 主色文字，配合 type 使用）
+ *   danger       实心危险色  删除
+ *   warning      实心警告色  禁用
+ *   success      实心成功色  启用 / 恢复
+ * 实心按钮统一「深底白字」：hover 用 light-3 提亮、按下用 dark-2 加深。
+ *
+ * 禁用态：按业务要求「无数据 / 不可操作时按钮颜色与可操作时一致」，
+ * 故每个类型把 Element Plus 的禁用色变量指回自身颜色——
+ * EP 的 .el-button.is-disabled 特异性 0,2,0，会盖掉 .el-button--xxx 的填充色，
+ * 只写普通规则盖不回去，改这几个变量才能让它输出原色。
+ * ============================================================ */
 .el-button--primary {
+  --el-button-disabled-bg-color: var(--el-color-primary);
+  --el-button-disabled-border-color: var(--el-color-primary);
+  --el-button-disabled-text-color: #fff;
+
   background-color: var(--el-color-primary) !important;
   border-color: var(--el-color-primary) !important;
   color: #fff !important;
@@ -70,6 +147,10 @@
 }
 
 .el-button--success {
+  --el-button-disabled-bg-color: var(--el-color-success);
+  --el-button-disabled-border-color: var(--el-color-success);
+  --el-button-disabled-text-color: #fff;
+
   background-color: var(--el-color-success) !important;
   border-color: var(--el-color-success) !important;
   color: #fff !important;
@@ -89,6 +170,10 @@
 }
 
 .el-button--warning {
+  --el-button-disabled-bg-color: var(--el-color-warning);
+  --el-button-disabled-border-color: var(--el-color-warning);
+  --el-button-disabled-text-color: #fff;
+
   background-color: var(--el-color-warning) !important;
   border-color: var(--el-color-warning) !important;
   color: #fff !important;
@@ -108,6 +193,10 @@
 }
 
 .el-button--danger {
+  --el-button-disabled-bg-color: var(--el-color-danger);
+  --el-button-disabled-border-color: var(--el-color-danger);
+  --el-button-disabled-text-color: #fff;
+
   background-color: var(--el-color-danger) !important;
   border-color: var(--el-color-danger) !important;
   color: #fff !important;
@@ -127,21 +216,25 @@
 }
 
 .el-button--info {
-  background-color: var(--el-color-info) !important;
-  border-color: var(--el-color-info) !important;
-  color: #fff !important;
+  --el-button-disabled-bg-color: #fff;
+  --el-button-disabled-border-color: #dcdfe6;
+  --el-button-disabled-text-color: #303133;
+
+  background-color: #fff !important;
+  border-color: #dcdfe6 !important;
+  color: #303133 !important;
 
   &:hover,
   &:focus {
-    background-color: var(--el-color-info-light-3) !important;
-    border-color: var(--el-color-info-light-3) !important;
-    color: #fff !important;
+    background-color: #fff !important;
+    border-color: var(--el-color-primary) !important;
+    color: var(--el-color-primary) !important;
   }
 
   &:active {
-    background-color: var(--el-color-info-dark-2) !important;
-    border-color: var(--el-color-info-dark-2) !important;
-    color: #fff !important;
+    background-color: #fff !important;
+    border-color: var(--el-color-primary-dark-2) !important;
+    color: var(--el-color-primary-dark-2) !important;
   }
 }
 
@@ -164,15 +257,40 @@
   }
 }
 
+/* 线框变体：白底 + 主色文字（配合 type 使用，如编辑按钮的 type="primary"）
+   特异性 0,2,0 高于上面单个类的 0,1,0，可直接覆盖实心填充 */
+.el-button.btn-outline {
+  --el-button-disabled-bg-color: #fff;
+  --el-button-disabled-border-color: #dcdfe6;
+  --el-button-disabled-text-color: var(--el-color-primary);
+
+  background-color: #fff !important;
+  border-color: #dcdfe6 !important;
+  color: var(--el-color-primary) !important;
+
+  &:hover,
+  &:focus {
+    background-color: #fff !important;
+    border-color: var(--el-color-primary-light-3) !important;
+    color: var(--el-color-primary-light-3) !important;
+  }
+
+  &:active {
+    background-color: #fff !important;
+    border-color: var(--el-color-primary-dark-2) !important;
+    color: var(--el-color-primary-dark-2) !important;
+  }
+}
+
 /* 全局禁止点击遮罩关闭 Dialog */
 .el-dialog__overlay {
   pointer-events: none;
 }
 
 /* ============================================================
- * 次要操作按钮（plain 形态）
- * 工具栏里高频操作保持深色实心（新增 / 编辑 / 详情）与危险色（删除），
- * 低频的批量操作（禁用 / 启用 / 恢复）使用浅色描边，让视觉重心落在高频操作上。
+ * 次要操作按钮（plain 形态）：白底 + 彩色文字与边框
+ * 供需要弱化视觉权重的按钮使用，保留通用能力，
+ * 避免个别页面配置 plain 后样式落空。
  * 选择器特异性高于上方 .el-button--xxx 规则，可覆盖其 !important 填充色。
  * ============================================================ */
 .el-button.is-plain {
@@ -236,14 +354,5 @@
       color: var(--el-color-info) !important;
       border-color: var(--el-color-info) !important;
     }
-  }
-
-  /* 禁用态统一浅灰，避免浅色按钮在禁用时仍显示彩色 */
-  &.is-disabled,
-  &.is-disabled:hover,
-  &.is-disabled:focus {
-    background-color: #fff !important;
-    color: var(--el-text-color-placeholder) !important;
-    border-color: var(--el-border-color-light) !important;
   }
 }

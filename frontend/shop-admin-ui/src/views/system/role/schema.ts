@@ -53,25 +53,25 @@ export const roleSchema: CrudSchema<RoleItem> = {
   ],
 
   // ---- 按钮区 ----
+  // 工具栏配色（Ant 商务蓝，与管理员页一致，见 global.scss 的 .op-btn）
+  //   新增=实心蓝 详情=线框(黑字) 编辑=线框(蓝字) 删除=实心红 禁用=实心橙 启用=实心绿
   actions: {
     toolbar: [
-      // 权重分层：新增 = 唯一实心主操作；编辑/详情用浅色主色（常用但次要）；
-      // 删除独立用危险色；编辑/详情未选中时禁用，单选后跳转独立页面（见 index.vue）
-      { action: 'edit', type: 'primary', plain: true },
-      { action: 'detail', type: 'primary', plain: true },
+      // 编辑/详情未选中时禁用，单选后跳转独立页面（见 index.vue）
+      { action: 'edit', type: 'primary', colorClass: 'btn-outline' },
+      { action: 'detail', type: 'info' },
       {
         action: 'delete',
+        type: 'danger',
         disabled: (ctx) => !ctx.selectedRows.some((r: RoleItem) => !r.deleted),
       },
     ],
     extraToolbar: [
-      // 低频批量操作使用浅色描边，让视觉重心留在高频操作上
       {
         action: 'disable',
         label: '禁用',
         icon: 'Lock',
         type: 'warning',
-        plain: true,
         disabled: (ctx) => !ctx.selectedRows.some((r: RoleItem) => !r.deleted && r.status === 1),
         handler: handleBatchDisable,
       },
@@ -80,7 +80,6 @@ export const roleSchema: CrudSchema<RoleItem> = {
         label: '启用',
         icon: 'Unlock',
         type: 'success',
-        plain: true,
         disabled: (ctx) => !ctx.selectedRows.some((r: RoleItem) => !r.deleted && r.status === 0),
         handler: handleBatchEnable,
       },

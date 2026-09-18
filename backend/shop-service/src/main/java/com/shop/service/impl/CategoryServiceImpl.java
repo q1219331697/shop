@@ -75,13 +75,9 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, CategoryEnt
             category.setSort(0);
         }
 
-        boolean success = this.save(category);
-        if (success) {
-            log.info("添加分类成功, categoryId: {}, categoryName: {}", category.getId(), category.getName());
-        } else {
-            log.error("添加分类失败, categoryName: {}", category.getName());
-        }
-        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "添加分类失败");
+        this.save(category);
+        log.info("添加分类成功, categoryId: {}, categoryName: {}", category.getId(), category.getName());
+        return Result.success();
     }
 
     @Override
@@ -103,13 +99,9 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, CategoryEnt
             }
         }
 
-        boolean success = this.updateById(category);
-        if (success) {
-            log.info("更新分类成功, categoryId: {}", category.getId());
-        } else {
-            log.error("更新分类失败, categoryId: {}", category.getId());
-        }
-        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "更新分类失败");
+        this.updateById(category);
+        log.info("更新分类成功, categoryId: {}", category.getId());
+        return Result.success();
     }
 
     @Override
@@ -130,12 +122,8 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, CategoryEnt
             return Result.error(ResultCodeEnum.CATEGORY_HAS_PRODUCTS, "该分类下存在商品，无法删除");
         }
 
-        boolean success = this.removeById(id);
-        if (success) {
-            log.info("删除分类成功, categoryId: {}", id);
-        } else {
-            log.error("删除分类失败, categoryId: {}", id);
-        }
-        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "删除分类失败");
+        this.removeById(id);
+        log.info("删除分类成功, categoryId: {}", id);
+        return Result.success();
     }
 }

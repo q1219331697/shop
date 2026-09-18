@@ -1,14 +1,8 @@
-package com.shop.admin.exception;
-
-import java.util.List;
-
-import jakarta.validation.ConstraintViolationException;
+package com.shop.api.exception;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -21,16 +15,10 @@ import com.shop.common.ResultCodeEnum;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 全局异常处理器：把各类异常统一转换为业务错误码返回（HTTP 始终 200）。
+ * 全局异常处理器（前台API）：把各类异常统一转换为业务错误码返回（HTTP 始终 200）。
  *
- * <p>后端约定：所有请求 HTTP 状态码恒为 200，成功/失败由 body.code 区分
- * （SUCCESS=000000，参数错误=PARAM_ERROR=000002）。因此异常<b>绝不</b>返回 4xx/5xx，
- * 而是返回 {@code Result.error(...)}，由前端按 code 判断。
- * 参数校验文案与前端 .el-form-item__error 对齐，便于 E2E 契约用例断言同一关键字。</p>
- *
- * <p>处理顺序按异常具体程度匹配，由 Spring 选择最贴合的处理方法：
- * 参数校验 → 请求绑定 → 鉴权/资源 → 数据访问 → 兜底异常。
- * 兜底只返回通用文案，异常堆栈只进日志，不暴露给调用方。</p>
+ * <p>与后台保持一致：异常不返回 4xx/5xx，而是返回 {@code Result.error(...)}，
+ * 由前端按 body.code 判断；兜底只返回通用文案，异常堆栈只进日志。</p>
  *
  * @author shop
  * @since 1.0.0
@@ -38,31 +26,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
-    /**
-     * 参数校验失败（@RequestBody 上的 @Validated 分组校验）
-     *
-     * @param ex 校验异常
-     * @return 参数错误结果
-     */
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public Result<Void> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
-        String msg = joinFieldErrors(ex.getBindingResult().getFieldErrors());
-        log.warn("参数校验失败: {}", msg, ex);
-        return Result.error(ResultCodeEnum.PARAM_ERROR, msg);
-    }
-
-    /**
-     * 参数校验失败（@PathVariable / @RequestParam 上的约束）
-     *
-     * @param ex 约束违反异常
-     * @return 参数错误结果
-     */
-    @ExceptionHandler(ConstraintViolationException.class)
-    public Result<Void> handleConstraintViolation(ConstraintViolationException ex) {
-        log.warn("参数约束校验失败: {}", ex.getMessage(), ex);
-        return Result.error(ResultCodeEnum.PARAM_ERROR, ex.getMessage());
-    }
 
     /**
      * 请求体无法解析（JSON 语法错误、字段类型与实体不符等）
@@ -90,7 +53,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 无权限访问（@PreAuthorize 鉴权未通过）
+     * 无权限访问
      *
      * @param ex 鉴权异常
      * @return 无权限结果
@@ -135,22 +98,5 @@ public class GlobalExceptionHandler {
     public Result<Void> handleException(Exception ex) {
         log.error("系统异常", ex);
         return Result.error(ResultCodeEnum.ERROR, "系统异常，请稍后重试");
-    }
-
-    /**
-     * 拼接字段校验错误信息
-     *
-     * @param errors 字段错误列表
-     * @return 拼接后的错误信息
-     */
-    private String joinFieldErrors(List<FieldError> errors) {
-        StringBuilder sb = new StringBuilder();
-        for (FieldError fe : errors) {
-            if (sb.length() > 0) {
-                sb.append("；");
-            }
-            sb.append(fe.getDefaultMessage());
-        }
-        return sb.length() > 0 ? sb.toString() : "参数校验失败";
     }
 }

@@ -119,6 +119,31 @@ public class AdminUserController {
     }
 
     /**
+     * 重置管理员密码为系统默认密码
+     *
+     * @param id 管理员ID
+     * @return 重置结果
+     */
+    @PreAuthorize("hasAuthority('system:admin:update')")
+    @Operation(summary = "重置管理员密码")
+    @PutMapping("/{id}/reset-password")
+    public Result<Void> resetPassword(@PathVariable Long id) {
+        return adminUserService.resetPassword(id);
+    }
+
+    /**
+     * 获取管理员默认密码（新增/重置密码提示用）
+     *
+     * @return 默认密码
+     */
+    @PreAuthorize("hasAuthority('system:admin:list')")
+    @Operation(summary = "获取管理员默认密码")
+    @GetMapping("/default-password")
+    public Result<String> getDefaultPassword() {
+        return Result.success(adminUserService.getDefaultPassword());
+    }
+
+    /**
      * 删除管理员
      *
      * @param id 管理员ID

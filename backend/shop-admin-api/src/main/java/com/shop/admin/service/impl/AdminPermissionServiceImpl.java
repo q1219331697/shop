@@ -89,14 +89,10 @@ public class AdminPermissionServiceImpl
             permission.setVisible(1);
         }
 
-        boolean success = this.save(permission);
-        if (success) {
-            log.info("创建权限成功, permissionId: {}, permissionCode: {}",
-                    permission.getId(), permission.getPermissionCode());
-        } else {
-            log.error("创建权限失败, permissionCode: {}", permission.getPermissionCode());
-        }
-        return success ? Result.success(permission.getId()) : Result.error(ResultCodeEnum.OPERATION_FAILED, "创建权限失败");
+        this.save(permission);
+        log.info("创建权限成功, permissionId: {}, permissionCode: {}",
+                permission.getId(), permission.getPermissionCode());
+        return Result.success(permission.getId());
     }
 
     @Override
@@ -125,13 +121,9 @@ public class AdminPermissionServiceImpl
             return Result.error(ResultCodeEnum.PARAM_ERROR, "父权限不能为自己");
         }
 
-        boolean success = this.updateById(permission);
-        if (success) {
-            log.info("更新权限成功, permissionId: {}", permission.getId());
-        } else {
-            log.error("更新权限失败, permissionId: {}", permission.getId());
-        }
-        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "更新权限失败");
+        this.updateById(permission);
+        log.info("更新权限成功, permissionId: {}", permission.getId());
+        return Result.success();
     }
 
     @Override
@@ -158,13 +150,9 @@ public class AdminPermissionServiceImpl
         rolePermissionMapper.delete(rpWrapper);
 
         // 删除权限
-        boolean success = this.removeById(id);
-        if (success) {
-            log.info("删除权限成功, permissionId: {}", id);
-        } else {
-            log.error("删除权限失败, permissionId: {}", id);
-        }
-        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "删除权限失败");
+        this.removeById(id);
+        log.info("删除权限成功, permissionId: {}", id);
+        return Result.success();
     }
 
     @Override

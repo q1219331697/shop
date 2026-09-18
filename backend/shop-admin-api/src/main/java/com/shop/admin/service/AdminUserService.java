@@ -49,6 +49,21 @@ public interface AdminUserService extends IService<AdminUserEntity> {
     Result<Void> createAdminUser(AdminUserEntity adminUser);
 
     /**
+     * 重置管理员密码为系统默认密码
+     *
+     * @param id 管理员ID
+     * @return 重置结果
+     */
+    Result<Void> resetPassword(Long id);
+
+    /**
+     * 获取系统默认密码（供前端提示展示）
+     *
+     * @return 默认密码
+     */
+    String getDefaultPassword();
+
+    /**
      * 更新管理员信息
      *
      * @param adminUser 管理员信息

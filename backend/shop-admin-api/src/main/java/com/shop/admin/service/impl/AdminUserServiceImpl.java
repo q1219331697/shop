@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -14,6 +15,7 @@ import com.shop.admin.entity.AdminUserEntity;
 import com.shop.admin.entity.AdminUserRoleEntity;
 import com.shop.admin.mapper.AdminUserMapper;
 import com.shop.admin.mapper.AdminUserRoleMapper;
+import com.shop.admin.security.AdminProperties;
 import com.shop.admin.security.AdminTokenService;
 import com.shop.admin.service.AdminLoginLogService;
 import com.shop.admin.service.AdminPermissionService;
@@ -37,14 +39,17 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
     private final AdminUserRoleMapper userRoleMapper;
     private final AdminPermissionService adminPermissionService;
     private final AdminLoginLogService adminLoginLogService;
+    private final AdminProperties adminProperties;
 
     public AdminUserServiceImpl(AdminTokenService adminTokenService, AdminUserRoleMapper userRoleMapper,
                                 AdminPermissionService adminPermissionService,
-                                AdminLoginLogService adminLoginLogService) {
+                                AdminLoginLogService adminLoginLogService,
+                                AdminProperties adminProperties) {
         this.adminTokenService = adminTokenService;
         this.userRoleMapper = userRoleMapper;
         this.adminPermissionService = adminPermissionService;
         this.adminLoginLogService = adminLoginLogService;
+        this.adminProperties = adminProperties;
     }
 
     /**
@@ -139,13 +144,49 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
             adminUser.setStatus(1);
         }
 
-        boolean success = this.save(adminUser);
-        if (success) {
-            log.info("创建管理员成功, adminUserId: {}, username: {}", adminUser.getId(), username);
-        } else {
-            log.error("创建管理员失败, username: {}", username);
+        // 未指定密码时使用系统默认密码（新增表单不再要求填写密码）
+        if (!StringUtils.hasText(adminUser.getPassword())) {
+            adminUser.setPassword(adminProperties.getDefaultPassword());
+            log.info("创建管理员未指定密码, 使用系统默认密码, username: {}", username);
         }
-        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "创建管理员失败");
+
+        this.save(adminUser);
+        log.info("创建管理员成功, adminUserId: {}, username: {}", adminUser.getId(), username);
+        return Result.success();
+    }
+
+    /**
+     * 重置管理员密码为系统默认密码
+     *
+     * @param id 管理员ID
+     * @return 重置结果
+     */
+    @Override
+    public Result<Void> resetPassword(Long id) {
+        log.info("重置管理员密码请求, adminUserId: {}", id);
+
+        AdminUserEntity existUser = baseMapper.selectByIdIgnoreDeleted(id);
+        if (existUser == null) {
+            log.info("重置管理员密码失败, 管理员不存在, adminUserId: {}", id);
+            return Result.error(ResultCodeEnum.USER_NOT_EXIST, "管理员不存在");
+        }
+
+        AdminUserEntity update = new AdminUserEntity();
+        update.setId(id);
+        update.setPassword(adminProperties.getDefaultPassword());
+        baseMapper.updateByIdIgnoreDeleted(update);
+        log.info("重置管理员密码成功, adminUserId: {}", id);
+        return Result.success();
+    }
+
+    /**
+     * 获取系统默认密码（供前端提示展示）
+     *
+     * @return 默认密码
+     */
+    @Override
+    public String getDefaultPassword() {
+        return adminProperties.getDefaultPassword();
     }
 
     /**
@@ -171,16 +212,11 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
             return Result.error(ResultCodeEnum.USERNAME_EXIST, "管理员用户名已存在");
         }
 
-        int rows = baseMapper.updateByIdIgnoreDeleted(adminUser);
-        boolean success = rows > 0;
-        if (success) {
-            log.info("更新管理员信息成功, adminUserId: {}", id);
-            // 用户状态变更时清除权限缓存
-            adminPermissionService.clearPermissionCache(id);
-        } else {
-            log.error("更新管理员信息失败, adminUserId: {}", id);
-        }
-        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "更新管理员失败");
+        baseMapper.updateByIdIgnoreDeleted(adminUser);
+        log.info("更新管理员信息成功, adminUserId: {}", id);
+        // 用户状态变更时清除权限缓存
+        adminPermissionService.clearPermissionCache(id);
+        return Result.success();
     }
 
     /**
@@ -342,14 +378,9 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
         adminPermissionService.clearPermissionCache(id);
 
         // 删除用户（绕过逻辑删除）
-        int rows = baseMapper.deleteByIdIgnoreDeleted(id);
-        boolean success = rows > 0;
-        if (success) {
-            log.info("删除管理员成功, adminUserId: {}", id);
-        } else {
-            log.error("删除管理员失败, adminUserId: {}", id);
-        }
-        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "删除管理员失败");
+        baseMapper.deleteByIdIgnoreDeleted(id);
+        log.info("删除管理员成功, adminUserId: {}", id);
+        return Result.success();
     }
 
     /**
@@ -399,15 +430,10 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
         AdminUserEntity update = new AdminUserEntity();
         update.setId(id);
         update.setStatus(0);
-        int rows = baseMapper.updateByIdIgnoreDeleted(update);
-        boolean success = rows > 0;
-        if (success) {
-            log.info("禁用管理员成功, adminUserId: {}", id);
-            adminPermissionService.clearPermissionCache(id);
-        } else {
-            log.error("禁用管理员失败, adminUserId: {}", id);
-        }
-        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "禁用管理员失败");
+        baseMapper.updateByIdIgnoreDeleted(update);
+        log.info("禁用管理员成功, adminUserId: {}", id);
+        adminPermissionService.clearPermissionCache(id);
+        return Result.success();
     }
 
     /**
@@ -431,15 +457,10 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
         AdminUserEntity update = new AdminUserEntity();
         update.setId(id);
         update.setStatus(1);
-        int rows = baseMapper.updateByIdIgnoreDeleted(update);
-        boolean success = rows > 0;
-        if (success) {
-            log.info("启用管理员成功, adminUserId: {}", id);
-            adminPermissionService.clearPermissionCache(id);
-        } else {
-            log.error("启用管理员失败, adminUserId: {}", id);
-        }
-        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "启用管理员失败");
+        baseMapper.updateByIdIgnoreDeleted(update);
+        log.info("启用管理员成功, adminUserId: {}", id);
+        adminPermissionService.clearPermissionCache(id);
+        return Result.success();
     }
 
     /**
@@ -462,15 +483,10 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
             log.info("恢复管理员失败, 管理员未被删除, adminUserId: {}", id);
             return Result.error(ResultCodeEnum.OPERATION_FAILED, "管理员未被删除");
         }
-        int rows = baseMapper.restoreById(id);
-        if (rows > 0) {
-            log.info("恢复管理员成功, adminUserId: {}", id);
-            adminPermissionService.clearPermissionCache(id);
-            return Result.success();
-        } else {
-            log.error("恢复管理员失败, adminUserId: {}", id);
-            return Result.error(ResultCodeEnum.OPERATION_FAILED, "恢复管理员失败");
-        }
+        baseMapper.restoreById(id);
+        log.info("恢复管理员成功, adminUserId: {}", id);
+        adminPermissionService.clearPermissionCache(id);
+        return Result.success();
     }
 
     /**

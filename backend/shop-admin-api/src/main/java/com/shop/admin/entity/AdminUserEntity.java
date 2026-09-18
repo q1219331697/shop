@@ -51,11 +51,13 @@ public class AdminUserEntity implements Serializable {
     private String username;
 
     /**
-     * 密码，BCrypt加密存储
+     * 密码
+     * <p>
+     * 新增管理员不传密码时由后端填充系统默认密码（见 app.admin.default-password）；
+     * 若显式传入密码则仍需满足长度校验。
+     * </p>
      */
-    @Schema(description = "密码")
-    @NotBlank(message = "请输入密码",
-            groups = ValidationGroups.OnCreate.class)
+    @Schema(description = "密码（可不传，不传时使用系统默认密码）")
     @Size(min = 4, max = 30, message = "密码长度需在4-30位之间",
             groups = {ValidationGroups.OnCreate.class, ValidationGroups.OnUpdate.class})
     private String password;

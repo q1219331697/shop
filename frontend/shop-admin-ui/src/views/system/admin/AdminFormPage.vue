@@ -1,5 +1,15 @@
 <template>
   <SubPage body-class="form-page" footer-class="form-footer">
+    <!-- 新增不需要填写密码：由后端填充系统默认密码，这里只做提示（编辑页无密码相关操作） -->
+    <el-alert
+      v-if="!isEdit"
+      class="form-tip"
+      type="info"
+      :closable="false"
+      show-icon
+      :title="`新管理员将使用系统默认密码：${defaultPassword}`"
+    />
+
     <CrudForm
       ref="formRef"
       :fields="adminUserSchema.formFields ?? []"
@@ -57,6 +67,9 @@ const formData = reactive<Record<string, unknown>>({
 })
 const labelWidth = '96px'
 
+/** 系统默认密码（以后端配置为唯一来源；仅用于提示文案，接口异常时保留兜底值） */
+const defaultPassword = ref('admin123')
+
 onMounted(async () => {
   if (id.value) {
     try {
@@ -64,6 +77,12 @@ onMounted(async () => {
     } catch {
       /* 请求工具已处理 */
     }
+    return
+  }
+  try {
+    defaultPassword.value = await api.adminUser.defaultPassword()
+  } catch {
+    /* 请求工具已处理，保留兜底提示文案 */
   }
 })
 
@@ -89,3 +108,10 @@ function goBack() {
   goBackToList()
 }
 </script>
+
+<style lang="scss" scoped>
+/* 默认密码提示与表单保持 16px 间距，避免与第一个表单项贴在一起 */
+.form-tip {
+  margin-bottom: 16px;
+}
+</style>

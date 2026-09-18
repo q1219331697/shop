@@ -268,7 +268,7 @@ public class AdminAuthFilter extends OncePerRequestFilter {
             byte[] decoded = Base64.getDecoder().decode(base64Credentials);
             return new String(decoded, StandardCharsets.UTF_8);
         } catch (IllegalArgumentException e) {
-            log.warn("Basic认证Base64解码失败");
+            log.warn("Basic认证Base64解码失败", e);
             return null;
         }
     }

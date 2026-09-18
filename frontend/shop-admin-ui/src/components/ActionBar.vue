@@ -16,6 +16,7 @@
           <el-button
             :type="item.type || 'default'"
             :plain="item.plain"
+            :class="item.colorClass"
             :disabled="isDisabled(item)"
           >
             <el-icon v-if="item.icon">
@@ -31,6 +32,7 @@
         v-else
         :type="item.type || 'default'"
         :plain="item.plain"
+        :class="item.colorClass"
         :disabled="isDisabled(item)"
         @click="handleAction(item.action)"
       >
@@ -106,6 +108,8 @@ const defaultToolbar: ActionItem[] = [
     label: '编辑',
     icon: Edit,
     type: 'warning',
+    // 商务蓝方案：编辑用主色语义 + 线框形态（见 global.scss 的 .op-btn.btn-outline）
+    colorClass: 'btn-outline',
     disabled: (ctx) => ctx.selectedCount !== 1,
   },
   {

@@ -88,13 +88,9 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, ProductEntity
             product.setStatus(1);
         }
 
-        boolean success = this.save(product);
-        if (success) {
-            log.info("添加商品成功, productId: {}, productName: {}", product.getId(), product.getName());
-        } else {
-            log.error("添加商品失败, productName: {}", product.getName());
-        }
-        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "添加商品失败");
+        this.save(product);
+        log.info("添加商品成功, productId: {}, productName: {}", product.getId(), product.getName());
+        return Result.success();
     }
 
     @Override
@@ -115,13 +111,9 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, ProductEntity
             }
         }
 
-        boolean success = this.updateById(product);
-        if (success) {
-            log.info("更新商品成功, productId: {}", product.getId());
-        } else {
-            log.error("更新商品失败, productId: {}", product.getId());
-        }
-        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "更新商品失败");
+        this.updateById(product);
+        log.info("更新商品成功, productId: {}", product.getId());
+        return Result.success();
     }
 
     @Override
@@ -133,12 +125,8 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, ProductEntity
             return Result.error(ResultCodeEnum.PRODUCT_NOT_EXIST, "商品不存在");
         }
 
-        boolean success = this.removeById(id);
-        if (success) {
-            log.info("删除商品成功, productId: {}", id);
-        } else {
-            log.error("删除商品失败, productId: {}", id);
-        }
-        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "删除商品失败");
+        this.removeById(id);
+        log.info("删除商品成功, productId: {}", id);
+        return Result.success();
     }
 }

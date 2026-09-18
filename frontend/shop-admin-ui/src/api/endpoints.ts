@@ -36,6 +36,10 @@ export const endpoints = {
     disable: (id: number | string) => `/adminUser/${id}/disable`,
     enable: (id: number | string) => `/adminUser/${id}/enable`,
     restore: (id: number | string) => `/adminUser/${id}/restore`,
+    /** 重置密码为系统默认密码 */
+    resetPassword: (id: number | string) => `/adminUser/${id}/reset-password`,
+    /** 系统默认密码（新增/重置密码提示展示用） */
+    defaultPassword: '/adminUser/default-password',
     batchDisable: '/adminUser/batch-disable',
     batchEnable: '/adminUser/batch-enable',
     batchRestore: '/adminUser/batch-restore',

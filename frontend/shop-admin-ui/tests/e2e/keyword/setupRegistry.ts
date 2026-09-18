@@ -2,6 +2,8 @@ import type { Page } from '@playwright/test'
 
 import { endpoints } from '../../../src/api/endpoints'
 
+import { SUCCESS } from '../../../src/api/resultCode'
+
 import { apiUrl, auth, unwrap } from '../common/apiClient'
 import {
   createPermissionTreeFixture,
@@ -12,6 +14,7 @@ import {
   findRoleIdByName,
 } from '../common/dataFactory'
 import { expect, newPrefix } from '../common/e2eFixtures'
+import { testCredentials } from '../fixtures/credentials'
 
 /**
  * 造数注册表：CSV 步骤通过 操作=setupApi + 定位值=<注册名> + 输入值=<key=value;...> 调用。
@@ -301,8 +304,31 @@ export const setupRegistry: Record<
       .toBe(true)
   },
 
+  // 用「用户名 + 密码」直接调登录接口，验证该账号密码可用
+  // （新增默认密码 / 重置密码类用例的收口断言：密码真的能登录，而不只是接口返回成功）
+  // 参数：user=用户名变量名（默认 userName，其次 newUserName）；password=密码（默认系统默认密码）
+  async loginAs(page, args, vars) {
+    const username = vars[args.user ?? ''] ?? vars.userName ?? vars.newUserName
+    if (!username) {
+      throw new Error(`loginAs 未找到用户（用例 ${vars.用例ID}）`)
+    }
+    const password = args.password ?? testCredentials.defaultAdminPassword
+    const resp = await page.request.post(apiUrl(endpoints.auth.login), {
+      data: { username, password },
+    })
+    const body = (await resp.json()) as { code?: string; message?: string }
+    if (body.code !== SUCCESS) {
+      throw new Error(
+        `loginAs 登录失败：username=${username} code=${body.code} message=${body.message ?? ''}` +
+          `（用例 ${vars.用例ID}）`,
+      )
+    }
+  },
+
   // UI 登录（整页刷新会清空登录态，admin 模块每个用例独立 context，需各自登录）
-  async uiLogin(page, _args, _vars) {
+  // 参数：path=登录后要进入的目标页（默认 /system/admin）
+  async uiLogin(page, args, _vars) {
+    const path = args.path ?? '/system/admin'
     await page.goto('/login')
     await page
       .locator(".el-input__inner[placeholder='请输入用户名']")
@@ -313,8 +339,9 @@ export const setupRegistry: Record<
     await page.locator('.login-btn').click()
     // 必须等登录真正跳转完成（写 Cookie）后再整页刷新，否则刷新会打断登录请求
     await page.waitForURL('**/dashboard', { timeout: 30000 })
-    await page.goto('/system/admin')
-    // admin 页面为懒加载 chunk，等表格真正渲染再返回，避免首屏竞态
+    await page.goto(path)
+    // 目标页为懒加载 chunk，等表格渲染再返回，避免首屏竞态
+    // （权限管理页是 el-table 树形表格，同属 .el-table）
     await page.waitForSelector('.el-table', { timeout: 30000 })
   },
 }

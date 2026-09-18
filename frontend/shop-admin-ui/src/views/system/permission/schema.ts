@@ -60,7 +60,10 @@ export const permissionSearchFields: SearchField[] = [
   },
 ]
 
-/** 工具栏按钮配置：新增为唯一实心主操作，编辑/详情用浅色主色，删除用危险色 */
+/**
+ * 工具栏按钮配置：Ant 商务蓝（与管理员/角色页一致，见 global.scss 的 .op-btn）
+ * 新增=实心蓝 编辑=线框(蓝字) 详情=线框(黑字) 删除=实心红
+ */
 export const permissionToolbarActions: ActionItem[] = [
   { action: 'create', label: '新增', icon: 'Plus', type: 'primary' },
   {
@@ -68,15 +71,14 @@ export const permissionToolbarActions: ActionItem[] = [
     label: '编辑',
     icon: 'Edit',
     type: 'primary',
-    plain: true,
+    colorClass: 'btn-outline',
     disabled: (ctx) => ctx.selectedCount !== 1,
   },
   {
     action: 'detail',
     label: '详情',
     icon: 'View',
-    type: 'primary',
-    plain: true,
+    type: 'info',
     disabled: (ctx) => ctx.selectedCount !== 1,
   },
   {

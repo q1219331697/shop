@@ -84,14 +84,10 @@ public class OrderItemServiceImpl extends ServiceImpl<OrderItemMapper, OrderItem
             orderItem.setTotalPrice(totalPrice);
         }
 
-        boolean success = this.save(orderItem);
-        if (success) {
-            log.info("添加订单详情成功, orderItemId: {}, orderId: {}, productId: {}",
-                    orderItem.getId(), orderItem.getOrderId(), orderItem.getProductId());
-        } else {
-            log.error("添加订单详情失败, orderId: {}, productId: {}", orderItem.getOrderId(), orderItem.getProductId());
-        }
-        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "添加订单详情失败");
+        this.save(orderItem);
+        log.info("添加订单详情成功, orderItemId: {}, orderId: {}, productId: {}",
+                orderItem.getId(), orderItem.getOrderId(), orderItem.getProductId());
+        return Result.success();
     }
 
     @Override

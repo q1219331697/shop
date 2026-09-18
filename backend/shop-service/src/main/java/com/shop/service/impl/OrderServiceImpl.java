@@ -40,13 +40,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderEntity> impl
         // 设置初始状态为待付款
         order.setStatus(OrderStatusEnum.PENDING_PAYMENT.getCode());
 
-        boolean success = this.save(order);
-        if (success) {
-            log.info("创建订单成功, orderId: {}, orderNo: {}", order.getId(), orderNo);
-        } else {
-            log.error("创建订单失败, userId: {}", order.getUserId());
-        }
-        return success ? Result.success(order) : Result.error(ResultCodeEnum.OPERATION_FAILED, "创建订单失败");
+        this.save(order);
+        log.info("创建订单成功, orderId: {}, orderNo: {}", order.getId(), orderNo);
+        return Result.success(order);
     }
 
     @Override
@@ -90,13 +86,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderEntity> impl
         }
 
         order.setStatus(OrderStatusEnum.CANCELLED.getCode()); // 已取消
-        boolean success = this.updateById(order);
-        if (success) {
-            log.info("取消订单成功, orderId: {}, orderNo: {}", id, order.getOrderNo());
-        } else {
-            log.error("取消订单失败, orderId: {}", id);
-        }
-        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "取消订单失败");
+        this.updateById(order);
+        log.info("取消订单成功, orderId: {}, orderNo: {}", id, order.getOrderNo());
+        return Result.success();
     }
 
     @Override
@@ -116,13 +108,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderEntity> impl
         }
 
         order.setStatus(status);
-        boolean success = this.updateById(order);
-        if (success) {
-            log.info("更新订单状态成功, orderId: {}, orderNo: {}, status: {}", id, order.getOrderNo(), status);
-        } else {
-            log.error("更新订单状态失败, orderId: {}", id);
-        }
-        return success ? Result.success() : Result.error(ResultCodeEnum.OPERATION_FAILED, "更新订单状态失败");
+        this.updateById(order);
+        log.info("更新订单状态成功, orderId: {}, orderNo: {}, status: {}", id, order.getOrderNo(), status);
+        return Result.success();
     }
 
     /**

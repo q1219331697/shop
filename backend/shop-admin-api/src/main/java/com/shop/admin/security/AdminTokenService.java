@@ -90,7 +90,7 @@ public class AdminTokenService {
             }
             return new AdminTokenInfo(adminUserId, username);
         } catch (NumberFormatException e) {
-            log.warn("Token中管理员ID格式异常: {}", maskToken(token));
+            log.warn("Token中管理员ID格式异常: {}", maskToken(token), e);
             return null;
         }
     }

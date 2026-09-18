@@ -29,6 +29,14 @@ public class AdminProperties {
     private Token token = new Token();
 
     /**
+     * 新建管理员账号时使用的默认密码（重置密码同样重置为该值）
+     * <p>
+     * 由application.yml中的app.admin.default-password配置注入
+     * </p>
+     */
+    private String defaultPassword;
+
+    /**
      * 认证配置
      */
     private Auth auth = new Auth();

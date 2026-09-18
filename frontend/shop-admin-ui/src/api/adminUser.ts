@@ -41,9 +41,19 @@ export function getAdminUserDetail(id: IdType) {
   return request.get<AdminUserItem>(endpoints.adminUser.detail(id))
 }
 
-/** 新增管理员用户 */
-export function createAdminUser(data: Partial<AdminUserItem> & { password: string }) {
+/** 新增管理员用户（密码可不传，由后端使用系统默认密码） */
+export function createAdminUser(data: Partial<AdminUserItem>) {
   return request.post(endpoints.adminUser.create, data)
+}
+
+/** 重置管理员密码为系统默认密码 */
+export function resetAdminPassword(id: IdType) {
+  return request.put(endpoints.adminUser.resetPassword(id))
+}
+
+/** 获取系统默认密码（新增/重置密码提示展示用） */
+export function getAdminDefaultPassword() {
+  return request.get<string>(endpoints.adminUser.defaultPassword)
 }
 
 /** 编辑管理员用户 */
@@ -122,6 +132,8 @@ export const adminUserApi = {
   disable: disableAdminUser,
   enable: enableAdminUser,
   restore: restoreAdminUser,
+  resetPassword: resetAdminPassword,
+  defaultPassword: getAdminDefaultPassword,
   batchDisable: batchDisableAdminUser,
   batchEnable: batchEnableAdminUser,
   batchRestore: batchRestoreAdminUser,
