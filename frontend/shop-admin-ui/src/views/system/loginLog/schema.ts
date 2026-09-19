@@ -55,7 +55,7 @@ export const loginLogSchema: CrudSchema<LoginLogItem> = {
   // ---- 数据区 ----
   columns: [
     { prop: 'id', label: 'ID', width: 80, align: 'center' },
-    { prop: 'username', label: '用户名', width: 140, showOverflowTooltip: true },
+    { prop: 'username', label: '用户名', width: 200, showOverflowTooltip: true },
     { prop: 'ip', label: '登录IP', width: 140 },
     {
       prop: 'success',
