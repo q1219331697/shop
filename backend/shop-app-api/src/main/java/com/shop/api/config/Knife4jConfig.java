@@ -32,7 +32,7 @@ public class Knife4jConfig {
                 .info(new Info()
                         .title("商城系统API文档")
                         .version("1.0.0")
-                        .description("商城系统后端接口文档，提供用户、商品、分类、购物车、订单等模块的完整API接口")
+                        .description("商城系统前台API接口文档（当前模块为最小可运行骨架，业务接口后续按需补充）")
                         .contact(new Contact()
                                 .name("商城系统开发团队")
                                 .email("support@shop.com"))

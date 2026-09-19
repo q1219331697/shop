@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ 前台 API 模块
-  ~ 提供用户端 REST 接口，包含商品浏览、购物车、下单等功能
+  ~ 当前仅保留最小可运行骨架（基础设施 + 示例接口），业务接口后续按需补充
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -23,10 +23,10 @@
 
     <dependencies>
         <!-- ==================== 项目内部模块 ==================== -->
-        <!-- 依赖业务逻辑层模块 -->
+        <!-- 依赖数据访问层模块：提供 MyBatis-Plus 分页插件与字段自动填充等基础设施 -->
         <dependency>
             <groupId>com.shop</groupId>
-            <artifactId>shop-service</artifactId>
+            <artifactId>shop-dao</artifactId>
         </dependency>
 
         <!-- ==================== Spring Boot 核心 ==================== -->
