@@ -622,9 +622,10 @@ TC-PERM-04,18,expectVisible,css,.el-table__row:has-text('${nodePrefix}-new'),-,-
 TC-PERM-05,1,setupApi,uiLogin,path=/system/permission,-,-,-,登录并进入权限管理页
 TC-PERM-05,2,click,css,button.el-button--primary:has-text('新增'),-,-,-,打开新建对话框
 TC-PERM-05,3,expectVisible,css,.form-page,-,-,-,对话框可见
-TC-PERM-05,4,click,css,.form-footer button.el-button--primary,-,-,-,直接提交
-TC-PERM-05,5,expectText,css,.form-page,-,请输入权限名称,text,必填校验提示
-TC-PERM-05,6,expectText,css,.form-page,-,请输入权限编码,text,必填校验提示
+TC-PERM-05,4,click,css,.el-form-item:has(.el-form-item__label:text-is('权限类型')) .el-radio:has-text('菜单'),-,-,-,选菜单类型(目录允许编码为空)
+TC-PERM-05,5,click,css,.form-footer button.el-button--primary,-,-,-,直接提交
+TC-PERM-05,6,expectText,css,.form-page,-,请输入权限名称,text,必填校验提示
+TC-PERM-05,7,expectText,css,.form-page,-,请输入权限编码,text,必填校验提示
 TC-PERM-06,1,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
 TC-PERM-06,2,goto,-,/system/permission,-,-,-,进入权限管理页
 TC-PERM-06,3,expectVisible,css,.el-table,-,-,-,等待表格加载

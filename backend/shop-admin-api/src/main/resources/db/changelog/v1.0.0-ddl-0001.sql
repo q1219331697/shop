@@ -43,21 +43,21 @@ CREATE TABLE IF NOT EXISTS t_admin_permission (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     parent_id BIGINT NOT NULL DEFAULT 0 COMMENT '父权限ID',
     permission_name VARCHAR(50) NOT NULL COMMENT '权限名称',
-    permission_code VARCHAR(100) NOT NULL COMMENT '权限编码',
-    permission_type TINYINT NOT NULL COMMENT '权限类型(1:目录 2:菜单 3:操作)',
-    path VARCHAR(255) DEFAULT NULL COMMENT '路由路径',
+    permission_code VARCHAR(100) DEFAULT NULL COMMENT '权限编码(目录为NULL，其余唯一)',
+    permission_type TINYINT NOT NULL COMMENT '类型(1:目录 2:菜单/任务页 3:操作按钮)',
+    path VARCHAR(255) DEFAULT NULL COMMENT '路由路径(仅type=1/2有效)',
     icon VARCHAR(100) DEFAULT NULL COMMENT '图标',
-    component VARCHAR(255) DEFAULT NULL COMMENT '组件路径',
+    component VARCHAR(255) DEFAULT NULL COMMENT '组件路径(仅type=2有效)',
     sort_order INT NOT NULL DEFAULT 0 COMMENT '排序',
-    visible TINYINT NOT NULL DEFAULT 1 COMMENT '是否可见(0:隐藏 1:显示)',
+    visible TINYINT NOT NULL DEFAULT 1 COMMENT '侧边栏可见(0:隐藏任务页 1:显示)',
     status TINYINT NOT NULL DEFAULT 1 COMMENT '状态(0:禁用 1:启用)',
     deleted TINYINT NOT NULL DEFAULT 0 COMMENT '删除标记(0:未删除 1:已删除)',
     create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    UNIQUE KEY uk_permission_code (permission_code, deleted),
     KEY idx_parent_id (parent_id),
-    KEY idx_permission_code (permission_code),
     KEY idx_permission_type (permission_type)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='管理员权限表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='管理员权限表(目录+菜单+任务页+操作按钮)';
 
 CREATE TABLE IF NOT EXISTS t_admin_user_role (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',

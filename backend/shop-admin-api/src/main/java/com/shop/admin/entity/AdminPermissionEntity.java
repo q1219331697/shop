@@ -61,13 +61,16 @@ public class AdminPermissionEntity implements Serializable {
 
     /**
      * 权限编码，唯一标识，如 admin:user:list
+     * <p>
+     * 目录节点（type=1）仅作导航分组、不参与授权，编码允许为空；
+     * 菜单、任务页与操作按钮必须填写。空串由服务层归一化为 null，
+     * 避免多个目录节点的空串触发唯一索引冲突。
+     * </p>
      */
-    @Schema(description = "权限编码")
-    @NotBlank(message = "请输入权限编码",
-            groups = {ValidationGroups.OnCreate.class, ValidationGroups.OnUpdate.class})
+    @Schema(description = "权限编码(目录可为空)")
     @Size(max = 100, message = "权限编码长度不能超过100",
             groups = {ValidationGroups.OnCreate.class, ValidationGroups.OnUpdate.class})
-    @Pattern(regexp = "^[A-Za-z][A-Za-z0-9:_-]*$", message = "权限编码以字母开头",
+    @Pattern(regexp = "^$|^[A-Za-z][A-Za-z0-9:_-]*$", message = "权限编码以字母开头",
             groups = {ValidationGroups.OnCreate.class, ValidationGroups.OnUpdate.class})
     private String permissionCode;
 

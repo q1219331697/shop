@@ -14,7 +14,7 @@
         <template v-else-if="field.type === 'tag'">
           <el-tag
             v-if="field.tagMap && field.tagMap[data[field.prop]]"
-            :type="field.tagMap[data[field.prop]][1] as any"
+            :type="field.tagMap[data[field.prop]][1]"
             effect="plain"
           >
             {{ field.tagMap[data[field.prop]][0] }}
@@ -30,9 +30,7 @@
         <!-- boolean 类型 -->
         <template v-else-if="field.type === 'boolean'">
           <el-tag
-            :type="
-              (data[field.prop] ? field.trueType || 'success' : field.falseType || 'info') as any
-            "
+            :type="data[field.prop] ? field.trueType || 'success' : field.falseType || 'info'"
             effect="plain"
           >
             {{ data[field.prop] ? field.trueText || '是' : field.falseText || '否' }}

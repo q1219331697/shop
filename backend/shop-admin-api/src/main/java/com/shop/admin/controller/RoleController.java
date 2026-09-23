@@ -81,7 +81,7 @@ public class RoleController {
      * @param id 角色ID
      * @return 角色详情
      */
-    @PreAuthorize("hasAuthority('system:role:list')")
+    @PreAuthorize("hasAuthority('system:role:detail')")
     @Operation(summary = "获取角色详情")
     @GetMapping("/{id}")
     public Result<AdminRoleEntity> getById(@PathVariable Long id) {
@@ -136,7 +136,7 @@ public class RoleController {
      * @param id 角色ID
      * @return 禁用结果
      */
-    @PreAuthorize("hasAuthority('system:role:update')")
+    @PreAuthorize("hasAuthority('system:role:disable')")
     @Operation(summary = "禁用角色")
     @PutMapping("/{id}/disable")
     public Result<Void> disable(@PathVariable Long id) {
@@ -149,7 +149,7 @@ public class RoleController {
      * @param id 角色ID
      * @return 启用结果
      */
-    @PreAuthorize("hasAuthority('system:role:update')")
+    @PreAuthorize("hasAuthority('system:role:enable')")
     @Operation(summary = "启用角色")
     @PutMapping("/{id}/enable")
     public Result<Void> enable(@PathVariable Long id) {
@@ -162,7 +162,7 @@ public class RoleController {
      * @param params 包含ids列表
      * @return 禁用结果
      */
-    @PreAuthorize("hasAuthority('system:role:update')")
+    @PreAuthorize("hasAuthority('system:role:disable')")
     @Operation(summary = "批量禁用角色")
     @PutMapping("/batch-disable")
     public Result<Void> batchDisable(@RequestBody Map<String, List<Long>> params) {
@@ -175,7 +175,7 @@ public class RoleController {
      * @param params 包含ids列表
      * @return 启用结果
      */
-    @PreAuthorize("hasAuthority('system:role:update')")
+    @PreAuthorize("hasAuthority('system:role:enable')")
     @Operation(summary = "批量启用角色")
     @PutMapping("/batch-enable")
     public Result<Void> batchEnable(@RequestBody Map<String, List<Long>> params) {

@@ -14,7 +14,8 @@ export interface PermissionItem {
   id: number
   parentId: number
   permissionName: string
-  permissionCode: string
+  /** 权限编码（目录节点为 null，仅作导航分组，不参与授权） */
+  permissionCode: string | null
   /** 1-目录，2-菜单，3-操作 */
   permissionType: number
   path: string
@@ -36,7 +37,7 @@ export interface PermissionItem {
   _hasChildren?: boolean
 }
 
-/** 权限查询参数（后端仅提供全量树接口，条件过滤在前端完成） */
+/** 权限查询参数（后端按条件过滤；无条件时返回完整树） */
 export interface PermissionPageParams {
   permissionName?: string
   permissionCode?: string
@@ -44,17 +45,20 @@ export interface PermissionPageParams {
   status?: number
 }
 
-/** 权限树查询结果（树不做分页，total 为节点总数） */
+/** 权限查询结果（无分页，total 为节点总数） */
 export interface PermissionTreeResult {
   list: PermissionItem[]
   total: number
-  /** 后端返回的原始全量树，未受搜索条件过滤；用于上级权限选择等不受搜索影响的场景 */
-  rawTree?: PermissionItem[]
 }
 
-/** 获取权限树形结构（原始全量树） */
+/** 获取权限树形结构（完整树，用于树形表格浏览与上级权限选择） */
 export function getPermissionTree() {
   return request.get<PermissionItem[]>(endpoints.permission.tree)
+}
+
+/** 搜索权限节点（后端过滤，返回命中节点平铺列表，不做层级补全） */
+export function searchPermissions(params: PermissionPageParams) {
+  return request.get<PermissionItem[]>(endpoints.permission.search, params)
 }
 
 /** 获取当前用户菜单树（用于动态生成侧边栏菜单和路由） */
@@ -86,6 +90,7 @@ export function deletePermission(id: IdType) {
 export const permissionApi = {
   menus: getUserMenus,
   tree: getPermissionTree,
+  search: searchPermissions,
   detail: getPermissionDetail,
   create: createPermission,
   update: updatePermission,

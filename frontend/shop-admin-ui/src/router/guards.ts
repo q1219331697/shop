@@ -1,134 +1,119 @@
 /**
  * 路由守卫
+ * <p>
+ * 动态路由的加载收敛为「一个记忆化任务」（routeTask），它同时承担四件事：
+ * 是否加载过、是否进行中、并发去重、失败后不再重试。
+ * 因此本模块不再需要 hasAddedRoutes / isRefreshing / isNavigationPending 等多个标志位。
+ * </p>
+ * <p>
+ * 失败语义：
+ * - 仅「未认证（000401）」才清理会话并跳登录页；
+ * - 网络不可达、服务端异常、未授权（000403）一律保留登录态并放行，不重试、不跳转。
+ * </p>
  */
+import { ElMessage } from 'element-plus'
 import NProgress from 'nprogress'
 import type { Router } from 'vue-router'
 
 import { startAutoRefreshToken, stopAutoRefreshToken } from '@/api/auth'
+import { UNAUTHORIZED } from '@/api/resultCode'
 import { usePermissionStore } from '@/stores/modules/permission'
 import { useTabsStore } from '@/stores/modules/tabs'
 import { useUserStore } from '@/stores/modules/user'
 import { hasTokenCookie } from '@/utils/storage'
 
-const WHITE_LIST = ['/login']
-
 export function setupGuards(router: Router) {
-  let hasAddedRoutes = false
-  let isRefreshing = false
-  let isLoginAttempted = false
-  let isNavigationPending = false // 防止导航过程中的重复处理
+  /**
+   * 动态路由加载任务
+   * <p>
+   * null 表示尚未开始；创建后保留至被显式复位，因此并发导航只会触发一次加载，
+   * 失败（false）也不会重试。
+   * </p>
+   */
+  let routeTask: Promise<boolean> | null = null
 
-  router.beforeEach(async (to, _from, next) => {
-    // 如果正在导航中，避免重复处理
-    if (isNavigationPending) {
-      return
+  /**
+   * 加载动态路由
+   * <p>
+   * 不抛出异常：失败时返回 false，由守卫决定后续行为（放行，不重试）。
+   * </p>
+   */
+  function ensureRoutes(): Promise<boolean> {
+    if (routeTask) {
+      return routeTask
     }
 
-    NProgress.start()
-
-    const loggedIn = hasTokenCookie()
+    // store 必须在导航时获取：本模块随 router 在 pinia 安装前被加载
     const permissionStore = usePermissionStore()
     const userStore = useUserStore()
 
-    /**
-     * 路由级权限校验：目标路由声明了 meta.permissionCode 时，校验当前用户是否具备该权限码；
-     * 不具备则按「路由不存在」处理，避免仅靠隐藏菜单、却能通过直接输入地址访问受限页面。
-     */
-    const lacksPermission = () => {
-      const code = to.meta.permissionCode as string | undefined
-      return !!code && !permissionStore.hasPermission(code)
-    }
-
-    if (loggedIn) {
-      if (to.path === '/login') {
-        // 已登录用户访问登录页，重定向到首页
-        next({ path: '/', replace: true })
-      } else {
-        // 需要加载动态路由
-        if (!hasAddedRoutes && !isRefreshing) {
-          isRefreshing = true
-          isNavigationPending = true
-          startAutoRefreshToken()
-
-          try {
-            const routes = await permissionStore.generateRoutes()
-            // 回填「我是谁」：刷新后 Store 重建，账号身份（ID/用户名）只能从后端取
-            await userStore.loadProfile()
-
-            routes.forEach((route) => {
-              router.addRoute('Layout', route)
-            })
-
-            hasAddedRoutes = true
-            isRefreshing = false
-            isNavigationPending = false
-
-            // 路由加载完成，重新导航到目标路径
-            next({ path: to.fullPath, replace: true })
-          } catch (error) {
-            console.error('[RouterGuard] 动态路由加载失败:', error)
-            permissionStore.resetPermission()
-            hasAddedRoutes = false
-            isRefreshing = false
-            isNavigationPending = false
-            stopAutoRefreshToken()
-            // 清除登录状态，跳转到登录页
-            localStorage.clear()
-            sessionStorage.clear()
-            next(`/login?redirect=${to.path}`)
-          }
-        } else if (hasAddedRoutes) {
-          // 路由已加载：先做路由级权限校验（含「弹窗改页面」的 create/edit/detail/assign 子路由）
-          if (lacksPermission()) {
-            next({ path: '/404', replace: true })
-            return
-          }
-          next()
-        } else {
-          // 正在加载中，延迟处理
-          setTimeout(() => {
-            next()
-          }, 0)
+    const task = (async (): Promise<boolean> => {
+      try {
+        startAutoRefreshToken()
+        const routes = await permissionStore.generateRoutes()
+        routes.forEach((route) => router.addRoute('Layout', route))
+        await userStore.loadProfile()
+        return true
+      } catch (error) {
+        // 仅未认证才清会话；其余错误保留登录态，等待服务恢复
+        if ((error as { bizCode?: string } | null)?.bizCode === UNAUTHORIZED) {
+          userStore.resetState()
+          routeTask = null // 允许重新登录后重新加载
         }
+        permissionStore.resetPermission()
+        console.error('[RouterGuard] 动态路由加载失败:', error)
+        return false
       }
-    } else {
-      hasAddedRoutes = false
-      isRefreshing = false
+    })()
+
+    routeTask = task
+    return task
+  }
+
+  router.beforeEach(async (to, _from, next) => {
+    NProgress.start()
+
+    // 未登录：仅放行登录页
+    if (!hasTokenCookie()) {
       stopAutoRefreshToken()
-
-      // 防止登录过期无限循环
-      if (to.path === '/login') {
-        if (isLoginAttempted) {
-          // 如果已经尝试过登录但仍在登录页，说明可能Token失效，重定向到首页
-          next({ path: '/', replace: true })
-        } else {
-          isLoginAttempted = true
-          next()
-        }
-      } else if (WHITE_LIST.includes(to.path)) {
-        next()
-      } else {
-        // 未登录且不在白名单，跳转到登录页
-        next(`/login?redirect=${to.path}`)
-      }
+      routeTask = null
+      return to.path === '/login' ? next() : next(`/login?redirect=${to.path}`)
     }
+
+    // 已登录：不再访问登录页
+    if (to.path === '/login') {
+      return next({ path: '/', replace: true })
+    }
+
+    // 路由未就绪则加载一次；失败不重试
+    const justLoaded = !routeTask
+    if (!(await ensureRoutes())) {
+      NProgress.done()
+      // 未认证：会话已被清理，提示一次并回登录页；其余失败（网络/服务端）保留登录态、停在原地
+      if (!hasTokenCookie()) {
+        ElMessage.error('登录已过期，请重新登录')
+        return next(`/login?redirect=${to.path}`)
+      }
+      return next()
+    }
+
+    // 首次加载完成后必须重新导航一次：本次导航仍按旧路由表解析，不重来会落到 404
+    if (justLoaded) {
+      return next({ path: to.fullPath, replace: true })
+    }
+
+    // 路由级权限校验：避免直接输入地址访问受限页面
+    const code = to.meta.permissionCode as string | undefined
+    if (code && !usePermissionStore().hasPermission(code)) {
+      return next({ path: '/404', replace: true })
+    }
+
+    next()
   })
 
   router.afterEach((to) => {
     NProgress.done()
     document.title = `${to.meta.title || ''} - 商城管理后台`
-
-    const tabsStore = useTabsStore()
-    tabsStore.addTab(to)
-  })
-
-  // 路由重置钩子：用于登录/登出时清理状态
-  router.afterEach((to) => {
-    // 如果成功进入登录页，重置登录尝试标志
-    if (to.path === '/login') {
-      isLoginAttempted = false
-      hasAddedRoutes = false
-      isRefreshing = false
-    }
+    useTabsStore().addTab(to)
   })
 }

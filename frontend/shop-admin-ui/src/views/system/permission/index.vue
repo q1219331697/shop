@@ -157,11 +157,11 @@ import { useRouter } from 'vue-router'
 
 import type { PermissionItem, PermissionTreeResult } from '@/api'
 import { PageContainer, SearchBar, ActionBar } from '@/components/CrudTable'
-import type { TagMap } from '@/components/CrudTable/types'
+import type { TagMap, TagType } from '@/components/CrudTable/types'
 import { useCrud } from '@/composables/use-crud'
 import { useTableMaxHeight } from '@/composables/use-table-height'
 import { formatDate } from '@/utils/date'
-import { getPermissionList, invalidatePermissionTreeCache } from '@/utils/permissionTree'
+import { getPermissionList } from '@/utils/permissionTree'
 
 import {
   PERMISSION_TYPE_TAG_MAP,
@@ -171,9 +171,6 @@ import {
   permissionToolbarActions,
 } from './schema'
 
-/** 标签类型（与 Element Plus el-tag 的 type 取值保持一致） */
-type TagType = 'primary' | 'success' | 'info' | 'warning' | 'danger'
-
 // ==================== 通用方法 ====================
 
 /** 取标签文案与类型，未命中时返回占位 */
@@ -182,7 +179,7 @@ function resolveTag(map: TagMap, value: unknown, fallback = '未知'): [string, 
   if (!matched) {
     return [fallback, 'info']
   }
-  return [matched[0], matched[1] as TagType]
+  return [matched[0], matched[1]]
 }
 
 /** 权限类型标签 */
@@ -202,18 +199,11 @@ function statusTag(value: unknown): [string, TagType] {
 
 // ==================== CRUD 核心 ====================
 
-/**
- * 列表请求包装：在 fetchData 内部已经调过的同一份全量树（getPermissionList 内部已缓存），
- * 这里把原始树同步到 permissionTree，避免再独立调用一次 getPermissionTree。
- */
+/** 列表请求：后端按条件返回（无条件为完整树，有条件为命中节点平铺列表） */
 async function listApiWithTree(
   params: Parameters<typeof getPermissionList>[0],
 ): Promise<PermissionTreeResult> {
-  const result = await getPermissionList(params)
-  if (result.rawTree) {
-    permissionTree.value = result.rawTree
-  }
-  return result
+  return getPermissionList(params)
 }
 
 const router = useRouter()
@@ -240,9 +230,6 @@ const {
   searchFields: permissionSearchFields,
   rowKey: 'id',
 })
-
-/** 完整权限树（由列表请求填充，供后续页面使用） */
-const permissionTree = ref<PermissionItem[]>([])
 
 /**
  * 查询参数双向绑定代理：
@@ -309,16 +296,14 @@ watch(tableData, () => {
 
 // ==================== 操作 ====================
 
-/** 刷新列表与权限树 */
+/** 刷新列表 */
 async function handleRefresh() {
-  invalidatePermissionTreeCache()
   await fetchData()
 }
 
 /** 工具栏操作：表单类跳转独立页面，删除走确认 */
 async function handleToolbarAction(action: string) {
   if (action === 'delete') {
-    invalidatePermissionTreeCache()
     await handleToolbarDelete()
     return
   }
@@ -395,7 +380,6 @@ async function handleDeleteRow(row: PermissionItem) {
   try {
     await api.permission.delete(row.id)
     ElMessage.success('删除成功')
-    invalidatePermissionTreeCache()
     await fetchData()
   } catch {
     /* 请求工具已处理错误提示 */

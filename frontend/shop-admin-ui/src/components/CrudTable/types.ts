@@ -177,9 +177,12 @@ export interface ActionsConfig<T = RowData> {
 /** 列类型 */
 export type ColumnType = 'default' | 'index' | 'tag' | 'date' | 'boolean' | 'image' | 'money'
 
-/** Tag 映射配置 */
+/** 标签颜色（与 Element Plus el-tag 的 type 合法取值保持一致） */
+export type TagType = 'primary' | 'success' | 'info' | 'warning' | 'danger'
+
+/** Tag 映射配置：[显示文案, 标签颜色] */
 export interface TagMap {
-  [value: string | number]: [string, string]
+  [value: string | number]: [string, TagType]
 }
 
 /** 表格列配置 */
@@ -210,8 +213,8 @@ export interface TableColumn<T = RowData> {
   // ---- type: 'boolean' ----
   trueText?: string
   falseText?: string
-  trueType?: string
-  falseType?: string
+  trueType?: TagType
+  falseType?: TagType
 
   // ---- type: 'money' ----
   prefix?: string
@@ -330,8 +333,8 @@ export interface DetailField<T = RowData> {
   // ---- type: 'boolean' ----
   trueText?: string
   falseText?: string
-  trueType?: string
-  falseType?: string
+  trueType?: TagType
+  falseType?: TagType
 
   // ---- type: 'money' ----
   prefix?: string

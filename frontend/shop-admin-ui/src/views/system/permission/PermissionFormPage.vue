@@ -4,7 +4,7 @@
       ref="formRef"
       :fields="permissionFormFields"
       :form-data="formData"
-      :rules="permissionFormRules"
+      :rules="formRules"
       :is-edit="isEdit"
       :submitting="submitting"
       :label-width="labelWidth"
@@ -45,7 +45,7 @@
  * <p>复用 permissionFormFields / permissionFormRules，表单内上级权限、图标选择器通过插槽渲染。</p>
  * <p>骨架（边距 / 宽度 / 底部操作区）统一由 SubPage 提供。</p>
  */
-import { ElMessage, ElTreeSelect } from 'element-plus'
+import { ElMessage, ElTreeSelect, type FormItemRule, type FormRules } from 'element-plus'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
@@ -54,7 +54,7 @@ import CrudForm from '@/components/CrudForm.vue'
 import IconSelect from '@/components/IconSelect.vue'
 import SubPage from '@/components/SubPage.vue'
 import { usePageNav } from '@/composables/use-page-nav'
-import { flattenPermissionTree, invalidatePermissionTreeCache } from '@/utils/permissionTree'
+import { flattenPermissionTree } from '@/utils/permissionTree'
 
 import { permissionDefaultFormData, permissionFormFields, permissionFormRules } from './schema'
 
@@ -80,6 +80,36 @@ const formData = reactive<Record<string, unknown>>({
   ...permissionDefaultFormData,
 })
 
+/**
+ * 表单校验规则
+ * <p>
+ * 权限编码对「非目录」节点必填：目录仅作导航分组、不参与授权，允许留空。
+ * CrudForm 内部维护 localFormData 副本，故须从校验源 source 读取权限类型，
+ * 不能读取外层 formData（其值不会随表单交互同步）。
+ * </p>
+ */
+const formRules = computed<FormRules>(() => ({
+  ...permissionFormRules,
+  permissionCode: [
+    {
+      validator: (
+        _rule: FormItemRule,
+        value: unknown,
+        callback: (error?: Error) => void,
+        source: Record<string, unknown>,
+      ) => {
+        if (source?.permissionType !== 1 && !String(value ?? '').trim()) {
+          callback(new Error('请输入权限编码'))
+          return
+        }
+        callback()
+      },
+      trigger: 'blur',
+    },
+    ...(permissionFormRules.permissionCode as FormItemRule[]),
+  ],
+}))
+
 // ---- 上级权限选项 ----
 const permissionTree = ref<PermissionItem[]>([])
 
@@ -95,15 +125,17 @@ const parentTreeProps = {
 }
 
 function buildParentOptions(nodes: PermissionItem[], excludeIds: Set<number>): ParentOption[] {
-  return nodes
-    // 目录(1)与菜单(2)可作为上级，操作(3)是叶子节点不可作为上级
-    .filter((node) => node.permissionType !== 3 && !excludeIds.has(node.id))
-    .map((node) => {
-      const children = buildParentOptions(node.children ?? [], excludeIds)
-      return children.length > 0
-        ? { id: node.id, permissionName: node.permissionName, children }
-        : { id: node.id, permissionName: node.permissionName }
-    })
+  return (
+    nodes
+      // 目录(1)与菜单(2)可作为上级，操作(3)是叶子节点不可作为上级
+      .filter((node) => node.permissionType !== 3 && !excludeIds.has(node.id))
+      .map((node) => {
+        const children = buildParentOptions(node.children ?? [], excludeIds)
+        return children.length > 0
+          ? { id: node.id, permissionName: node.permissionName, children }
+          : { id: node.id, permissionName: node.permissionName }
+      })
+  )
 }
 
 const parentOptions = computed<ParentOption[]>(() => {
@@ -161,10 +193,20 @@ function buildSubmitPayload(data: Record<string, unknown>): Record<string, unkno
     if (['children', 'createTime', 'updateTime', 'deleted'].includes(key)) return
     payload[key] = data[key]
   })
+  // 目录节点无需权限编码：空串归一为 null，避免多目录空串触发后端唯一索引冲突
+  if (typeof payload.permissionCode === 'string' && payload.permissionCode.trim() === '') {
+    payload.permissionCode = null
+  }
   return payload
 }
 
 async function handleSubmit(data: Record<string, unknown>) {
+  // 非目录节点必须填写权限编码（与后端服务层契约保持一致）；
+  // rules 无法读取表单其它字段，故在此补充类型相关的必填校验
+  if (data.permissionType !== 1 && !String(data.permissionCode ?? '').trim()) {
+    ElMessage.error('请输入权限编码')
+    return
+  }
   submitting.value = true
   try {
     if (isEdit.value && id.value) {
@@ -174,7 +216,6 @@ async function handleSubmit(data: Record<string, unknown>) {
       await api.permission.create(buildSubmitPayload(data))
       ElMessage.success('新增成功')
     }
-    invalidatePermissionTreeCache()
     goBackToList()
   } catch {
     /* 请求工具已处理 */

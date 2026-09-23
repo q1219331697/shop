@@ -16,7 +16,8 @@ import type {
 
 /** 权限类型标签映射：1-目录，2-菜单，3-操作 */
 export const PERMISSION_TYPE_TAG_MAP: TagMap = {
-  1: ['目录', ''],
+  // 目录是分组语义，取中性灰；空串自 Element Plus 2.3 起不再是合法 type
+  1: ['目录', 'info'],
   2: ['菜单', 'success'],
   3: ['操作', 'warning'],
 }
@@ -162,9 +163,10 @@ export const permissionFormRules: FormRules = {
     { required: true, message: '请输入权限名称', trigger: 'blur' },
     { min: 1, max: 50, message: '权限名称长度为1-50个字符', trigger: 'blur' },
   ],
+  // 权限编码非必填：目录节点仅作导航分组、不参与授权，允许留空；
+  // 「非目录必填」由 PermissionFormPage 提交前校验（rules 无法读取表单其它字段）
   permissionCode: [
-    { required: true, message: '请输入权限编码', trigger: 'blur' },
-    { min: 1, max: 100, message: '权限编码长度为1-100个字符', trigger: 'blur' },
+    { max: 100, message: '权限编码长度不能超过100个字符', trigger: 'blur' },
     {
       // E2E 测试数据采用 e2e-<案例ID>-<ts> 中杠形态以便辨识批次；放开中杠与大写，
       // 仍兼容真实编码（如 system:user:list）的小写冒号形态

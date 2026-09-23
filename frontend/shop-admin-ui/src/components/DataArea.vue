@@ -61,7 +61,7 @@
               <template v-else-if="col.type === 'tag'">
                 <el-tag
                   v-if="getTagInfo(col, row[col.prop])"
-                  :type="getTagInfo(col, row[col.prop])![1] as any"
+                  :type="getTagInfo(col, row[col.prop])![1]"
                   effect="plain"
                 >
                   {{ getTagInfo(col, row[col.prop])![0] }}
@@ -77,9 +77,7 @@
               <!-- type: boolean -->
               <template v-else-if="col.type === 'boolean'">
                 <el-tag
-                  :type="
-                    (row[col.prop] ? col.trueType || 'success' : col.falseType || 'info') as any
-                  "
+                  :type="row[col.prop] ? col.trueType || 'success' : col.falseType || 'info'"
                   effect="plain"
                 >
                   {{ row[col.prop] ? col.trueText || '是' : col.falseText || '否' }}
@@ -220,7 +218,7 @@ import { ref, computed } from 'vue'
 import { useTableMaxHeight } from '@/composables/use-table-height'
 import { formatDate } from '@/utils/date'
 
-import type { TableColumn, ActionItem, RowData } from './CrudTable/types'
+import type { TableColumn, ActionItem, RowData, TagType } from './CrudTable/types'
 
 const props = withDefaults(
   defineProps<{
@@ -314,7 +312,7 @@ const visibleColumns = computed(() => {
 })
 
 /** 获取 Tag 信息 */
-function getTagInfo(col: TableColumn, value: unknown): [string, string] | undefined {
+function getTagInfo(col: TableColumn, value: unknown): [string, TagType] | undefined {
   if (!col.tagMap) return undefined
   return col.tagMap[value as string | number]
 }

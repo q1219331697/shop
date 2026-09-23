@@ -5,6 +5,7 @@ import { getToken, setToken, removeToken } from '@/utils/storage'
 
 import { endpoints } from './endpoints'
 import request from './http'
+import { UNAUTHORIZED } from './resultCode'
 
 /** 登录请求 */
 export interface LoginParams {
@@ -34,7 +35,8 @@ let isRefreshing = false
 
 /**
  * 刷新 Token：后端延长 Redis 中 Token 的有效时间并返回新 Token。
- * 成功后写回新 Token；失败（含 401）由响应拦截器统一清除登录态并跳转登录页。
+ * 成功后写回新 Token；仅「未认证（000401）」才清除本地 Token，
+ * 网络不可达等失败保留登录态，等下一次定时刷新重试（与 @/router/guards 的失败语义一致）。
  */
 async function refreshToken(): Promise<void> {
   if (!getToken()) {
@@ -42,13 +44,15 @@ async function refreshToken(): Promise<void> {
   }
   try {
     const newToken = await request.post<string | null>(endpoints.auth.tokenRefresh, {})
-    if (newToken) {
-      setToken(newToken)
-    } else {
+    if (!newToken) {
       throw new Error('Token 刷新失败')
     }
+    setToken(newToken)
   } catch (error: unknown) {
-    removeToken()
+    // 仅未认证才清 Token；网络与服务端异常保留登录态，交由下一次定时刷新重试
+    if ((error as { bizCode?: string } | null)?.bizCode === UNAUTHORIZED) {
+      removeToken()
+    }
     throw error
   }
 }
@@ -70,7 +74,7 @@ export function startAutoRefreshToken(): void {
         isRefreshing = true
         refreshToken()
           .catch(() => {
-            // 刷新失败，拦截器已清除登录态
+            // 刷新失败：未认证时已清除本地 Token，其余错误等待下一次定时重试
           })
           .finally(() => {
             isRefreshing = false

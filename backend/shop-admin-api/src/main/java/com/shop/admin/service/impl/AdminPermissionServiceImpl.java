@@ -3,6 +3,7 @@ package com.shop.admin.service.impl;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -10,8 +11,10 @@ import java.util.stream.Collectors;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.shop.admin.entity.AdminPermissionEntity;
 import com.shop.admin.entity.AdminRoleEntity;
@@ -42,6 +45,11 @@ public class AdminPermissionServiceImpl
     private static final String PERM_CACHE_PREFIX = "admin:user:permissions:";
     private static final long PERM_CACHE_HOURS = 2;
 
+    /**
+     * 权限类型：目录（仅作导航分组，不参与授权，允许权限编码为空）
+     */
+    private static final int DIRECTORY_TYPE = 1;
+
     private final AdminRolePermissionMapper rolePermissionMapper;
     private final AdminUserRoleMapper userRoleMapper;
     private final AdminRoleMapper roleMapper;
@@ -59,15 +67,27 @@ public class AdminPermissionServiceImpl
 
     @Override
     public Result<Long> createPermission(AdminPermissionEntity permission) {
+        // 空白编码归一化为 null，避免多个目录节点的空串触发唯一索引冲突
+        normalizeBlankCode(permission);
+
         log.info("创建权限请求, permissionName: {}, permissionCode: {}",
                 permission.getPermissionName(), permission.getPermissionCode());
 
-        // 校验权限编码唯一
-        LambdaQueryWrapper<AdminPermissionEntity> codeWrapper = new LambdaQueryWrapper<>();
-        codeWrapper.eq(AdminPermissionEntity::getPermissionCode, permission.getPermissionCode());
-        if (this.count(codeWrapper) > 0) {
-            log.warn("创建权限失败, 权限编码已存在, permissionCode: {}", permission.getPermissionCode());
-            return Result.error(ResultCodeEnum.PARAM_ERROR, "权限编码已存在");
+        // 非目录节点必须填写权限编码（目录仅作导航分组，不参与授权）
+        if (!isDirectory(permission) && !StringUtils.hasText(permission.getPermissionCode())) {
+            log.warn("创建权限失败, 非目录节点未填写权限编码, permissionName: {}",
+                    permission.getPermissionName());
+            return Result.error(ResultCodeEnum.PARAM_ERROR, "请输入权限编码");
+        }
+
+        // 校验权限编码唯一（空编码不参与校验）
+        if (StringUtils.hasText(permission.getPermissionCode())) {
+            LambdaQueryWrapper<AdminPermissionEntity> codeWrapper = new LambdaQueryWrapper<>();
+            codeWrapper.eq(AdminPermissionEntity::getPermissionCode, permission.getPermissionCode());
+            if (this.count(codeWrapper) > 0) {
+                log.warn("创建权限失败, 权限编码已存在, permissionCode: {}", permission.getPermissionCode());
+                return Result.error(ResultCodeEnum.PARAM_ERROR, "权限编码已存在");
+            }
         }
 
         // 校验父权限存在
@@ -97,6 +117,9 @@ public class AdminPermissionServiceImpl
 
     @Override
     public Result<Void> updatePermission(AdminPermissionEntity permission) {
+        // 空白编码归一化为 null，避免多个目录节点的空串触发唯一索引冲突
+        normalizeBlankCode(permission);
+
         log.info("更新权限信息, permissionId: {}", permission.getId());
         AdminPermissionEntity existPermission = this.getById(permission.getId());
         if (existPermission == null) {
@@ -104,8 +127,14 @@ public class AdminPermissionServiceImpl
             return Result.error(ResultCodeEnum.PARAM_ERROR, "权限不存在");
         }
 
-        // 校验权限编码唯一
-        if (permission.getPermissionCode() != null
+        // 非目录节点必须填写权限编码（目录仅作导航分组，不参与授权）
+        if (!isDirectory(permission) && !StringUtils.hasText(permission.getPermissionCode())) {
+            log.warn("更新权限失败, 非目录节点未填写权限编码, permissionId: {}", permission.getId());
+            return Result.error(ResultCodeEnum.PARAM_ERROR, "请输入权限编码");
+        }
+
+        // 校验权限编码唯一（空编码不参与校验）
+        if (StringUtils.hasText(permission.getPermissionCode())
                 && !permission.getPermissionCode().equals(existPermission.getPermissionCode())) {
             LambdaQueryWrapper<AdminPermissionEntity> codeWrapper = new LambdaQueryWrapper<>();
             codeWrapper.eq(AdminPermissionEntity::getPermissionCode, permission.getPermissionCode());
@@ -121,7 +150,15 @@ public class AdminPermissionServiceImpl
             return Result.error(ResultCodeEnum.PARAM_ERROR, "父权限不能为自己");
         }
 
-        this.updateById(permission);
+        // 编码由有值改为空时，MyBatis-Plus 默认忽略 null 字段，需用 UpdateWrapper 显式置空
+        if (permission.getPermissionCode() == null) {
+            LambdaUpdateWrapper<AdminPermissionEntity> updateWrapper = new LambdaUpdateWrapper<>();
+            updateWrapper.eq(AdminPermissionEntity::getId, permission.getId());
+            updateWrapper.set(AdminPermissionEntity::getPermissionCode, null);
+            this.update(permission, updateWrapper);
+        } else {
+            this.updateById(permission);
+        }
         log.info("更新权限成功, permissionId: {}", permission.getId());
         return Result.success();
     }
@@ -164,6 +201,31 @@ public class AdminPermissionServiceImpl
             return Result.error(ResultCodeEnum.PARAM_ERROR, "权限不存在");
         }
         return Result.success(permission);
+    }
+
+    @Override
+    public List<AdminPermissionEntity> searchPermissions(String permissionName, String permissionCode,
+                                                         Integer permissionType, Integer status) {
+        log.info("搜索权限节点, name={}, code={}, type={}, status={}",
+                permissionName, permissionCode, permissionType, status);
+        return this.list(buildSearchWrapper(permissionName, permissionCode, permissionType, status));
+    }
+
+    /**
+     * 构建搜索条件：名称与编码模糊匹配，类型与状态精确匹配
+     * <p>
+     * 状态未显式传入时默认只查启用节点，与权限树保持一致。
+     * </p>
+     */
+    private LambdaQueryWrapper<AdminPermissionEntity> buildSearchWrapper(String permissionName, String permissionCode,
+                                                                        Integer permissionType, Integer status) {
+        LambdaQueryWrapper<AdminPermissionEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(AdminPermissionEntity::getStatus, status != null ? status : 1);
+        wrapper.like(StringUtils.hasText(permissionName), AdminPermissionEntity::getPermissionName, permissionName);
+        wrapper.like(StringUtils.hasText(permissionCode), AdminPermissionEntity::getPermissionCode, permissionCode);
+        wrapper.eq(permissionType != null, AdminPermissionEntity::getPermissionType, permissionType);
+        wrapper.orderByAsc(AdminPermissionEntity::getSortOrder);
+        return wrapper;
     }
 
     @Override
@@ -225,15 +287,25 @@ public class AdminPermissionServiceImpl
             return Collections.emptyList();
         }
 
-        // 获取权限编码列表
+        // 获取权限编码列表（目录节点编码为 null，需过滤，避免污染缓存与鉴权集合）
         LambdaQueryWrapper<AdminPermissionEntity> pWrapper = new LambdaQueryWrapper<>();
         pWrapper.in(AdminPermissionEntity::getId, permissionIds);
         pWrapper.eq(AdminPermissionEntity::getStatus, 1);
         pWrapper.select(AdminPermissionEntity::getPermissionCode);
-        List<String> permissionCodes = this.list(pWrapper)
-                .stream()
+        List<AdminPermissionEntity> rows = this.list(pWrapper);
+        if (rows == null || rows.isEmpty()) {
+            log.warn("用户无可用权限编码, userId: {}", userId);
+            return Collections.emptyList();
+        }
+        // 注意：仅 select 单列时，该列为 NULL 的行（目录节点）会被 MyBatis 映射为 null 元素
+        // （returnInstanceForEmptyRow 默认为 false），故需先过滤 null 元素再取编码
+        List<String> permissionCodes = rows.stream()
+                .filter(Objects::nonNull)
                 .map(AdminPermissionEntity::getPermissionCode)
+                .filter(StringUtils::hasText)
                 .collect(Collectors.toList());
+        log.info("用户权限编码解析完成, userId: {}, 原始行数: {}, 有效编码数: {}",
+                userId, rows.size(), permissionCodes.size());
 
         // 写入Redis缓存
         if (!permissionCodes.isEmpty()) {
@@ -289,12 +361,12 @@ public class AdminPermissionServiceImpl
             return Collections.emptyList();
         }
 
-        // 获取菜单类型的权限（目录与菜单均可导航，操作类型不进入菜单树）
+        // 获取目录与菜单（含 visible=0 的隐藏任务页）：
+        // 前端需据此生成完整路由，是否显示在侧边栏由 visible 字段决定，故此处不过滤 visible
         LambdaQueryWrapper<AdminPermissionEntity> pWrapper = new LambdaQueryWrapper<>();
         pWrapper.in(AdminPermissionEntity::getId, permissionIds);
         pWrapper.in(AdminPermissionEntity::getPermissionType, 1, 2);
         pWrapper.eq(AdminPermissionEntity::getStatus, 1);
-        pWrapper.eq(AdminPermissionEntity::getVisible, 1);
         pWrapper.orderByAsc(AdminPermissionEntity::getSortOrder);
         List<AdminPermissionEntity> menus = this.list(pWrapper);
 
@@ -314,6 +386,34 @@ public class AdminPermissionServiceImpl
         if (keys != null && !keys.isEmpty()) {
             redisTemplate.delete(keys);
             log.info("清除所有用户权限缓存, 共{}条", keys.size());
+        }
+    }
+
+    /**
+     * 判断是否为目录节点
+     * <p>
+     * 目录仅作导航分组，不参与授权，因此允许权限编码为空。
+     * </p>
+     *
+     * @param permission 权限信息
+     * @return true-目录节点 false-菜单/任务页/操作按钮
+     */
+    private boolean isDirectory(AdminPermissionEntity permission) {
+        return permission.getPermissionType() != null
+                && permission.getPermissionType() == DIRECTORY_TYPE;
+    }
+
+    /**
+     * 将空白权限编码归一化为 null
+     * <p>
+     * 前端对目录节点可能提交空串，若直接入库会导致唯一索引 uk_permission_code 冲突。
+     * </p>
+     *
+     * @param permission 权限信息
+     */
+    private void normalizeBlankCode(AdminPermissionEntity permission) {
+        if (permission.getPermissionCode() != null && permission.getPermissionCode().trim().isEmpty()) {
+            permission.setPermissionCode(null);
         }
     }
 

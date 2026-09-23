@@ -82,7 +82,7 @@ public class AdminUserController {
      * @param id 管理员ID
      * @return 管理员详情
      */
-    @PreAuthorize("hasAuthority('system:admin:list')")
+    @PreAuthorize("hasAuthority('system:admin:detail')")
     @Operation(summary = "获取管理员详情")
     @GetMapping("/{id}")
     public Result<AdminUserEntity> getById(@PathVariable Long id) {
@@ -124,7 +124,7 @@ public class AdminUserController {
      * @param id 管理员ID
      * @return 重置结果
      */
-    @PreAuthorize("hasAuthority('system:admin:update')")
+    @PreAuthorize("hasAuthority('system:admin:reset-password')")
     @Operation(summary = "重置管理员密码")
     @PutMapping("/{id}/reset-password")
     public Result<Void> resetPassword(@PathVariable Long id) {
@@ -178,7 +178,7 @@ public class AdminUserController {
      * @param params 包含roleIds列表
      * @return 分配结果
      */
-    @PreAuthorize("hasAuthority('system:admin:update')")
+    @PreAuthorize("hasAuthority('system:admin:assign-role')")
     @Operation(summary = "为管理员分配角色")
     @PostMapping("/{id}/roles")
     public Result<Void> assignRoles(@PathVariable("id") Long userId,
@@ -206,7 +206,7 @@ public class AdminUserController {
      * @param request HTTP请求
      * @return 禁用结果
      */
-    @PreAuthorize("hasAuthority('system:admin:update')")
+    @PreAuthorize("hasAuthority('system:admin:disable')")
     @Operation(summary = "禁用管理员")
     @PutMapping("/{id}/disable")
     public Result<Void> disable(@PathVariable Long id, HttpServletRequest request) {
@@ -219,7 +219,7 @@ public class AdminUserController {
      * @param id 管理员ID
      * @return 启用结果
      */
-    @PreAuthorize("hasAuthority('system:admin:update')")
+    @PreAuthorize("hasAuthority('system:admin:enable')")
     @Operation(summary = "启用管理员")
     @PutMapping("/{id}/enable")
     public Result<Void> enable(@PathVariable Long id) {
@@ -232,7 +232,7 @@ public class AdminUserController {
      * @param id 管理员ID
      * @return 恢复结果
      */
-    @PreAuthorize("hasAuthority('system:admin:update')")
+    @PreAuthorize("hasAuthority('system:admin:restore')")
     @Operation(summary = "恢复已删除的管理员")
     @PutMapping("/{id}/restore")
     public Result<Void> restore(@PathVariable Long id) {
@@ -246,7 +246,7 @@ public class AdminUserController {
      * @param request HTTP请求
      * @return 禁用结果
      */
-    @PreAuthorize("hasAuthority('system:admin:update')")
+    @PreAuthorize("hasAuthority('system:admin:disable')")
     @Operation(summary = "批量禁用管理员")
     @PutMapping("/batch-disable")
     public Result<Void> batchDisable(@RequestBody Map<String, List<Long>> params, HttpServletRequest request) {
@@ -259,7 +259,7 @@ public class AdminUserController {
      * @param params 包含ids列表
      * @return 启用结果
      */
-    @PreAuthorize("hasAuthority('system:admin:update')")
+    @PreAuthorize("hasAuthority('system:admin:enable')")
     @Operation(summary = "批量启用管理员")
     @PutMapping("/batch-enable")
     public Result<Void> batchEnable(@RequestBody Map<String, List<Long>> params) {
@@ -272,7 +272,7 @@ public class AdminUserController {
      * @param params 包含ids列表
      * @return 恢复结果
      */
-    @PreAuthorize("hasAuthority('system:admin:update')")
+    @PreAuthorize("hasAuthority('system:admin:restore')")
     @Operation(summary = "批量恢复已删除的管理员")
     @PutMapping("/batch-restore")
     public Result<Void> batchRestore(@RequestBody Map<String, List<Long>> params) {

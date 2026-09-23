@@ -223,10 +223,14 @@ public class AdminAuthFilter extends OncePerRequestFilter {
         request.setAttribute("adminUsername", username);
 
         // 构建权限列表并写入SecurityContext
+        // 目录节点不参与授权、权限编码为空，需过滤后再构造 GrantedAuthority，
+        // 避免空编码进入鉴权集合触发空指针
         List<String> permissionCodes = adminPermissionService.getPermissionCodesByUserId(adminUserId);
         List<GrantedAuthority> authorities = new ArrayList<>(permissionCodes.size());
         for (String code : permissionCodes) {
-            authorities.add(new SimpleGrantedAuthority(code));
+            if (StringUtils.hasText(code)) {
+                authorities.add(new SimpleGrantedAuthority(code));
+            }
         }
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(adminUserId, null, authorities));

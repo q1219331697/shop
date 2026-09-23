@@ -32,6 +32,7 @@ export type {
   ActionHandlers,
   ActionsConfig,
   ColumnType,
+  TagType,
   TagMap,
   TableColumn,
   FormFieldType,

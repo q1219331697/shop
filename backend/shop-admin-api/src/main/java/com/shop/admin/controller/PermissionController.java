@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.shop.admin.entity.AdminPermissionEntity;
@@ -68,12 +69,37 @@ public class PermissionController {
     }
 
     /**
+     * 搜索权限节点
+     * <p>
+     * 返回命中的节点列表（平铺，不做层级补全）；
+     * 与无条件返回完整树的 /tree 分开，调用方按需选择。
+     * </p>
+     *
+     * @param permissionName 权限名称，模糊匹配，可空
+     * @param permissionCode 权限编码，模糊匹配，可空
+     * @param permissionType 权限类型，精确匹配，可空
+     * @param status 状态，精确匹配，可空
+     * @return 命中的权限节点列表
+     */
+    @PreAuthorize("hasAuthority('system:permission:query')")
+    @Operation(summary = "搜索权限节点（返回命中列表）")
+    @GetMapping("/search")
+    public Result<List<AdminPermissionEntity>> search(
+            @RequestParam(required = false) String permissionName,
+            @RequestParam(required = false) String permissionCode,
+            @RequestParam(required = false) Integer permissionType,
+            @RequestParam(required = false) Integer status) {
+        return Result.success(adminPermissionService.searchPermissions(
+                permissionName, permissionCode, permissionType, status));
+    }
+
+    /**
      * 获取权限详情
      *
      * @param id 权限ID
      * @return 权限详情
      */
-    @PreAuthorize("hasAuthority('system:permission:query')")
+    @PreAuthorize("hasAuthority('system:permission:detail')")
     @Operation(summary = "获取权限详情")
     @GetMapping("/{id}")
     public Result<AdminPermissionEntity> getById(@PathVariable Long id) {

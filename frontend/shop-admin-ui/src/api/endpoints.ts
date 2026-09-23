@@ -72,6 +72,8 @@ export const endpoints = {
   // ==================== 权限 ====================
   permission: {
     tree: '/permission/tree',
+    /** 按条件搜索权限节点（后端过滤，返回命中节点平铺列表） */
+    search: '/permission/search',
     menus: '/permission/menus',
     create: '/permission',
     detail: (id: number | string) => `/permission/${id}`,

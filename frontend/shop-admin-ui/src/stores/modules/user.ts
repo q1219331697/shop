@@ -6,7 +6,6 @@ import { ref } from 'vue'
 
 import type { LoginParams } from '@/api'
 import { startAutoRefreshToken, stopAutoRefreshToken } from '@/api/auth'
-import { invalidatePermissionTreeCache } from '@/utils/permissionTree'
 import { removeToken, setToken } from '@/utils/storage'
 
 export const useUserStore = defineStore('user', () => {
@@ -49,9 +48,6 @@ export const useUserStore = defineStore('user', () => {
       // 将 Token 写入 Cookie，后续请求从 Cookie 读取并通过 Header 发送
       setToken(loginToken)
 
-      // 切换账号：失效权限树缓存，避免串用上一账号的数据
-      invalidatePermissionTreeCache()
-
       // 启动 Token 自动刷新，确保 Token 永不过期
       startAutoRefreshToken()
     } catch (error) {
@@ -81,8 +77,6 @@ export const useUserStore = defineStore('user', () => {
     removeToken()
     // 停止 Token 自动刷新
     stopAutoRefreshToken()
-    // 失效权限树缓存，确保下次登录重新拉取
-    invalidatePermissionTreeCache()
   }
 
   return {
