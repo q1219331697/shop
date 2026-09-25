@@ -87,12 +87,12 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
-          cache-dependency-path: frontend/admin-ui/package-lock.json
+          cache-dependency-path: frontend/shop-admin-ui/package-lock.json
 
       - name: Install & Build
-        working-directory: frontend/admin-ui
+        working-directory: frontend/shop-admin-ui
         run: |
           npm ci
           npm run build
@@ -101,7 +101,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: admin-ui-${{ needs.prepare.outputs.version }}
-          path: frontend/admin-ui/dist/
+          path: frontend/shop-admin-ui/dist/
           retention-days: 30
 
   # ==================== 构建 Docker 镜像 ====================
