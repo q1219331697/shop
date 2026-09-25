@@ -26,6 +26,8 @@ export interface PermissionItem {
   visible: number
   /** 0-禁用，1-正常 */
   status: number
+  /** 是否记录操作日志：0-不记录，1-记录（菜单里可配置） */
+  logFlag: number
   deleted: number
   createTime: string
   updateTime: string

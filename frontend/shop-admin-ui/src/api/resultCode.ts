@@ -23,4 +23,6 @@ export const PARAM_ERROR = '000002'
 export const UNAUTHORIZED = '000401'
 /** 无权限访问 */
 export const FORBIDDEN = '000403'
+/** 账号已被锁定（登录失败次数过多） */
+export const ACCOUNT_LOCKED = '010005'
 

@@ -4,7 +4,6 @@ import java.util.List;
 
 import jakarta.servlet.http.HttpServletRequest;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,12 +11,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.shop.admin.aspect.OperationLogAspect;
 import com.shop.admin.dto.IdRequest;
 import com.shop.admin.dto.PermissionListRequest;
 import com.shop.admin.entity.AdminPermissionEntity;
 import com.shop.admin.service.AdminPermissionService;
 import com.shop.admin.validation.ValidationGroups;
 import com.shop.common.Result;
+import com.shop.common.ResultCodeEnum;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,8 +34,16 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RequestMapping("/permission")
 public class PermissionController {
 
-    @Autowired
-    private AdminPermissionService adminPermissionService;
+    private final AdminPermissionService adminPermissionService;
+
+    /** 操作日志切面：权限变更后需清理其「权限码 → 是否记录日志」缓存 */
+    private final OperationLogAspect operationLogAspect;
+
+    public PermissionController(AdminPermissionService adminPermissionService,
+                                OperationLogAspect operationLogAspect) {
+        this.adminPermissionService = adminPermissionService;
+        this.operationLogAspect = operationLogAspect;
+    }
 
     /**
      * 获取当前登录用户的菜单树
@@ -94,7 +103,11 @@ public class PermissionController {
     @PostMapping("/create")
     public Result<Long> create(
             @RequestBody @Validated(ValidationGroups.OnCreate.class) AdminPermissionEntity permission) {
-        return adminPermissionService.createPermission(permission);
+        Result<Long> result = adminPermissionService.createPermission(permission);
+        if (ResultCodeEnum.SUCCESS.getCode().equals(result.getCode())) {
+            operationLogAspect.evictCache();
+        }
+        return result;
     }
 
     /**
@@ -108,7 +121,11 @@ public class PermissionController {
     @PostMapping("/update")
     public Result<Void> update(
             @RequestBody @Validated(ValidationGroups.OnUpdate.class) AdminPermissionEntity permission) {
-        return adminPermissionService.updatePermission(permission);
+        Result<Void> result = adminPermissionService.updatePermission(permission);
+        if (ResultCodeEnum.SUCCESS.getCode().equals(result.getCode())) {
+            operationLogAspect.evictCache();
+        }
+        return result;
     }
 
     /**
@@ -121,6 +138,10 @@ public class PermissionController {
     @Operation(summary = "删除权限")
     @PostMapping("/delete")
     public Result<Void> delete(@RequestBody @Validated IdRequest request) {
-        return adminPermissionService.deletePermission(request.getId());
+        Result<Void> result = adminPermissionService.deletePermission(request.getId());
+        if (ResultCodeEnum.SUCCESS.getCode().equals(result.getCode())) {
+            operationLogAspect.evictCache();
+        }
+        return result;
     }
 }

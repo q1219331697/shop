@@ -11,6 +11,8 @@ import {
   findAdminUserId,
   findRoleIdByName,
 } from '../common/dataFactory'
+import type { IPageResult } from '../../../src/api/types'
+import type { PermissionItem } from '../../../src/api/permission'
 import { expect, newPrefix } from '../common/e2eFixtures'
 import { testCredentials } from '../fixtures/credentials'
 
@@ -190,20 +192,23 @@ export const setupRegistry: Record<
     vars.newUserName = prefix
   },
 
-  // 创建单条管理员用户，暴露 userName
+  // 创建单条管理员用户，暴露 userName（或 as 指定的变量名）
+  // as：输出变量名（默认 userName）；同时作为用户名后缀，保证同用例内多个账号互不重名
   async userCreate(page, args, vars) {
     const prefix = newPrefix(vars.用例ID)
-    const username = await createTestUser(
+    const as = args.as ?? 'userName'
+    const username = `${prefix}${args.as ? `-${args.as}` : ''}`
+    await createTestUser(
       page,
-      prefix,
+      username,
       args.desc ?? `E2E-${vars.用例ID}`,
       Number(args.status ?? 1),
       args.deleted === 'true',
     )
-    vars.userName = username
-    // 暴露用户 ID，供「编辑态后端拒绝」用例（apiReject 更新接口）定位目标实体
+    vars[as] = username
+    // 暴露用户 ID（变量名 = as + 'Id'），供 apiReject / assignRole 等定位目标实体
     const uid = await findAdminUserId(page, username)
-    if (uid !== undefined) vars.userId = String(uid)
+    if (uid !== undefined) vars[`${as}Id`] = String(uid)
   },
 
   // 批量创建共享前缀的管理员用户，暴露 user0..N / userPrefix
@@ -220,6 +225,80 @@ export const setupRegistry: Record<
       )
     }
     vars.userPrefix = prefix
+  },
+
+  // 给指定账号分配一个「按角色名」定位的已有角色（如种子里的 超级管理员），
+  // 让本用例拥有独立的管理员身份与所需权限，而不依赖共享的 admin 账号。
+  // 参数：user=用户名变量名（默认 userName）；role=角色名（精确匹配，如 超级管理员）
+  async assignRole(page, args, vars) {
+    const userKey = args.user ?? 'userName'
+    const username = vars[userKey]
+    if (!username) {
+      throw new Error(`assignRole 未找到用户（用例 ${vars.用例ID}，user=${userKey}）`)
+    }
+    const userId = vars[`${userKey}Id`] ?? (await findAdminUserId(page, username))
+    if (userId === undefined) {
+      throw new Error(`assignRole 未找到用户ID（用例 ${vars.用例ID}，user=${userKey}）`)
+    }
+    const roleId = await findRoleIdByName(page, args.role ?? '')
+    if (roleId === undefined) {
+      throw new Error(`assignRole 未找到角色（用例 ${vars.用例ID}，role=${args.role ?? ''}）`)
+    }
+    await page.request.post(apiUrl(endpoints.adminUser.assignRoles), {
+      data: { id: userId, roleIds: [roleId] },
+      headers: auth(),
+    })
+    // 确认授权已落库再返回
+    await expect
+      .poll(
+        async () => {
+          const resp = await page.request.post(apiUrl(endpoints.adminUser.roleIds), {
+            data: { id: userId },
+            headers: auth(),
+          })
+          const ids = await unwrap<number[]>(resp)
+          return ids.includes(roleId)
+        },
+        { timeout: 15000, intervals: [200, 400, 800] },
+      )
+      .toBe(true)
+  },
+
+  // 按权限名断言某条权限已落库（绕过共享权限树的 UI 渲染，避免并行下树被并发改写导致的偶发失稳）
+  // 参数：name=权限名（支持 ${var} 变量，如 ${treePrefix}-leaf）
+  // 注意：/permission/list 返回的是「树」结构（节点含 children 嵌套），需递归遍历，不能只查顶层
+  async assertPermExists(page, args, vars) {
+    const name = (args.name ?? '').replace(
+      /\$\{(\w+)\}/g,
+      (_, k: string) => (k in vars ? vars[k] : `\${${k}`),
+    )
+    if (!name) {
+      throw new Error(`assertPermExists 缺少 name（用例 ${vars.用例ID}）`)
+    }
+    const walk = (nodes: Array<{ permissionName?: string; children?: unknown[] }>): boolean => {
+      for (const n of nodes ?? []) {
+        if (n.permissionName === name) return true
+        if (walk((n.children as Array<{ permissionName?: string; children?: unknown[] }>) ?? [])) {
+          return true
+        }
+      }
+      return false
+    }
+    let found = false
+    const deadline = Date.now() + 10000
+    for (;;) {
+      const resp = await page.request.post(apiUrl(endpoints.permission.list), {
+        data: { permissionName: name, pageNum: 1, pageSize: 500 },
+        headers: auth(),
+      })
+      const result = await unwrap<IPageResult<PermissionItem>>(resp)
+      found = walk((result.records ?? []) as Array<{ permissionName?: string; children?: unknown[] }>)
+      if (found || Date.now() > deadline) break
+      await page.waitForTimeout(300)
+    }
+    if (!found) {
+      throw new Error(`assertPermExists 未找到权限: ${name}（用例 ${vars.用例ID}）`)
+    }
   },
 
   // 预置「用户已分配 N 个角色」的前置（走接口，避免重复一遍 UI 分配链路）
@@ -346,9 +425,17 @@ export const setupRegistry: Record<
   },
 
   // UI 登录（整页刷新会清空登录态，admin 模块每个用例独立 context，需各自登录）
-  // 参数：path=登录后要进入的目标页（默认 /system/admin）
-  async uiLogin(page, args, _vars) {
-    const path = args.path ?? '/system/admin'
+  // 参数：path=登录后要进入的目标页（默认按用例模块判定，避免无关模块被默认拽进管理员列表页）
+  //   - 管理员 / 导航类用例（TC-ADM / TC-NAV）需停留在管理员列表页（本就是被测对象）
+  //   - 其余模块（权限 / 角色 / 操作日志 / 登录锁定…）登录后停在仪表盘，
+  //     由用例自身的 goto 步骤进入各自目标页，不为每次登录多写一条"分页查询管理员列表"日志
+  async uiLogin(page, args, vars) {
+    const caseId = vars.用例ID ?? ''
+    const defaultPath =
+      caseId.startsWith('TC-ADM') || caseId.startsWith('TC-NAV')
+        ? '/system/admin'
+        : '/dashboard'
+    const path = args.path ?? defaultPath
     await page.goto('/login')
     await page
       .locator(".el-input__inner[placeholder='请输入用户名']")
@@ -360,9 +447,10 @@ export const setupRegistry: Record<
     // 必须等登录真正跳转完成（写 Cookie）后再整页刷新，否则刷新会打断登录请求
     await page.waitForURL('**/dashboard', { timeout: 30000 })
     await page.goto(path)
-    // 目标页为懒加载 chunk，等表格渲染再返回，避免首屏竞态
-    // （权限管理页是 el-table 树形表格，同属 .el-table）
-    await page.waitForSelector('.el-table', { timeout: 30000 })
+    // 目标页为懒加载 chunk：表格页等 .el-table 渲染；仪表盘无表格，跳过等待避免超时
+    if (path !== '/dashboard') {
+      await page.waitForSelector('.el-table', { timeout: 30000 })
+    }
   },
 
   // 指定账号的 UI 登录：uiLogin 固定用超管 admin，改密类用例绝不能改超管密码
@@ -386,8 +474,8 @@ export const setupRegistry: Record<
 
     if (path !== '/dashboard') {
       await page.goto(path)
-      // 无权限账号的菜单为空，任务页是静态注册路由；等 SubPage 骨架渲染再返回
-      await page.waitForSelector('.sub-page', { timeout: 30000 })
+      // 等目标页骨架渲染：列表页用 .el-table，任务/静态页用 .sub-page（覆盖两种布局）
+      await page.waitForSelector('.sub-page, .el-table', { timeout: 30000 })
     }
   },
 }

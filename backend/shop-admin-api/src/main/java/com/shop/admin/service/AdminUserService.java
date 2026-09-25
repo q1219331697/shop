@@ -82,6 +82,17 @@ public interface AdminUserService extends IService<AdminUserEntity> {
     Result<Void> updateAdminUser(AdminUserEntity adminUser);
 
     /**
+     * 解锁管理员登录锁定
+     * <p>
+     * 清除该账号的 Redis 锁定键与登录失败计数，解锁后可立即登录。
+     * </p>
+     *
+     * @param id 管理员ID
+     * @return 解锁结果
+     */
+    Result<Void> unlockAdminUser(Long id);
+
+    /**
      * 获取管理员详情（密码置空）
      *
      * @param id 管理员ID

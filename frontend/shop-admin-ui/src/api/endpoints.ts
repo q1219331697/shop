@@ -38,6 +38,8 @@ export const endpoints = {
     restore: '/adminUser/restore',
     /** 重置密码为系统默认密码 */
     resetPassword: '/adminUser/reset-password',
+    /** 解锁登录锁定（清除失败计数与锁定状态） */
+    unlock: '/adminUser/unlock',
     /** 系统默认密码（新增/重置密码提示展示用） */
     defaultPassword: '/adminUser/default-password',
     /** 修改当前登录管理员密码（自助改密） */
@@ -81,9 +83,10 @@ export const endpoints = {
     delete: '/permission/delete',
   },
 
-  // ==================== 登录日志 ====================
-  loginLog: {
-    list: '/adminLoginLog/list',
+  // ==================== 操作日志 ====================
+  operationLog: {
+    list: '/operationLog/list',
+    detail: '/operationLog/detail',
   },
 
 } as const

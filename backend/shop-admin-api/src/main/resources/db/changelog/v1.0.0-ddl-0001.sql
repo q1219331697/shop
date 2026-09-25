@@ -1,5 +1,9 @@
 -- liquibase formatted sql
 -- changeset admin:v1.0.0-ddl-0001
+--
+-- 约定（开发阶段）：本文件是建库的唯一来源，新增表/字段请【直接修改本文件】，不要再新增 v1.0.0-ddl-000x 文件。
+-- 原因：开发环境每次启动都重建数据库（drop-first 或清空卷），Liquibase 会从头执行本 changeset，
+--        历史增量文件（0002/0003…）只会造成文件膨胀且永远用不到。生产如需增量迁移再单独评估。
 
 CREATE TABLE IF NOT EXISTS t_admin_user (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
@@ -13,20 +17,31 @@ CREATE TABLE IF NOT EXISTS t_admin_user (
     KEY idx_username (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='管理员用户表';
 
-CREATE TABLE IF NOT EXISTS t_admin_login_log (
+CREATE TABLE IF NOT EXISTS t_admin_operation_log (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
-    user_id BIGINT DEFAULT NULL COMMENT '管理用户ID',
-    username VARCHAR(50) NOT NULL COMMENT '用户名',
-    ip VARCHAR(50) DEFAULT NULL COMMENT '登录IP地址',
-    login_time DATETIME NOT NULL COMMENT '登录时间',
+    user_id BIGINT DEFAULT NULL COMMENT '操作人ID',
+    username VARCHAR(50) DEFAULT NULL COMMENT '操作人用户名',
+    operation_type TINYINT NOT NULL DEFAULT 7 COMMENT '操作类型(1:登录 2:登出 3:新增 4:修改 5:删除 6:查询 7:其它)',
+    module VARCHAR(50) DEFAULT NULL COMMENT '所属模块(菜单名)',
+    operation VARCHAR(100) DEFAULT NULL COMMENT '操作名称',
+    permission_code VARCHAR(100) DEFAULT NULL COMMENT '操作对应权限编码',
+    request_method VARCHAR(10) DEFAULT NULL COMMENT 'HTTP方法',
+    request_uri VARCHAR(255) DEFAULT NULL COMMENT '请求URI',
+    class_method VARCHAR(255) DEFAULT NULL COMMENT '类#方法',
+    request_params VARCHAR(2000) DEFAULT NULL COMMENT '请求参数(脱敏并截断)',
+    response_data VARCHAR(2000) DEFAULT NULL COMMENT '响应结果(脱敏并截断)',
+    ip VARCHAR(50) DEFAULT NULL COMMENT '操作IP',
+    duration INT DEFAULT NULL COMMENT '耗时(毫秒)',
     success TINYINT NOT NULL DEFAULT 1 COMMENT '是否成功(0:失败 1:成功)',
-    message VARCHAR(255) DEFAULT NULL COMMENT '登录消息',
+    message VARCHAR(500) DEFAULT NULL COMMENT '失败原因',
+    operation_time DATETIME NOT NULL COMMENT '操作时间',
     create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     KEY idx_user_id (user_id),
     KEY idx_username (username),
-    KEY idx_ip (ip),
-    KEY idx_login_time (login_time)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='管理员登录日志表';
+    KEY idx_permission_code (permission_code),
+    KEY idx_operation_type (operation_type),
+    KEY idx_operation_time (operation_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='管理员操作日志表';
 
 CREATE TABLE IF NOT EXISTS t_admin_role (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
@@ -51,6 +66,7 @@ CREATE TABLE IF NOT EXISTS t_admin_permission (
     sort_order INT NOT NULL DEFAULT 0 COMMENT '排序',
     visible TINYINT NOT NULL DEFAULT 1 COMMENT '侧边栏可见(0:隐藏任务页 1:显示)',
     status TINYINT NOT NULL DEFAULT 1 COMMENT '状态(0:禁用 1:启用)',
+    log_flag TINYINT NOT NULL DEFAULT 1 COMMENT '是否记录操作日志(0:否 1:是)',
     deleted TINYINT NOT NULL DEFAULT 0 COMMENT '删除标记(0:未删除 1:已删除)',
     create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',

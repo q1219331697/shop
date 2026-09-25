@@ -160,6 +160,17 @@ export const adminUserSchema: CrudSchema<AdminUserItem> = {
       tagMap: { 1: ['正常', 'success'], 0: ['禁用', 'danger'] },
     },
     {
+      prop: 'locked',
+      label: '登录锁定',
+      width: 100,
+      align: 'center',
+      type: 'boolean',
+      trueText: '锁定',
+      falseText: '正常',
+      trueType: 'danger',
+      falseType: 'info',
+    },
+    {
       prop: 'deleted',
       label: '已删除',
       width: 90,

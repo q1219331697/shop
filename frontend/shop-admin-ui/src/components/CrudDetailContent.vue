@@ -105,3 +105,12 @@ function formatMoney(value: unknown, prefix?: string, precision?: number): strin
   return p + num.toFixed(d).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 }
 </script>
+
+<style scoped>
+/* 兜底：详情描述列表 value 单元格遇到长内容自动折行，避免撑破弹窗 */
+:deep(.el-descriptions__content) {
+  word-break: break-all;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+</style>

@@ -169,6 +169,22 @@ public class AdminUserController {
     }
 
     /**
+     * 解锁管理员登录锁定
+     * <p>
+     * 清除该账号的登录失败计数与锁定状态，解锁后账号可立即登录。
+     * </p>
+     *
+     * @param request 主键请求，含管理员ID
+     * @return 解锁结果
+     */
+    @PreAuthorize("hasAuthority('system:admin:unlock')")
+    @Operation(summary = "解锁管理员登录锁定")
+    @PostMapping("/unlock")
+    public Result<Void> unlock(@RequestBody @Validated IdRequest request) {
+        return adminUserService.unlockAdminUser(request.getId());
+    }
+
+    /**
      * 恢复已删除的管理员
      *
      * @param request 主键请求，含管理员ID

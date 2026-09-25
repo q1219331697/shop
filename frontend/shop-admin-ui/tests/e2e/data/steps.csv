@@ -81,12 +81,12 @@ TC-ADM-14,1,setupApi,userCreate,desc=E2E-已删除;status=1;deleted=true,-,-,-,�
 TC-ADM-14,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
 TC-ADM-14,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,搜索框输入用户名
 TC-ADM-14,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
-TC-ADM-14,5,expectCell,-,${userName},5,是,text,删除列已删除
+TC-ADM-14,5,expectCell,-,${userName},6,是,text,删除列已删除
 TC-ADM-15,1,setupApi,userCreate,desc=E2E-未删除;status=1;deleted=false,-,-,-,造1条用户
 TC-ADM-15,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
 TC-ADM-15,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,搜索框输入用户名
 TC-ADM-15,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
-TC-ADM-15,5,expectCell,-,${userName},5,否,text,删除列未删除
+TC-ADM-15,5,expectCell,-,${userName},6,否,text,删除列未删除
 TC-ADM-16,1,setupApi,userGen,-,-,-,-,生成用户名前缀
 TC-ADM-16,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
 TC-ADM-16,3,click,css,.action-bar .el-button:has-text('新增'),-,-,-,点击新增
@@ -246,11 +246,11 @@ TC-ADM-35,11,fill,css,.search-bar .el-input__inner[placeholder='请输入用户�
 TC-ADM-35,12,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
 TC-ADM-35,13,expectCell,-,${userName},3,e2e-TC-ADM-35-,text,姓名已更新(截断为50)
 TC-ADM-36,1,setupApi,userCreate,desc=E2E-编辑校验;status=1,-,-,-,造1条用户
-TC-ADM-36,2,apiReject,user,-,id=${userId};realName=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,姓名长度不能超过50,-,后端拒绝超长姓名(>50编辑)
+TC-ADM-36,2,apiReject,user,-,id=${userNameId};realName=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,姓名长度不能超过50,-,后端拒绝超长姓名(>50编辑)
 TC-ADM-37,1,setupApi,userCreate,desc=E2E-编辑校验;status=1,-,-,-,造1条用户
-TC-ADM-37,2,apiReject,user,-,id=${userId};password=abc,密码长度需在4-30位之间,-,后端拒绝短密码(<4编辑)
+TC-ADM-37,2,apiReject,user,-,id=${userNameId};password=abc,密码长度需在4-30位之间,-,后端拒绝短密码(<4编辑)
 TC-ADM-38,1,setupApi,userCreate,desc=E2E-编辑校验;status=1,-,-,-,造1条用户
-TC-ADM-38,2,apiReject,user,-,id=${userId};password=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,密码长度需在4-30位之间,-,后端拒绝超长密码(>30编辑)
+TC-ADM-38,2,apiReject,user,-,id=${userNameId};password=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,密码长度需在4-30位之间,-,后端拒绝超长密码(>30编辑)
 TC-ADM-39,1,setupApi,userCreate,desc=E2E-查看详情;status=1;deleted=false,-,-,-,造1条用户
 TC-ADM-39,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
 TC-ADM-39,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,搜索框输入用户名
@@ -267,7 +267,7 @@ TC-ADM-40,6,click,css,.action-bar .el-button:has-text('删除'),-,-,-,点击删�
 TC-ADM-40,7,click,css,.el-message-box__btns .el-button--primary,-,-,-,确认删除
 TC-ADM-40,8,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,重新搜索
 TC-ADM-40,9,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
-TC-ADM-40,10,expectCell,-,${userName},5,是,text,删除标记为是
+TC-ADM-40,10,expectCell,-,${userName},6,是,text,删除标记为是
 TC-ADM-41,1,setupApi,userBatch,count=2;desc=E2E-批量删除;status=1,-,-,-,造2条用户
 TC-ADM-41,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
 TC-ADM-41,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userPrefix},-,-,搜索框输入前缀
@@ -277,8 +277,8 @@ TC-ADM-41,6,click,css,.action-bar .el-button:has-text('删除'),-,-,-,点击删�
 TC-ADM-41,7,click,css,.el-message-box__btns .el-button--primary,-,-,-,确认删除
 TC-ADM-41,8,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userPrefix},-,-,重新搜索
 TC-ADM-41,9,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
-TC-ADM-41,10,expectCell,-,${user0},5,是,text,用户0删除
-TC-ADM-41,11,expectCell,-,${user1},5,是,text,用户1删除
+TC-ADM-41,10,expectCell,-,${user0},6,是,text,用户0删除
+TC-ADM-41,11,expectCell,-,${user1},6,是,text,用户1删除
 TC-ADM-42,1,setupApi,userBatch,count=2;desc=E2E-批量禁用;status=1,-,-,-,造2条用户
 TC-ADM-42,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
 TC-ADM-42,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userPrefix},-,-,搜索框输入前缀
@@ -324,7 +324,7 @@ TC-ADM-46,5,selectAll,-,-,-,-,-,全选
 TC-ADM-46,6,click,css,.action-bar .el-button:has-text('恢复'),-,-,-,批量恢复
 TC-ADM-46,7,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userPrefix},-,-,重新搜索
 TC-ADM-46,8,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
-TC-ADM-46,9,expectCell,-,${user0},5,否,text,用户0恢复
+TC-ADM-46,9,expectCell,-,${user0},6,否,text,用户0恢复
 TC-ADM-47,1,setupApi,userCreate,desc=E2E-恢复用户;status=1;deleted=true,-,-,-,造1条已删除用户
 TC-ADM-47,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
 TC-ADM-47,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,搜索框输入用户名
@@ -333,7 +333,7 @@ TC-ADM-47,5,selectRow,-,${userName},-,-,-,勾选用户
 TC-ADM-47,6,clickRow,-,${userName},恢复,-,-,点击恢复
 TC-ADM-47,7,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,重新搜索
 TC-ADM-47,8,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
-TC-ADM-47,9,expectCell,-,${userName},5,否,text,删除列变否
+TC-ADM-47,9,expectCell,-,${userName},6,否,text,删除列变否
 TC-ADM-48,1,setupApi,userBatch,count=1;desc=E2E-分配角色;status=1,-,-,-,造1条用户
 TC-ADM-48,2,setupApi,roleBatch,count=3;desc=E2E-分配角色,-,-,-,造3个角色
 TC-ADM-48,3,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
@@ -1111,20 +1111,20 @@ TC-PERM-43,4,fill,placeholder,请输入权限名称,${actionName},-,-,按名称�
 TC-PERM-43,5,click,css,button:has-text('搜索'),-,-,-,点击搜索
 TC-PERM-43,6,expectVisible,css,.el-table__row:has-text('${actionName}') button:has-text('编辑'),-,-,-,操作行已渲染且有编辑入口
 TC-PERM-43,7,expectCount,css,.el-table__row:has-text('${actionName}') button:has-text('新增下级'),-,0,-,叶子操作行不显示新增下级入口
-TC-PERM-44,1,setupApi,uiLogin,path=/system/permission,-,-,-,登录并进入权限管理页
-TC-PERM-44,2,setupApi,permTree,-,-,-,-,造目录-菜单-操作权限子树
-TC-PERM-44,3,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
-TC-PERM-44,4,fill,placeholder,请输入权限名称,${menuName},-,-,按名称搜索菜单节点
-TC-PERM-44,5,click,css,button:has-text('搜索'),-,-,-,点击搜索
-TC-PERM-44,6,click,css,.el-table__row:has-text('${menuName}') button:has-text('新增下级'),-,-,-,点击菜单行新增下级
-TC-PERM-44,7,expectVisible,css,.form-page,-,-,-,新增页可见
-TC-PERM-44,8,fill,css,input[placeholder='请输入权限名称'],${treePrefix}-leaf,-,-,填子节点名称
-TC-PERM-44,9,fill,css,input[placeholder='如 system:user:list'],${treePrefix}-leaf:code,-,-,填子节点权限编码
-TC-PERM-44,10,click,css,.form-footer button.el-button--primary,-,-,-,提交保存(操作类型无需路径)
-TC-PERM-44,11,expectVisible,css,.el-table,-,-,-,提交成功回到列表
-TC-PERM-44,12,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
-TC-PERM-44,13,fill,placeholder,请输入权限名称,${treePrefix}-leaf,-,-,搜索新建子节点
-TC-PERM-44,14,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-44,1,setupApi,userCreate,desc=E2E-权限管理员;as=adminName;status=1,-,-,-,造本用例专属管理员
+TC-PERM-44,2,setupApi,assignRole,user=adminName;role=超级管理员,-,-,-,给专属管理员挂超管角色(拥有权限管理全部权限)
+TC-PERM-44,3,setupApi,uiLoginAs,user=adminName;password=testpass123;path=/system/permission,-,-,-,以专属管理员登录进入权限管理页
+TC-PERM-44,4,setupApi,permTree,-,-,-,-,造目录-菜单-操作权限子树
+TC-PERM-44,5,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-44,6,fill,placeholder,请输入权限名称,${menuName},-,-,按名称搜索菜单节点
+TC-PERM-44,7,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-44,8,click,css,.el-table__row:has-text('${menuName}') button:has-text('新增下级'),-,-,-,点击菜单行新增下级
+TC-PERM-44,9,expectVisible,css,.form-page,-,-,-,新增页可见
+TC-PERM-44,10,fill,css,input[placeholder='请输入权限名称'],${treePrefix}-leaf,-,-,填子节点名称
+TC-PERM-44,11,fill,css,input[placeholder='如 system:user:list'],${treePrefix}-leaf:code,-,-,填子节点权限编码
+TC-PERM-44,12,click,css,.form-footer button.el-button--primary,-,-,-,提交保存(操作类型无需路径)
+TC-PERM-44,13,expectVisible,css,.el-table,-,-,-,提交成功回到列表
+TC-PERM-44,14,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
 TC-PERM-44,15,expectVisible,css,.el-table__row:has-text('${treePrefix}-leaf'),-,-,-,子节点已落库并出现在树中
 TC-PERM-44,16,expectText,css,.el-table__row:has-text('${treePrefix}-leaf'),-,操作,text,新建子节点类型为操作
 TC-PERM-45,1,setupApi,uiLogin,path=/system/permission,-,-,-,登录并进入权限管理页
@@ -1552,41 +1552,41 @@ TC-ROLE-40,18,expectTreeChecked,-,${leaf1},-,false,-,资源1不勾选
 TC-ROLE-40,19,expectTreeChecked,-,${leaf2},-,false,-,资源2不勾选
 TC-ROLE-40,20,expectTreeChecked,-,${leaf3},-,false,-,没有任何资源被勾选
 TC-ADMLOG-01,1,setupApi,uiLogin,-,-,-,-,登录并进入系统管理页
-TC-ADMLOG-01,2,goto,-,/system/loginLog,-,-,-,进入登录日志页
+TC-ADMLOG-01,2,goto,-,/system/operationLog,-,-,-,进入登录日志页
 TC-ADMLOG-01,3,expectVisible,css,.page-container,-,-,-,页面容器存在
 TC-ADMLOG-01,4,expectVisible,css,.search-bar,-,-,-,搜索区存在
 TC-ADMLOG-01,5,expectVisible,css,.data-area,-,-,-,数据区存在
 TC-ADMLOG-01,6,expectVisible,css,.el-table,-,-,-,表格存在
 TC-ADMLOG-01,7,expectVisible,css,.el-pagination,-,-,-,分页组件存在
 TC-ADMLOG-02,1,setupApi,uiLogin,-,-,-,-,登录并进入系统管理页
-TC-ADMLOG-02,2,goto,-,/system/loginLog,-,-,-,进入登录日志页
-TC-ADMLOG-02,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],admin,-,-,搜索框输入admin
+TC-ADMLOG-02,2,goto,-,/system/operationLog,-,-,-,进入登录日志页
+TC-ADMLOG-02,3,fill,css,.search-bar .el-input__inner[placeholder='请输入操作人'],admin,-,-,搜索框输入操作人admin
 TC-ADMLOG-02,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
 TC-ADMLOG-02,5,wait,-,-,-,-,-,等待结果渲染
 TC-ADMLOG-02,6,expectVisible,css,.el-table__body tr:first-child,-,-,-,结果行已渲染
-TC-ADMLOG-02,7,expectText,css,.el-table__body tr:first-child td:nth-child(2),-,admin,-,首行用户名为admin
+TC-ADMLOG-02,7,expectText,css,.el-table__body tr:first-child td:nth-child(2),-,admin,-,首行操作人为admin
 TC-ADMLOG-03,1,setupApi,uiLogin,-,-,-,-,登录并进入系统管理页
-TC-ADMLOG-03,2,goto,-,/system/loginLog,-,-,-,进入登录日志页
-TC-ADMLOG-03,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],nosuchuser-xyz,-,-,搜索不存在的用户名
+TC-ADMLOG-03,2,goto,-,/system/operationLog,-,-,-,进入登录日志页
+TC-ADMLOG-03,3,fill,css,.search-bar .el-input__inner[placeholder='请输入操作人'],nosuchuser-xyz,-,-,搜索不存在的操作人
 TC-ADMLOG-03,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
 TC-ADMLOG-03,5,wait,-,-,-,-,-,等待结果渲染
 TC-ADMLOG-03,6,expectCount,css,.el-table__body tr,-,0,-,无命中
 TC-ADMLOG-04,1,setupApi,uiLogin,-,-,-,-,登录并进入系统管理页
-TC-ADMLOG-04,2,goto,-,/system/loginLog,-,-,-,进入登录日志页
-TC-ADMLOG-04,3,click,css,.search-bar .el-select,-,-,-,展开状态下拉
+TC-ADMLOG-04,2,goto,-,/system/operationLog,-,-,-,进入登录日志页
+TC-ADMLOG-04,3,click,css,.search-bar .el-form-item:nth-child(5) .el-select,-,-,-,展开状态下拉
 TC-ADMLOG-04,4,click,css,.el-select-dropdown__item:has-text('成功'),-,-,-,选择成功
 TC-ADMLOG-04,5,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
 TC-ADMLOG-04,6,wait,-,-,-,-,-,等待结果渲染
 TC-ADMLOG-04,7,expectVisible,css,.el-table__body tr:first-child,-,-,-,结果行已渲染
-TC-ADMLOG-04,8,expectText,css,.el-table__body tr:first-child td:nth-child(4),-,成功,-,首行状态为成功
+TC-ADMLOG-04,8,expectText,css,.el-table__body tr:first-child td:nth-child(9),-,成功,-,首行状态为成功
 TC-ADMLOG-05,1,setupApi,uiLogin,-,-,-,-,登录并进入系统管理页
-TC-ADMLOG-05,2,goto,-,/system/loginLog,-,-,-,进入登录日志页
+TC-ADMLOG-05,2,goto,-,/system/operationLog,-,-,-,进入登录日志页
 TC-ADMLOG-05,3,expectCount,css,.action-bar .el-button,-,0,-,只读页无工具栏按钮
 TC-ADMLOG-05,4,expectCount,css,.el-table__body .action-link,-,0,-,无行操作按钮
 TC-ADMLOG-05,5,expectCount,css,.el-table__body .el-checkbox,-,0,-,无多选复选框
 TC-ADMLOG-06,1,setupApi,uiLogin,-,-,-,-,登录并进入系统管理页
-TC-ADMLOG-06,2,goto,-,/system/loginLog,-,-,-,进入登录日志页
-TC-ADMLOG-06,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],nosuchuser-xyz,-,-,先搜无结果
+TC-ADMLOG-06,2,goto,-,/system/operationLog,-,-,-,进入登录日志页
+TC-ADMLOG-06,3,fill,css,.search-bar .el-input__inner[placeholder='请输入操作人'],nosuchuser-xyz,-,-,先搜无结果
 TC-ADMLOG-06,4,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
 TC-ADMLOG-06,5,wait,-,-,-,-,-,等待结果渲染
 TC-ADMLOG-06,6,expectCount,css,.el-table__body tr,-,0,-,无命中
@@ -1594,6 +1594,28 @@ TC-ADMLOG-06,7,click,css,.search-bar .el-button:has-text('重置'),-,-,-,点击�
 TC-ADMLOG-06,8,wait,-,-,-,-,-,等待重置结果渲染
 TC-ADMLOG-06,9,expectVisible,css,.el-table__body tr:first-child,-,-,-,恢复后有数据行
 TC-ADMLOG-06,10,expectText,css,.el-table__body tr:first-child td:nth-child(2),-,admin,-,恢复后首行为admin
+TC-ADMLOG-07,1,setupApi,uiLogin,-,-,-,-,登录并进入系统管理页
+TC-ADMLOG-07,2,goto,-,/system/operationLog,-,-,-,进入登录日志页
+TC-ADMLOG-07,3,wait,-,-,-,-,-,等待列表渲染
+TC-ADMLOG-07,4,click,css,.el-table__body tr:first-child .action-link:has-text('详情'),-,-,-,点击首行详情
+TC-ADMLOG-07,5,wait,-,-,-,-,-,等待详情对话框渲染
+TC-ADMLOG-07,6,expectVisible,css,.el-dialog,-,-,-,详情对话框可见
+TC-ADMLOG-07,7,expectText,css,.el-dialog,-,操作人,-,详情含操作人字段
+TC-ADMLOG-07,8,click,css,.el-dialog__footer .el-button:has-text('关 闭'),-,-,-,关闭详情
+TC-ADMLOG-07,9,expectHidden,css,.el-dialog,-,-,-,对话框已关闭
+TC-ADMLOG-08,1,setupApi,uiLogin,-,-,-,-,登录并进入系统管理页
+TC-ADMLOG-08,2,goto,-,/system/operationLog,-,-,-,进入登录日志页
+TC-ADMLOG-08,3,wait,-,-,-,-,-,等待列表渲染
+TC-ADMLOG-08,4,click,css,.el-table__body tr:first-child .action-link:has-text('详情'),-,-,-,点击首行详情
+TC-ADMLOG-08,5,wait,-,-,-,-,-,等待详情对话框渲染
+TC-ADMLOG-08,6,expectVisible,css,.el-dialog,-,-,-,详情对话框可见
+TC-ADMLOG-08,7,expectText,css,.el-dialog,-,请求地址,-,详情含请求地址字段
+TC-ADMLOG-08,8,expectText,css,.el-dialog,-,IP,-,详情含IP字段
+TC-ADMLOG-08,9,expectText,css,.el-dialog,-,状态,-,详情含状态字段
+TC-ADMLOG-08,10,expectText,css,.el-dialog,-,操作时间,-,详情含操作时间字段
+TC-ADMLOG-08,11,expectText,css,.el-dialog,-,请求参数,-,详情含请求参数字段
+TC-ADMLOG-08,12,click,css,.el-dialog__footer .el-button:has-text('关 闭'),-,-,-,关闭详情
+TC-ADMLOG-08,13,expectHidden,css,.el-dialog,-,-,-,对话框已关闭
 TC-NAV-01,1,setupApi,userCreate,desc=E2E-导航详情返回;status=1,-,-,-,造1条用户
 TC-NAV-01,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
 TC-NAV-01,3,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,搜索框输入用户名
@@ -1617,7 +1639,7 @@ TC-NAV-02,10,expectCount,css,.el-table__body tr,-,0,-,取消后未落库无命�
 TC-NAV-03,1,setupApi,userCreate,desc=E2E-导航直开URL;status=1,-,-,-,造1条用户
 TC-NAV-03,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
 TC-NAV-03,3,goto,-,/dashboard,-,-,-,先离开列表页让浏览器上一页不是列表
-TC-NAV-03,4,goto,-,/system/admin/detail/${userId},-,-,-,直接打开详情页URL
+TC-NAV-03,4,goto,-,/system/admin/detail/${userNameId},-,-,-,直接打开详情页URL
 TC-NAV-03,5,expectVisible,css,.detail-page,-,-,-,详情页已打开
 TC-NAV-03,6,click,css,.back-btn,-,-,-,点击顶栏返回
 TC-NAV-03,7,expectURL,-,-,-,/system/admin$,url,回到所属列表页而非浏览器上一页
@@ -1629,3 +1651,96 @@ TC-NAV-04,4,expectText,css,.sub-page__title,-,新增管理员,text,任务页标�
 TC-NAV-04,5,expectText,css,.el-breadcrumb,-,管理员管理,text,面包屑含所属列表页
 TC-NAV-04,6,expectText,css,.el-breadcrumb,-,新增管理员,text,面包屑末级等于页面标题
 TC-NAV-04,7,expectVisible,css,.back-btn,-,-,-,任务页有顶栏返回入口
+TC-LOG-05,1,setupApi,userCreate,desc=E2E-登录锁定;status=1,-,-,-,造1条用户
+TC-LOG-05,2,goto,-,/login,-,-,-,第1次失败-打开登录页
+TC-LOG-05,3,fill,placeholder,请输入用户名,${userName},-,-,输入用户名
+TC-LOG-05,4,fill,placeholder,请输入密码,wrongpwd,-,-,输入错误密码
+TC-LOG-05,5,click,css,.login-btn,-,-,-,点击登录按钮
+TC-LOG-05,6,expectText,css,.el-message__content,-,密码错误,text,第1次失败提示
+TC-LOG-05,7,goto,-,/login,-,-,-,第2次失败-打开登录页
+TC-LOG-05,8,fill,placeholder,请输入用户名,${userName},-,-,输入用户名
+TC-LOG-05,9,fill,placeholder,请输入密码,wrongpwd,-,-,输入错误密码
+TC-LOG-05,10,click,css,.login-btn,-,-,-,点击登录按钮
+TC-LOG-05,11,expectText,css,.el-message__content,-,密码错误,text,第2次失败提示
+TC-LOG-05,12,goto,-,/login,-,-,-,第3次失败-打开登录页
+TC-LOG-05,13,fill,placeholder,请输入用户名,${userName},-,-,输入用户名
+TC-LOG-05,14,fill,placeholder,请输入密码,wrongpwd,-,-,输入错误密码
+TC-LOG-05,15,click,css,.login-btn,-,-,-,点击登录按钮
+TC-LOG-05,16,expectText,css,.el-message__content,-,密码错误,text,第3次失败提示
+TC-LOG-05,17,goto,-,/login,-,-,-,第4次失败-打开登录页
+TC-LOG-05,18,fill,placeholder,请输入用户名,${userName},-,-,输入用户名
+TC-LOG-05,19,fill,placeholder,请输入密码,wrongpwd,-,-,输入错误密码
+TC-LOG-05,20,click,css,.login-btn,-,-,-,点击登录按钮
+TC-LOG-05,21,expectText,css,.el-message__content,-,密码错误,text,第4次失败提示
+TC-LOG-05,22,goto,-,/login,-,-,-,第5次失败-打开登录页
+TC-LOG-05,23,fill,placeholder,请输入用户名,${userName},-,-,输入用户名
+TC-LOG-05,24,fill,placeholder,请输入密码,wrongpwd,-,-,输入错误密码
+TC-LOG-05,25,click,css,.login-btn,-,-,-,点击登录按钮
+TC-LOG-05,26,expectText,css,.el-message__content,-,账号已锁定,text,第5次失败提示
+TC-LOG-05,27,goto,-,/login,-,-,-,锁定后重新打开登录页
+TC-LOG-05,28,fill,placeholder,请输入用户名,${userName},-,-,输入用户名
+TC-LOG-05,29,fill,placeholder,请输入密码,testpass123,-,-,输入正确密码
+TC-LOG-05,30,click,css,.login-btn,-,-,-,点击登录按钮
+TC-LOG-05,31,expectText,css,.el-message__content,-,账号已被锁定,text,锁定后正确密码也被拦截
+TC-LOG-05,32,setupApi,uiLogin,path=/system/admin,-,-,-,以管理员登录进入用户管理页
+TC-LOG-05,33,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,搜索锁定账号
+TC-LOG-05,34,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-LOG-05,35,wait,-,-,-,-,-,等待结果渲染
+TC-LOG-05,36,clickRow,-,${userName},解锁,-,-,点击行内解锁
+TC-LOG-05,37,expectVisible,css,.el-message:has-text('解锁成功'),-,-,-,解锁成功提示
+TC-LOG-05,38,setupApi,loginAs,user=userName;password=testpass123,-,-,-,解锁后账号可正常登录
+TC-PERM-46,1,setupApi,permCreate,type=2,-,-,-,造待编辑权限
+TC-PERM-46,2,setupApi,uiLogin,-,-,-,-,登录并进入用户管理页
+TC-PERM-46,3,goto,-,/system/permission,-,-,-,进入权限管理页
+TC-PERM-46,4,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-46,5,fill,placeholder,请输入权限名称,${createdName},-,-,搜索节点
+TC-PERM-46,6,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-46,7,click,css,.el-table__row:has-text('${createdName}') button:has-text('编辑'),-,-,-,点击编辑
+TC-PERM-46,8,expectVisible,css,.form-page,-,-,-,编辑页可见
+TC-PERM-46,9,expectValue,css,input[placeholder='请输入权限名称'],-,${createdName},-,等待详情回填
+TC-PERM-46,10,click,css,.form-page .el-form-item:has-text('记录操作日志') .el-switch,-,-,-,关闭记录操作日志开关
+TC-PERM-46,11,click,css,.form-footer button.el-button--primary,-,-,-,提交
+TC-PERM-46,12,click,css,button:has-text('刷新'),-,-,-,刷新权限树缓存
+TC-PERM-46,13,fill,placeholder,请输入权限名称,${createdName},-,-,重新搜索节点
+TC-PERM-46,14,click,css,button:has-text('搜索'),-,-,-,点击搜索
+TC-PERM-46,15,expectText,css,.el-table__row:has-text('${createdName}'),-,不记录,text,记录日志列显示不记录
+TC-ADM-68,1,setupApi,userCreate,desc=E2E-解锁用户;status=1,-,-,-,造1条待解锁用户(用自身账号锁定)
+TC-ADM-68,2,setupApi,userCreate,desc=E2E-解锁管理员;as=adminName;status=1,-,-,-,造本用例专属管理员
+TC-ADM-68,3,setupApi,assignRole,user=adminName;role=超级管理员,-,-,-,给专属管理员挂超管角色(拥有解锁等全部权限)
+TC-ADM-68,4,goto,-,/login,-,-,-,第1次失败-打开登录页
+TC-ADM-68,5,fill,placeholder,请输入用户名,${userName},-,-,输入用户名
+TC-ADM-68,6,fill,placeholder,请输入密码,wrongpwd,-,-,输入错误密码
+TC-ADM-68,7,click,css,.login-btn,-,-,-,点击登录按钮
+TC-ADM-68,8,expectText,css,.el-message__content,-,密码错误,text,第1次失败提示
+TC-ADM-68,9,goto,-,/login,-,-,-,第2次失败-打开登录页
+TC-ADM-68,10,fill,placeholder,请输入用户名,${userName},-,-,输入用户名
+TC-ADM-68,11,fill,placeholder,请输入密码,wrongpwd,-,-,输入错误密码
+TC-ADM-68,12,click,css,.login-btn,-,-,-,点击登录按钮
+TC-ADM-68,13,expectText,css,.el-message__content,-,密码错误,text,第2次失败提示
+TC-ADM-68,14,goto,-,/login,-,-,-,第3次失败-打开登录页
+TC-ADM-68,15,fill,placeholder,请输入用户名,${userName},-,-,输入用户名
+TC-ADM-68,16,fill,placeholder,请输入密码,wrongpwd,-,-,输入错误密码
+TC-ADM-68,17,click,css,.login-btn,-,-,-,点击登录按钮
+TC-ADM-68,18,expectText,css,.el-message__content,-,密码错误,text,第3次失败提示
+TC-ADM-68,19,goto,-,/login,-,-,-,第4次失败-打开登录页
+TC-ADM-68,20,fill,placeholder,请输入用户名,${userName},-,-,输入用户名
+TC-ADM-68,21,fill,placeholder,请输入密码,wrongpwd,-,-,输入错误密码
+TC-ADM-68,22,click,css,.login-btn,-,-,-,点击登录按钮
+TC-ADM-68,23,expectText,css,.el-message__content,-,密码错误,text,第4次失败提示
+TC-ADM-68,24,goto,-,/login,-,-,-,第5次失败-打开登录页
+TC-ADM-68,25,fill,placeholder,请输入用户名,${userName},-,-,输入用户名
+TC-ADM-68,26,fill,placeholder,请输入密码,wrongpwd,-,-,输入错误密码
+TC-ADM-68,27,click,css,.login-btn,-,-,-,点击登录按钮
+TC-ADM-68,28,expectText,css,.el-message__content,-,账号已锁定,text,第5次失败提示
+TC-ADM-68,29,goto,-,/login,-,-,-,锁定后重新打开登录页
+TC-ADM-68,30,fill,placeholder,请输入用户名,${userName},-,-,输入用户名
+TC-ADM-68,31,fill,placeholder,请输入密码,testpass123,-,-,输入正确密码
+TC-ADM-68,32,click,css,.login-btn,-,-,-,点击登录按钮
+TC-ADM-68,33,expectText,css,.el-message__content,-,账号已被锁定,text,锁定后正确密码也被拦截
+TC-ADM-68,34,setupApi,uiLoginAs,user=adminName;password=testpass123;path=/system/admin,-,-,-,以本用例专属管理员登录进入用户管理页
+TC-ADM-68,35,fill,css,.search-bar .el-input__inner[placeholder='请输入用户名'],${userName},-,-,搜索锁定账号
+TC-ADM-68,36,click,css,.search-bar .el-button:has-text('搜索'),-,-,-,点击搜索
+TC-ADM-68,37,wait,-,-,-,-,-,等待结果渲染
+TC-ADM-68,38,clickRow,-,${userName},解锁,-,-,点击行内解锁
+TC-ADM-68,39,expectVisible,css,.el-message:has-text('解锁成功'),-,-,-,解锁成功提示
+TC-ADM-68,40,setupApi,loginAs,user=userName;password=testpass123,-,-,-,解锁后账号可正常登录(验证解锁已生效)

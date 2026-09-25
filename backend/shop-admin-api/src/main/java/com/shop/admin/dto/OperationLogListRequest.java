@@ -6,9 +6,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
- * 登录日志列表查询入参
+ * 操作日志列表查询入参
  * <p>
- * 承载登录日志列表的分页与过滤条件，以 JSON body 传入。
+ * 承载操作日志列表的分页与过滤条件，以 JSON body 传入。
  * 分页字段自包含，不依赖任何 vo 包基类：全站请求入参统一归属 {@code dto} 包并以
  * {@code XxxRequest} 命名，反向依赖 vo 包会造成包职责倒置。
  * </p>
@@ -17,8 +17,8 @@ import lombok.Data;
  * @since 1.0.0
  */
 @Data
-@Schema(description = "登录日志分页查询参数")
-public class LoginLogListRequest implements Serializable {
+@Schema(description = "操作日志分页查询参数")
+public class OperationLogListRequest implements Serializable {
 
     /**
      * 默认每页条数
@@ -40,16 +40,28 @@ public class LoginLogListRequest implements Serializable {
     private Long pageSize = DEFAULT_PAGE_SIZE;
 
     /**
-     * 用户名（模糊匹配）
+     * 操作人用户名（模糊匹配）
      */
-    @Schema(description = "用户名（模糊匹配）")
+    @Schema(description = "操作人用户名（模糊匹配）")
     private String username;
 
     /**
-     * 登录IP（模糊匹配）
+     * 所属模块（模糊匹配）
      */
-    @Schema(description = "登录IP（模糊匹配）")
-    private String ip;
+    @Schema(description = "所属模块（模糊匹配）")
+    private String module;
+
+    /**
+     * 操作名称（模糊匹配）
+     */
+    @Schema(description = "操作名称（模糊匹配）")
+    private String operation;
+
+    /**
+     * 操作类型：1-登录，2-登出，3-新增，4-修改，5-删除，6-查询，7-其它
+     */
+    @Schema(description = "操作类型：1-登录，2-登出，3-新增，4-修改，5-删除，6-查询，7-其它")
+    private Integer operationType;
 
     /**
      * 是否成功：0-失败，1-成功

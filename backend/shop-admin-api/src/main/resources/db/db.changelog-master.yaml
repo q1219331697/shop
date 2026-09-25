@@ -1,3 +1,6 @@
 databaseChangeLog:
+  # 开发环境以 drop-first 启动，每次删库重建、所有 changeset 重跑；
+  # 故初始/表结构数据直接改对应已存在文件（如 v1.0.0-dml-0001.sql），勿新增编号文件。
+  # 注：drop-first 由环境变量 LIQUIBASE_DROP_FIRST 控制（application.yml 默认 false，未开启则改动不重跑）。
   - includeAll:
       path: db/changelog

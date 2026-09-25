@@ -116,6 +116,10 @@ public class AdminPermissionServiceImpl
         if (permission.getVisible() == null) {
             permission.setVisible(1);
         }
+        // 缺省记录操作日志（与数据库默认值保持一致）
+        if (permission.getLogFlag() == null) {
+            permission.setLogFlag(1);
+        }
 
         this.save(permission);
         log.info("创建权限成功, permissionId: {}, permissionCode: {}",

@@ -53,6 +53,15 @@
       >
         <el-icon><RefreshLeft /></el-icon>重置密码
       </el-button>
+      <!-- 登录锁定：仅锁定态显示，解锁后账号可立即登录 -->
+      <el-button
+        v-if="!row.deleted && row.locked && can('unlock')"
+        link
+        class="action-link"
+        @click="handleUnlock(row)"
+      >
+        <el-icon><Unlock /></el-icon>解锁
+      </el-button>
     </template>
   </CrudTable>
 </template>
@@ -67,7 +76,7 @@
  */
 import { Edit, Lock, Unlock, RefreshRight, Key, RefreshLeft } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { api } from '@/api'
@@ -82,17 +91,6 @@ const crudTableRef = ref<InstanceType<typeof CrudTable>>()
 
 /** 行内按钮权限判定，口径同 ActionBar / DataArea 的自动拼接（本页 resource="admin"） */
 const can = useResourcePermission('admin')
-
-/** 系统默认密码（以后端配置为唯一来源；仅用于提示文案，接口异常时保留兜底值） */
-const defaultPassword = ref('admin123')
-
-onMounted(async () => {
-  try {
-    defaultPassword.value = await api.adminUser.defaultPassword()
-  } catch {
-    /* 请求工具已处理，保留兜底提示文案 */
-  }
-})
 
 /** 刷新列表 */
 function refreshList() {
@@ -156,7 +154,24 @@ async function handleResetPassword(row: AdminUserItem) {
   }
   try {
     await api.adminUser.resetPassword(row.id)
-    ElMessage.success(`密码已重置为默认密码：${defaultPassword.value}`)
+    let pw = 'admin123'
+    try {
+      pw = await api.adminUser.defaultPassword()
+    } catch {
+      /* 接口异常时保留兜底提示文案 */
+    }
+    ElMessage.success(`密码已重置为默认密码：${pw}`)
+  } catch {
+    /* 请求工具已处理 */
+  }
+}
+
+/** 解锁登录锁定：清除该账号的失败计数与锁定状态，解锁后可立即登录 */
+async function handleUnlock(row: AdminUserItem) {
+  try {
+    await api.adminUser.unlock(row.id)
+    ElMessage.success('解锁成功')
+    refreshList()
   } catch {
     /* 请求工具已处理 */
   }

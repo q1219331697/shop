@@ -72,6 +72,13 @@ app:
         - /swagger-ui
         - /v3/api-docs
         - /webjars/
+    lock:
+      # 登录保护：连续登录失败达到该次数后锁定账号
+      max-fail-count: 5
+      # 锁定时长（Spring Boot Duration格式）；Redis 键 TTL 到期即自动解锁
+      duration: 24h
+      # 失败计数的保留时长，超过该时长未再失败则重新计数
+      fail-count-expire: 24h
 
   # 日志配置
   log:

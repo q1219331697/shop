@@ -15,9 +15,9 @@ import com.shop.admin.entity.AdminUserEntity;
 import com.shop.admin.entity.AdminUserRoleEntity;
 import com.shop.admin.mapper.AdminUserMapper;
 import com.shop.admin.mapper.AdminUserRoleMapper;
+import com.shop.admin.security.AdminLoginLockService;
 import com.shop.admin.security.AdminProperties;
 import com.shop.admin.security.AdminTokenService;
-import com.shop.admin.service.AdminLoginLogService;
 import com.shop.admin.service.AdminPermissionService;
 import com.shop.admin.service.AdminUserService;
 import com.shop.common.Result;
@@ -41,20 +41,26 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
     /** 密码最大长度（与 AdminUserEntity 的 @Size 契约保持一致） */
     private static final int MAX_PASSWORD_LENGTH = 30;
 
+    /** 每小时秒数（格式化锁定剩余时间用） */
+    private static final long SECONDS_PER_HOUR = 3600L;
+
+    /** 每分钟秒数（格式化锁定剩余时间用） */
+    private static final long SECONDS_PER_MINUTE = 60L;
+
     private final AdminTokenService adminTokenService;
     private final AdminUserRoleMapper userRoleMapper;
     private final AdminPermissionService adminPermissionService;
-    private final AdminLoginLogService adminLoginLogService;
+    private final AdminLoginLockService loginLockService;
     private final AdminProperties adminProperties;
 
     public AdminUserServiceImpl(AdminTokenService adminTokenService, AdminUserRoleMapper userRoleMapper,
                                 AdminPermissionService adminPermissionService,
-                                AdminLoginLogService adminLoginLogService,
+                                AdminLoginLockService loginLockService,
                                 AdminProperties adminProperties) {
         this.adminTokenService = adminTokenService;
         this.userRoleMapper = userRoleMapper;
         this.adminPermissionService = adminPermissionService;
-        this.adminLoginLogService = adminLoginLogService;
+        this.loginLockService = loginLockService;
         this.adminProperties = adminProperties;
     }
 
@@ -68,32 +74,67 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
     @Override
     public Result<String> login(AdminUserEntity adminUser, String ip) {
         String username = adminUser.getUsername();
-        log.info("管理员登录请求, username: {}", username);
+        log.info("管理员登录请求, username: {}, ip: {}", username, ip);
+
+        // 锁定优先：已锁定账号不再校验密码，避免锁定期间继续撞库试探
+        if (loginLockService.isLocked(username)) {
+            long remainSeconds = loginLockService.getLockRemainSeconds(username);
+            log.info("管理员登录失败, 账号已锁定, username: {}, remainSeconds: {}", username, remainSeconds);
+            return Result.error(ResultCodeEnum.ACCOUNT_LOCKED,
+                    "账号已被锁定，请于" + formatRemainTime(remainSeconds) + "后重试或联系管理员解锁");
+        }
 
         AdminUserEntity dbUser = getByUsername(username);
         if (dbUser == null) {
+            // 用户不存在不计数：避免攻击者用海量随机用户名灌爆Redis（登录结果由操作日志切面统一记录）
             log.info("管理员登录失败, 用户不存在, username: {}", username);
-            adminLoginLogService.recordLoginLog(null, username, ip, 0, "管理员不存在");
             return Result.error(ResultCodeEnum.USER_NOT_EXIST, "管理员不存在");
         }
 
         if (!adminUser.getPassword().equals(dbUser.getPassword())) {
-            log.info("管理员登录失败, 密码错误, username: {}", username);
-            adminLoginLogService.recordLoginLog(dbUser.getId(), username, ip, 0, "密码错误");
-            return Result.error(ResultCodeEnum.PASSWORD_ERROR, "密码错误");
+            int maxFailCount = adminProperties.getLock().getMaxFailCount();
+            int failCount = loginLockService.incrementFail(username);
+            log.info("管理员登录失败, 密码错误, username: {}, failCount: {}", username, failCount);
+            if (failCount >= maxFailCount) {
+                long lockHours = adminProperties.getLock().getDuration().toHours();
+                return Result.error(ResultCodeEnum.ACCOUNT_LOCKED,
+                        "密码错误次数过多，账号已锁定" + lockHours + "小时");
+            }
+            int remainCount = Math.max(maxFailCount - failCount, 0);
+            return Result.error(ResultCodeEnum.PASSWORD_ERROR,
+                    "密码错误，连续错误" + maxFailCount + "次将锁定账号，还可尝试" + remainCount + "次");
         }
 
         if (dbUser.getStatus() == 0) {
             log.info("管理员登录失败, 用户已被禁用, username: {}", username);
-            adminLoginLogService.recordLoginLog(dbUser.getId(), username, ip, 0, "管理员已被禁用");
             return Result.error(ResultCodeEnum.USER_DISABLED, "管理员已被禁用");
         }
+
+        // 登录成功：清除失败计数（登录结果由操作日志切面统一记录）
+        loginLockService.clearFail(username);
 
         // 生成Token并存入Redis
         String token = adminTokenService.createToken(dbUser.getId(), dbUser.getUsername());
         log.info("管理员登录成功, adminUserId: {}, username: {}", dbUser.getId(), username);
-        adminLoginLogService.recordLoginLog(dbUser.getId(), username, ip, 1, "登录成功");
         return Result.success(token);
+    }
+
+    /**
+     * 格式化锁定剩余时间
+     *
+     * @param remainSeconds 剩余秒数
+     * @return 形如「23小时59分钟」的可读文本；无法获取剩余时间时返回兜底文案
+     */
+    private String formatRemainTime(long remainSeconds) {
+        if (remainSeconds <= 0) {
+            return "一段时间";
+        }
+        long hours = remainSeconds / SECONDS_PER_HOUR;
+        long minutes = remainSeconds % SECONDS_PER_HOUR / SECONDS_PER_MINUTE;
+        if (hours > 0) {
+            return hours + "小时" + minutes + "分钟";
+        }
+        return Math.max(minutes, 1) + "分钟";
     }
 
     /**
@@ -273,6 +314,30 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
     }
 
     /**
+     * 解锁管理员登录锁定
+     * <p>
+     * 清除该账号在 Redis 中的锁定键与登录失败计数，解锁后可立即登录。
+     * </p>
+     *
+     * @param id 管理员ID
+     * @return 解锁结果
+     */
+    @Override
+    public Result<Void> unlockAdminUser(Long id) {
+        log.info("解锁管理员请求, adminUserId: {}", id);
+
+        AdminUserEntity existUser = baseMapper.selectByIdIgnoreDeleted(id);
+        if (existUser == null) {
+            log.info("解锁管理员失败, 管理员不存在, adminUserId: {}", id);
+            return Result.error(ResultCodeEnum.USER_NOT_EXIST, "管理员不存在");
+        }
+
+        loginLockService.unlock(existUser.getUsername());
+        log.info("解锁管理员成功, adminUserId: {}, username: {}", id, existUser.getUsername());
+        return Result.success();
+    }
+
+    /**
      * 获取管理员详情（密码置空）
      *
      * @param id 管理员ID
@@ -288,6 +353,7 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
             return Result.error(ResultCodeEnum.USER_NOT_EXIST, "管理员不存在");
         }
         adminUser.setPassword(null);
+        adminUser.setLocked(loginLockService.isLocked(adminUser.getUsername()));
         return Result.success(adminUser);
     }
 
@@ -370,8 +436,11 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
         IPage<AdminUserEntity> result = baseMapper.selectPageIgnoreDeleted(
                 page, username, realName, status, deleted);
 
-        // 清除密码字段
-        result.getRecords().forEach(u -> u.setPassword(null));
+        // 清除密码字段，并回填登录锁定状态（取自Redis锁定键，非数据库字段）
+        result.getRecords().forEach(u -> {
+            u.setPassword(null);
+            u.setLocked(loginLockService.isLocked(u.getUsername()));
+        });
 
         return Result.success(result);
     }

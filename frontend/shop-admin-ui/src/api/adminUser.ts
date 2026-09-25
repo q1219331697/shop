@@ -16,6 +16,8 @@ export interface AdminUserItem {
   password?: string
   realName: string
   status: number
+  /** 登录锁定：true-已锁定，false-未锁定（取自 Redis，非数据库字段） */
+  locked?: boolean
   /** 删除标记：0-未删除，1-已删除（后端 number；此处不用 boolean，与 role/permission 保持一致） */
   deleted: number
   createTime: string
@@ -50,6 +52,11 @@ export function createAdminUser(data: Partial<AdminUserItem>) {
 /** 重置管理员密码为系统默认密码 */
 export function resetAdminPassword(id: IdType) {
   return request.post(endpoints.adminUser.resetPassword, { id })
+}
+
+/** 解锁管理员登录锁定（清除失败计数与锁定状态，解锁后可立即登录） */
+export function unlockAdminUser(id: IdType) {
+  return request.post(endpoints.adminUser.unlock, { id })
 }
 
 /** 获取系统默认密码（新增/重置密码提示展示用） */
@@ -152,6 +159,7 @@ export const adminUserApi = {
   enable: enableAdminUser,
   restore: restoreAdminUser,
   resetPassword: resetAdminPassword,
+  unlock: unlockAdminUser,
   defaultPassword: getAdminDefaultPassword,
   changePassword: changeAdminPassword,
   batchDisable: batchDisableAdminUser,

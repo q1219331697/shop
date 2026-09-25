@@ -34,6 +34,12 @@ export const STATUS_TAG_MAP: TagMap = {
   0: ['禁用', 'danger'],
 }
 
+/** 是否记录操作日志标签映射：0-不记录，1-记录 */
+export const LOG_FLAG_TAG_MAP: TagMap = {
+  1: ['记录', 'success'],
+  0: ['不记录', 'info'],
+}
+
 /** 搜索区配置 */
 export const permissionSearchFields: SearchField[] = [
   { prop: 'permissionName', label: '权限名称', type: 'input', width: '180px' },
@@ -145,6 +151,16 @@ export const permissionFormFields: FormField[] = [
     ],
     hidden: (formData) => formData.permissionType === 3,
   },
+  // 记录操作日志开关：关闭后该菜单/操作点对应的请求不再落操作日志；
+  // 目录(1)仅作导航分组、不承载接口请求，故隐藏
+  {
+    prop: 'logFlag',
+    label: '记录操作日志',
+    type: 'switch',
+    activeValue: 1,
+    inactiveValue: 0,
+    hidden: (formData) => formData.permissionType === 1,
+  },
   {
     prop: 'status',
     label: '状态',
@@ -186,6 +202,7 @@ export const permissionDefaultFormData: Record<string, unknown> = {
   sortOrder: 0,
   visible: 1,
   status: 1,
+  logFlag: 1,
 }
 
 /** 详情区配置 */
@@ -201,6 +218,7 @@ export const permissionDetailFields: DetailField[] = [
   { prop: 'sortOrder', label: '排序' },
   { prop: 'visible', label: '是否可见', type: 'tag', tagMap: VISIBLE_TAG_MAP },
   { prop: 'status', label: '状态', type: 'tag', tagMap: STATUS_TAG_MAP },
+  { prop: 'logFlag', label: '记录操作日志', type: 'tag', tagMap: LOG_FLAG_TAG_MAP },
   { prop: 'createTime', label: '创建时间', type: 'date' },
   { prop: 'updateTime', label: '更新时间', type: 'date' },
 ]

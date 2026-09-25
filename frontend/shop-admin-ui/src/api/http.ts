@@ -5,15 +5,16 @@
  * 本模块只服务于浏览器，因此可以放心直接使用 element-plus / storage，
  * 无需为任何非浏览器环境做兼容（测试侧不 import 本模块，见 @/api/endpoints 说明）。
  *
- * 会话清理与页面跳转不在这里做：本模块只把失败响应归一为「带业务码标记的错误」，
- * 由路由守卫统一决定是否清理会话、是否跳转登录页（见 @/router/guards）。
+ * 未认证（000401 / HTTP 401）的会话清理与跳转登录页在此统一处理：拦截器是所有接口响应的
+ * 唯一出口，既能覆盖「页面停留期间接口报错」，也能覆盖「路由加载接口报错」两种场景；
+ * 路由守卫（@/router/guards）仅负责导航态的登录态校验。
  *
  * 请求地址由 @/api/endpoints 提供（相对路径），前缀由下方 baseURL 补全。
  */
 import axios, { type AxiosInstance, type AxiosResponse } from 'axios'
 import { ElMessage } from 'element-plus'
 
-import { getToken } from '@/utils/storage'
+import { getToken, removeToken } from '@/utils/storage'
 
 import { SUCCESS, UNAUTHORIZED, FORBIDDEN } from './resultCode'
 
@@ -23,6 +24,22 @@ export type BizError = Error & { bizCode?: string }
 /** 为错误附加业务码标记（仅在抛出点标记，不做任何清理动作） */
 function withBizCode(error: Error, code: string): BizError {
   return Object.assign(error, { bizCode: code })
+}
+
+/**
+ * 未认证统一处理：清 Token 并跳登录页。
+ * <p>动态引入 router 避免与 @/router/guards（其又依赖 @/api/auth → 本模块）形成循环依赖。</p>
+ * <p>已在登录页则不重复跳转；并发 401 多次调用幂等（重复 push 同一地址被忽略）。</p>
+ */
+function handleUnauthorized(): void {
+  import('@/router')
+    .then(({ default: router }) => {
+      const { path, fullPath } = router.currentRoute.value
+      if (path === '/login') return
+      removeToken()
+      router.push(`/login?redirect=${encodeURIComponent(fullPath)}`).catch(() => {})
+    })
+    .catch(() => {})
 }
 
 const instance: AxiosInstance = axios.create({
@@ -49,8 +66,9 @@ instance.interceptors.response.use(
     if (code === SUCCESS) {
       return data
     }
-    // 未登录或登录已过期：只标记错误类型，会话清理与跳转由路由守卫统一处理
+    // 未登录或登录已过期：清会话并跳登录页（页面内接口报错也能触发，不再依赖路由守卫）
     if (code === UNAUTHORIZED) {
+      handleUnauthorized()
       throw withBizCode(new Error(message || '未登录或登录已过期'), code)
     }
     // 无权限访问
@@ -66,8 +84,9 @@ instance.interceptors.response.use(
     const status: number | undefined = error.response?.status
     const errorMsg = error.response?.data?.message || error.message || '请求失败'
 
-    // HTTP 401（网关等中间层返回）：同样只标记，交由路由守卫统一处理
+    // HTTP 401（网关等中间层返回）：同样清会话并跳登录页
     if (status === 401) {
+      handleUnauthorized()
       return Promise.reject(withBizCode(error, UNAUTHORIZED))
     }
 

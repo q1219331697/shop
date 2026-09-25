@@ -104,6 +104,15 @@
             </template>
           </el-table-column>
 
+          <!-- 记录操作日志：关闭后该菜单/操作点对应的请求不再落操作日志 -->
+          <el-table-column prop="logFlag" label="记录日志" width="100" align="center">
+            <template #default="{ row }">
+              <el-tag :type="logFlagTag(row.logFlag)[1]" effect="plain">
+                {{ logFlagTag(row.logFlag)[0] }}
+              </el-tag>
+            </template>
+          </el-table-column>
+
           <el-table-column prop="createTime" label="创建时间" width="170" align="center">
             <template #default="{ row }">{{ formatDate(row.createTime) }}</template>
           </el-table-column>
@@ -165,6 +174,7 @@ import { formatDate } from '@/utils/date'
 import { countPermissionTree, normalizePermissionTree } from '@/utils/permissionTree'
 
 import {
+  LOG_FLAG_TAG_MAP,
   PERMISSION_TYPE_TAG_MAP,
   STATUS_TAG_MAP,
   VISIBLE_TAG_MAP,
@@ -196,6 +206,11 @@ function visibleTag(value: unknown): [string, TagType] {
 /** 状态标签 */
 function statusTag(value: unknown): [string, TagType] {
   return resolveTag(STATUS_TAG_MAP, value)
+}
+
+/** 是否记录操作日志标签 */
+function logFlagTag(value: unknown): [string, TagType] {
+  return resolveTag(LOG_FLAG_TAG_MAP, value)
 }
 
 // ==================== CRUD 核心 ====================

@@ -83,6 +83,13 @@ public class AdminUserEntity implements Serializable {
     private Integer deleted;
 
     /**
+     * 登录锁定状态（非数据库字段，取自Redis锁定键）：true-已锁定，false-未锁定
+     */
+    @Schema(description = "登录锁定：true-已锁定 false-未锁定")
+    @TableField(exist = false)
+    private Boolean locked;
+
+    /**
      * 创建时间，自动填充
      */
     @Schema(description = "创建时间")

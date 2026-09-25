@@ -118,6 +118,12 @@ public class AdminPermissionEntity implements Serializable {
     private Integer status;
 
     /**
+     * 是否记录操作日志：0-不记录，1-记录
+     */
+    @Schema(description = "是否记录操作日志：0-不记录，1-记录")
+    private Integer logFlag;
+
+    /**
      * 删除标记：0-未删除，1-已删除（逻辑删除）
      */
     @Schema(description = "删除标记：0-未删除，1-已删除")

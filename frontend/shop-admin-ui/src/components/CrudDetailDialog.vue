@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="visible" :title="`${name}详情`" :width="width" destroy-on-close>
+  <el-dialog v-model="visible" :title="`${name}详情`" :width="width" align-center destroy-on-close>
     <CrudDetailContent :fields="fields" :data="data" :loading="loading">
       <!-- 透传详情字段插槽 -->
       <template v-for="(_, slotName) in $slots" :key="slotName" #[slotName]="slotData">

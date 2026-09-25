@@ -47,7 +47,7 @@ public class TestCleanupController {
      * @param prefix 清理前缀（必填，须以 e2e- 开头）
      * @return 清理结果
      */
-    @PreAuthorize("hasAuthority('system:admin:delete')")
+    @PreAuthorize("hasAuthority('system:admin:cleanup')")
     @Operation(summary = "物理清理 E2E 测试残留数据")
     @DeleteMapping("/cleanup-e2e")
     public Result<Void> cleanupE2E(@RequestParam String prefix) {

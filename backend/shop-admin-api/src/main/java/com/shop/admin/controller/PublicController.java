@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.shop.admin.entity.AdminUserEntity;
+import com.shop.admin.security.AdminTokenService;
 import com.shop.admin.service.AdminUserService;
 import com.shop.common.Result;
 
@@ -33,9 +34,12 @@ public class PublicController {
     private static final String BEARER_PREFIX = "Bearer ";
 
     private final AdminUserService adminUserService;
+    private final AdminTokenService adminTokenService;
 
-    public PublicController(AdminUserService adminUserService) {
+    public PublicController(AdminUserService adminUserService,
+                           AdminTokenService adminTokenService) {
         this.adminUserService = adminUserService;
+        this.adminTokenService = adminTokenService;
     }
 
     /**
@@ -63,15 +67,24 @@ public class PublicController {
      * </p>
      *
      * @param authorization 标准Authorization请求头
+     * @param request HTTP请求
      * @return 登出结果
      */
     @Operation(summary = "管理员登出")
     @PostMapping("/logout")
     public Result<Void> logout(
-            @RequestHeader(value = AUTHORIZATION_HEADER, required = false) String authorization) {
+            @RequestHeader(value = AUTHORIZATION_HEADER, required = false) String authorization,
+            HttpServletRequest request) {
         String token = null;
         if (authorization != null && authorization.startsWith(BEARER_PREFIX)) {
             token = authorization.substring(BEARER_PREFIX.length()).trim();
+        }
+        if (token != null) {
+            AdminTokenService.AdminTokenInfo tokenInfo = adminTokenService.validateAndGetInfo(token);
+            if (tokenInfo != null) {
+                request.setAttribute("adminUserId", tokenInfo.getAdminUserId());
+                request.setAttribute("adminUsername", tokenInfo.getUsername());
+            }
         }
         return adminUserService.logout(token);
     }
