@@ -127,7 +127,7 @@ public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRole
     }
 
     @Override
-    public Result<AdminRoleEntity> getRoleInfo(Long id) {
+    public Result<AdminRoleEntity> getRoleDetail(Long id) {
         log.info("获取角色信息, roleId: {}", id);
         AdminRoleEntity role = this.getById(id);
         if (role == null) {

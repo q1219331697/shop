@@ -40,7 +40,7 @@ public interface AdminRoleService extends IService<AdminRoleEntity> {
      * @param id 角色ID
      * @return 角色信息
      */
-    Result<AdminRoleEntity> getRoleInfo(Long id);
+    Result<AdminRoleEntity> getRoleDetail(Long id);
 
     /**
      * 为角色分配权限

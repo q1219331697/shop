@@ -279,7 +279,7 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
      * @return 管理员详情
      */
     @Override
-    public Result<AdminUserEntity> getAdminUserInfo(Long id) {
+    public Result<AdminUserEntity> getUserDetail(Long id) {
         log.info("获取管理员信息, adminUserId: {}", id);
         // 使用selectByIdIgnoreDeleted绕过逻辑删除，支持查询已删除用户的详情
         AdminUserEntity adminUser = baseMapper.selectByIdIgnoreDeleted(id);

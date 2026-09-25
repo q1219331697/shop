@@ -87,7 +87,7 @@ public interface AdminUserService extends IService<AdminUserEntity> {
      * @param id 管理员ID
      * @return 管理员详情
      */
-    Result<AdminUserEntity> getAdminUserInfo(Long id);
+    Result<AdminUserEntity> getUserDetail(Long id);
 
     /**
      * 为用户分配角色（先删后插）

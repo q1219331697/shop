@@ -52,13 +52,13 @@ INSERT IGNORE INTO t_admin_permission (id, parent_id, permission_name, permissio
 (40208, 402, '角色详情', 'system:role:detail', 2, '/system/role/detail/:id', NULL, 'views/system/role/RoleDetailPage.vue', 8, 0, 1),
 -- 权限管理（菜单 + 列表权限点 + 隐藏任务页 + 操作权限点）
 (403, 4, '权限管理', NULL, 2, '/system/permission', 'Lock', 'views/system/permission/index.vue', 3, 1, 1),
-(40301, 403, '权限列表', 'system:permission:query', 3, NULL, NULL, NULL, 1, 1, 1),
+(40301, 403, '权限列表', 'system:permission:list', 3, NULL, NULL, NULL, 1, 1, 1),
 (40302, 403, '新增权限', 'system:permission:create', 2, '/system/permission/create', NULL, 'views/system/permission/PermissionFormPage.vue', 2, 0, 1),
 (40303, 403, '编辑权限', 'system:permission:update', 2, '/system/permission/edit/:id', NULL, 'views/system/permission/PermissionFormPage.vue', 3, 0, 1),
 (40304, 403, '权限删除', 'system:permission:delete', 3, NULL, NULL, NULL, 4, 1, 1),
 (40305, 403, '权限详情', 'system:permission:detail', 2, '/system/permission/detail/:id', NULL, 'views/system/permission/PermissionDetailPage.vue', 5, 0, 1),
 -- 登录日志
-(404, 4, '登录日志', 'system:loginlog:query', 2, '/system/loginLog', 'Document', 'views/system/loginLog/index.vue', 4, 1, 1),
+(404, 4, '登录日志', 'system:loginlog:list', 2, '/system/loginLog', 'Document', 'views/system/loginLog/index.vue', 4, 1, 1),
 -- 店铺设置（功能未实现，页面暂用占位页 views/shop/setting/index.vue）
 (5, 0, '店铺设置', 'shop', 2, '/shop', 'Shop', 'views/shop/setting/index.vue', 5, 1, 1),
 -- 支付设置（功能未实现，页面暂用占位页 views/payment/setting/index.vue）

@@ -3,6 +3,7 @@ package com.shop.admin.service;
 import java.util.List;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.shop.admin.dto.PermissionListRequest;
 import com.shop.admin.entity.AdminPermissionEntity;
 import com.shop.common.Result;
 
@@ -40,29 +41,26 @@ public interface AdminPermissionService extends IService<AdminPermissionEntity> 
      * @param id 权限ID
      * @return 权限信息
      */
-    Result<AdminPermissionEntity> getPermissionInfo(Long id);
+    Result<AdminPermissionEntity> getPermissionDetail(Long id);
 
     /**
-     * 获取权限树形结构
-     * @return 树形权限列表
-     */
-    Result<List<AdminPermissionEntity>> getPermissionTree();
-
-    /**
-     * 搜索权限节点
+     * 查询权限树列表
      * <p>
-     * 按条件过滤后返回命中的节点列表（平铺，不做层级补全）。
-     * 与「无条件返回完整树」的 getPermissionTree 分开，避免调用方对返回结构产生歧义。
+     * 合并原「树查询」与「搜索」两条链路：二者语义本就重叠（前者等价于全条件为空的后者 + 建树），
+     * 拆开反而把「要不要做层级补全」的判断推给了调用方。
+     * </p>
+     * <p>
+     * 统一后的约定：
+     * <ul>
+     *   <li>四个条件全为空：返回完整树；</li>
+     *   <li>任一条件非空：返回「命中节点 + 其所有祖先链」构成的树，保持层级完整，不做平铺。</li>
+     * </ul>
      * </p>
      *
-     * @param permissionName 权限名称，模糊匹配，可空
-     * @param permissionCode 权限编码，模糊匹配，可空
-     * @param permissionType 权限类型，精确匹配，可空
-     * @param status 状态，精确匹配，可空（为空时默认只返回启用节点）
-     * @return 命中的权限节点列表（平铺）
+     * @param request 查询条件，可为 null（此时等价于全条件为空）
+     * @return 树形权限列表
      */
-    List<AdminPermissionEntity> searchPermissions(String permissionName, String permissionCode,
-                                                  Integer permissionType, Integer status);
+    List<AdminPermissionEntity> listPermissions(PermissionListRequest request);
 
     /**
      * 根据用户ID获取权限编码列表

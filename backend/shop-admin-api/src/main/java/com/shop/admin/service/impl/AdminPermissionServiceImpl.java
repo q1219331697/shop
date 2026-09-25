@@ -2,7 +2,11 @@ package com.shop.admin.service.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -16,6 +20,7 @@ import org.springframework.util.StringUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.shop.admin.dto.PermissionListRequest;
 import com.shop.admin.entity.AdminPermissionEntity;
 import com.shop.admin.entity.AdminRoleEntity;
 import com.shop.admin.entity.AdminRolePermissionEntity;
@@ -44,6 +49,9 @@ public class AdminPermissionServiceImpl
 
     private static final String PERM_CACHE_PREFIX = "admin:user:permissions:";
     private static final long PERM_CACHE_HOURS = 2;
+
+    /** 顶层父ID：所有一级权限的 parentId 均为 0 */
+    private static final Long ROOT_PARENT_ID = 0L;
 
     /**
      * 权限类型：目录（仅作导航分组，不参与授权，允许权限编码为空）
@@ -193,7 +201,7 @@ public class AdminPermissionServiceImpl
     }
 
     @Override
-    public Result<AdminPermissionEntity> getPermissionInfo(Long id) {
+    public Result<AdminPermissionEntity> getPermissionDetail(Long id) {
         log.info("获取权限信息, permissionId: {}", id);
         AdminPermissionEntity permission = this.getById(id);
         if (permission == null) {
@@ -204,21 +212,75 @@ public class AdminPermissionServiceImpl
     }
 
     @Override
-    public List<AdminPermissionEntity> searchPermissions(String permissionName, String permissionCode,
-                                                         Integer permissionType, Integer status) {
-        log.info("搜索权限节点, name={}, code={}, type={}, status={}",
-                permissionName, permissionCode, permissionType, status);
-        return this.list(buildSearchWrapper(permissionName, permissionCode, permissionType, status));
+    public List<AdminPermissionEntity> listPermissions(PermissionListRequest request) {
+        List<AdminPermissionEntity> matched = this.list(buildSearchWrapper(request));
+        if (!hasAnyCondition(request)) {
+            log.info("查询权限树列表：无查询条件，返回完整树，size={}", matched.size());
+            return buildTree(matched, ROOT_PARENT_ID);
+        }
+        log.info("查询权限树列表：条件命中{}个节点，补全祖先链后返回", matched.size());
+        // 祖先链回溯必须跨越被禁用或被条件过滤掉的中间节点，
+        // 故索引用不带任何条件的全量数据构建，命中与否交给 kept 集合决定。
+        Map<Long, AdminPermissionEntity> index = new HashMap<>();
+        for (AdminPermissionEntity node : this.list()) {
+            index.put(node.getId(), node);
+        }
+        Set<Long> kept = new HashSet<>();
+        for (AdminPermissionEntity node : matched) {
+            Long cursor = node.getId();
+            // kept.add 返回 false 说明该节点已被处理过，可终止回溯（同时天然防御 parentId 成环）
+            while (cursor != null && !ROOT_PARENT_ID.equals(cursor) && kept.add(cursor)) {
+                AdminPermissionEntity parent = index.get(cursor);
+                cursor = parent == null ? null : parent.getParentId();
+            }
+        }
+        List<AdminPermissionEntity> scoped = index.values().stream()
+                .filter(node -> kept.contains(node.getId()))
+                .sorted(bySortOrder())
+                .collect(Collectors.toList());
+        return buildTree(scoped, ROOT_PARENT_ID);
+    }
+
+    /**
+     * 按 sortOrder 升序排序（null 排最后），保证有条件与无条件的树顺序一致
+     *
+     * @return sortOrder 升序比较器
+     */
+    private static Comparator<AdminPermissionEntity> bySortOrder() {
+        return Comparator.comparing(AdminPermissionEntity::getSortOrder,
+                Comparator.nullsLast(Comparator.naturalOrder()));
+    }
+
+    /**
+     * 是否携带任一查询条件：决定返回完整树还是「命中节点 + 祖先链」
+     *
+     * @param request 查询条件，可为 null
+     * @return 存在任一非空查询条件时返回 true
+     */
+    private boolean hasAnyCondition(PermissionListRequest request) {
+        if (request == null) {
+            return false;
+        }
+        return StringUtils.hasText(request.getPermissionName())
+                || StringUtils.hasText(request.getPermissionCode())
+                || request.getPermissionType() != null
+                || request.getStatus() != null;
     }
 
     /**
      * 构建搜索条件：名称与编码模糊匹配，类型与状态精确匹配
      * <p>
-     * 状态未显式传入时默认只查启用节点，与权限树保持一致。
+     * 状态未显式传入时默认只查启用节点，与无条件查询保持一致。
      * </p>
+     *
+     * @param request 查询条件，可为 null
+     * @return 查询条件构造器
      */
-    private LambdaQueryWrapper<AdminPermissionEntity> buildSearchWrapper(String permissionName, String permissionCode,
-                                                                        Integer permissionType, Integer status) {
+    private LambdaQueryWrapper<AdminPermissionEntity> buildSearchWrapper(PermissionListRequest request) {
+        String permissionName = request == null ? null : request.getPermissionName();
+        String permissionCode = request == null ? null : request.getPermissionCode();
+        Integer permissionType = request == null ? null : request.getPermissionType();
+        Integer status = request == null ? null : request.getStatus();
         LambdaQueryWrapper<AdminPermissionEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(AdminPermissionEntity::getStatus, status != null ? status : 1);
         wrapper.like(StringUtils.hasText(permissionName), AdminPermissionEntity::getPermissionName, permissionName);
@@ -226,17 +288,6 @@ public class AdminPermissionServiceImpl
         wrapper.eq(permissionType != null, AdminPermissionEntity::getPermissionType, permissionType);
         wrapper.orderByAsc(AdminPermissionEntity::getSortOrder);
         return wrapper;
-    }
-
-    @Override
-    public Result<List<AdminPermissionEntity>> getPermissionTree() {
-        log.info("获取权限树形结构");
-        LambdaQueryWrapper<AdminPermissionEntity> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(AdminPermissionEntity::getStatus, 1);
-        wrapper.orderByAsc(AdminPermissionEntity::getSortOrder);
-        List<AdminPermissionEntity> allPermissions = this.list(wrapper);
-        List<AdminPermissionEntity> tree = buildTree(allPermissions, 0L);
-        return Result.success(tree);
     }
 
     @SuppressWarnings("null")
