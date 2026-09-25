@@ -61,13 +61,6 @@
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
 
-        <!-- ==================== API 文档 ==================== -->
-        <!-- Knife4j API 文档（基于 OpenAPI 3 / Jakarta） -->
-        <dependency>
-            <groupId>com.github.xiaoymin</groupId>
-            <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
-        </dependency>
-
         <!-- ==================== 监控 ==================== -->
         <!-- Spring Boot Actuator 健康检查与监控端点 -->
         <dependency>

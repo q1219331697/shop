@@ -37,11 +37,10 @@
         </dependency>
 
         <!-- ==================== API 文档 ==================== -->
-        <!-- Knife4j OpenAPI 注解（provided 作用域，仅编译时使用） -->
+        <!-- Knife4j OpenAPI 注解 -->
         <dependency>
-            <groupId>com.github.xiaoymin</groupId>
-            <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
-            <scope>provided</scope>
+            <groupId>com.baizhukui</groupId>
+            <artifactId>knife4j-openapi3-boot4-spring-boot-starter</artifactId>
         </dependency>
 
         <!-- ==================== 安全与认证 ==================== -->
