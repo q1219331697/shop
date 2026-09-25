@@ -12,8 +12,8 @@ CREATE TABLE IF NOT EXISTS t_admin_user (
     real_name VARCHAR(50) DEFAULT NULL COMMENT '真实姓名',
     status TINYINT NOT NULL DEFAULT 1 COMMENT '状态(0:禁用 1:启用)',
     deleted TINYINT NOT NULL DEFAULT 0 COMMENT '删除标记(0:未删除 1:已删除)',
-    create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    create_datetime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_datetime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     KEY idx_username (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='管理员用户表';
 
@@ -35,7 +35,8 @@ CREATE TABLE IF NOT EXISTS t_admin_operation_log (
     success TINYINT NOT NULL DEFAULT 1 COMMENT '是否成功(0:失败 1:成功)',
     message VARCHAR(500) DEFAULT NULL COMMENT '失败原因',
     operation_time DATETIME NOT NULL COMMENT '操作时间',
-    create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    create_datetime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_datetime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     KEY idx_user_id (user_id),
     KEY idx_username (username),
     KEY idx_permission_code (permission_code),
@@ -50,8 +51,8 @@ CREATE TABLE IF NOT EXISTS t_admin_role (
     sort_order INT NOT NULL DEFAULT 0 COMMENT '排序',
     status TINYINT NOT NULL DEFAULT 1 COMMENT '状态(0:禁用 1:启用)',
     deleted TINYINT NOT NULL DEFAULT 0 COMMENT '删除标记(0:未删除 1:已删除)',
-    create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
+    create_datetime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_datetime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='管理员角色表';
 
 CREATE TABLE IF NOT EXISTS t_admin_permission (
@@ -68,8 +69,8 @@ CREATE TABLE IF NOT EXISTS t_admin_permission (
     status TINYINT NOT NULL DEFAULT 1 COMMENT '状态(0:禁用 1:启用)',
     log_flag TINYINT NOT NULL DEFAULT 1 COMMENT '是否记录操作日志(0:否 1:是)',
     deleted TINYINT NOT NULL DEFAULT 0 COMMENT '删除标记(0:未删除 1:已删除)',
-    create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    create_datetime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_datetime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     UNIQUE KEY uk_permission_code (permission_code, deleted),
     KEY idx_parent_id (parent_id),
     KEY idx_permission_type (permission_type)
@@ -79,7 +80,8 @@ CREATE TABLE IF NOT EXISTS t_admin_user_role (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     user_id BIGINT NOT NULL COMMENT '用户ID',
     role_id BIGINT NOT NULL COMMENT '角色ID',
-    create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    create_datetime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_datetime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     KEY idx_user_id (user_id),
     KEY idx_role_id (role_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='管理员用户角色关联表';
@@ -88,7 +90,8 @@ CREATE TABLE IF NOT EXISTS t_admin_role_permission (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     role_id BIGINT NOT NULL COMMENT '角色ID',
     permission_id BIGINT NOT NULL COMMENT '权限ID',
-    create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    create_datetime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_datetime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     KEY idx_role_id (role_id),
     KEY idx_permission_id (permission_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='管理员角色权限关联表';

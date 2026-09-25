@@ -16,7 +16,8 @@ export interface RoleItem {
   /** 0-禁用，1-正常 */
   status: number
   deleted: number
-  createTime: string
+  createDatetime: string
+  updateDatetime?: string
 }
 
 /** 角色分页查询参数 */

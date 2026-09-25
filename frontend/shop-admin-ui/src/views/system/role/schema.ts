@@ -113,8 +113,8 @@ export const roleSchema: CrudSchema<RoleItem> = {
       width: 80,
       align: 'center',
     },
-    { prop: 'createTime', label: '创建时间', width: 170, align: 'center', type: 'date' },
-    { prop: 'updateTime', label: '更新时间', width: 170, align: 'center', type: 'date' },
+    { prop: 'createDatetime', label: '创建时间', width: 170, align: 'center', type: 'date' },
+    { prop: 'updateDatetime', label: '更新时间', width: 170, align: 'center', type: 'date' },
   ],
   rowActionsWidth: 300,
 
@@ -159,7 +159,7 @@ export const roleSchema: CrudSchema<RoleItem> = {
       tagMap: { 1: ['正常', 'success'], 0: ['禁用', 'danger'] },
     },
     { prop: 'sortOrder', label: '排序' },
-    { prop: 'createTime', label: '创建时间', type: 'date' },
-    { prop: 'updateTime', label: '更新时间', type: 'date' },
+    { prop: 'createDatetime', label: '创建时间', type: 'date' },
+    { prop: 'updateDatetime', label: '更新时间', type: 'date' },
   ],
 }

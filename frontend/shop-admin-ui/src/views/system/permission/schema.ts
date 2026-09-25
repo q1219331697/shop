@@ -68,33 +68,18 @@ export const permissionSearchFields: SearchField[] = [
 ]
 
 /**
- * 工具栏按钮配置：Ant 商务蓝（与管理员/角色页一致，见 global.scss 的 .op-btn）
- * 新增=实心蓝 编辑=线框(蓝字) 详情=线框(黑字) 删除=实心红
+ * 工具栏按钮配置：仅保留「新增」。
+ *
+ * 注意：ActionBar 会把传入的 actions 与内置默认按钮（新增/详情/编辑/删除）按 action 合并，
+ * 只传 create 并不会去掉详情/编辑/删除，必须显式 visible:false 才能隐藏。
+ * 本页为树形维护：新增下级/编辑/详情/删除均在行内按节点操作，且无勾选列，
+ * 故隐藏这三个依赖选中行的批量按钮。
  */
 export const permissionToolbarActions: ActionItem[] = [
   { action: 'create', label: '新增', icon: 'Plus', type: 'primary' },
-  {
-    action: 'update',
-    label: '编辑',
-    icon: 'Edit',
-    type: 'primary',
-    colorClass: 'btn-outline',
-    disabled: (ctx) => ctx.selectedCount !== 1,
-  },
-  {
-    action: 'detail',
-    label: '详情',
-    icon: 'View',
-    type: 'info',
-    disabled: (ctx) => ctx.selectedCount !== 1,
-  },
-  {
-    action: 'delete',
-    label: '删除',
-    icon: 'Delete',
-    type: 'danger',
-    disabled: (ctx) => ctx.selectedCount === 0,
-  },
+  { action: 'detail', visible: false },
+  { action: 'update', visible: false },
+  { action: 'delete', visible: false },
 ]
 
 /** 表单区配置 */
@@ -219,6 +204,6 @@ export const permissionDetailFields: DetailField[] = [
   { prop: 'visible', label: '是否可见', type: 'tag', tagMap: VISIBLE_TAG_MAP },
   { prop: 'status', label: '状态', type: 'tag', tagMap: STATUS_TAG_MAP },
   { prop: 'logFlag', label: '记录操作日志', type: 'tag', tagMap: LOG_FLAG_TAG_MAP },
-  { prop: 'createTime', label: '创建时间', type: 'date' },
-  { prop: 'updateTime', label: '更新时间', type: 'date' },
+  { prop: 'createDatetime', label: '创建时间', type: 'date' },
+  { prop: 'updateDatetime', label: '更新时间', type: 'date' },
 ]

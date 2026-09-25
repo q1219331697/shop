@@ -107,6 +107,17 @@ function formatMoney(value: unknown, prefix?: string, precision?: number): strin
 </script>
 
 <style scoped>
+/* 固定详情列宽，保证同一列表不同记录（以及不同页）的详情视觉宽度一致。
+   el-descriptions 默认 table-layout: auto，内容列宽度会随各记录
+   「请求参数 / 响应结果」等长文本（JSON 最长行）变化，导致标签列 / 内容列比例漂移。
+   固定标签列宽并锁定 table-layout 后，内容列宽度恒定。 */
+:deep(.el-descriptions__table) {
+  table-layout: fixed;
+}
+:deep(.el-descriptions__label) {
+  width: 120px;
+}
+
 /* 兜底：详情描述列表 value 单元格遇到长内容自动折行，避免撑破弹窗 */
 :deep(.el-descriptions__content) {
   word-break: break-all;

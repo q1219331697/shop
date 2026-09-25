@@ -29,7 +29,7 @@
                 AND deleted = #{deleted}
             </if>
         </where>
-        ORDER BY create_time DESC
+        ORDER BY create_datetime DESC
     </select>
 
     <!-- 根据ID更新记录（绕过逻辑删除） -->
@@ -41,7 +41,7 @@
             <if test="realName != null">real_name = #{realName},</if>
             <if test="status != null">status = #{status},</if>
             <if test="deleted != null">deleted = #{deleted},</if>
-            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="updateDatetime != null">update_datetime = #{updateDatetime},</if>
         </set>
         WHERE id = #{id}
     </update>

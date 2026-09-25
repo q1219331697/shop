@@ -181,8 +181,8 @@ export const adminUserSchema: CrudSchema<AdminUserItem> = {
       trueType: 'danger',
       falseType: 'info',
     },
-    { prop: 'createTime', label: '创建时间', width: 170, align: 'center', type: 'date' },
-    { prop: 'updateTime', label: '更新时间', width: 170, align: 'center', type: 'date' },
+    { prop: 'createDatetime', label: '创建时间', width: 170, align: 'center', type: 'date' },
+    { prop: 'updateDatetime', label: '更新时间', width: 170, align: 'center', type: 'date' },
   ],
   rowActionsWidth: 400,
 
@@ -233,7 +233,7 @@ export const adminUserSchema: CrudSchema<AdminUserItem> = {
       trueType: 'danger',
       falseType: 'info',
     },
-    { prop: 'createTime', label: '创建时间', type: 'date' },
-    { prop: 'updateTime', label: '更新时间', type: 'date' },
+    { prop: 'createDatetime', label: '创建时间', type: 'date' },
+    { prop: 'updateDatetime', label: '更新时间', type: 'date' },
   ],
 }

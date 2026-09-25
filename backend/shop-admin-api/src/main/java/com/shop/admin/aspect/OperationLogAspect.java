@@ -165,7 +165,7 @@ public class OperationLogAspect {
                 ok = false;
                 message = resultBody.getMessage();
             }
-            writeLog(joinPoint, request, uri, method, start, result, ok, message);
+            writeLog(joinPoint, request, method, start, result, ok, message);
         }
     }
 
@@ -182,14 +182,15 @@ public class OperationLogAspect {
      *
      * @param joinPoint 连接点
      * @param request HTTP请求
-     * @param uri 请求URI
      * @param method 目标方法
      * @param start 开始时间戳
+     * @param result 目标方法返回值（用于序列化响应结果）
      * @param ok 是否成功（未抛异常且响应码为成功）
      * @param message 失败原因（异常消息或响应体错误消息）
      */
-    private void writeLog(ProceedingJoinPoint joinPoint, HttpServletRequest request, String uri,
+    private void writeLog(ProceedingJoinPoint joinPoint, HttpServletRequest request,
                           Method method, long start, Object result, boolean ok, String message) {
+        String uri = request.getRequestURI();
         try {
             AdminOperationLogEntity entity = new AdminOperationLogEntity();
             Object userIdAttr = request.getAttribute("adminUserId");

@@ -52,5 +52,12 @@ public class AdminRolePermissionEntity implements Serializable {
      */
     @Schema(description = "创建时间")
     @TableField(fill = FieldFill.INSERT)
-    private LocalDateTime createTime;
+    private LocalDateTime createDatetime;
+
+    /**
+     * 更新时间，自动填充
+     */
+    @Schema(description = "更新时间")
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private LocalDateTime updateDatetime;
 }

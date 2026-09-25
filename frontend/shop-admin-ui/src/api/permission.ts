@@ -29,8 +29,8 @@ export interface PermissionItem {
   /** 是否记录操作日志：0-不记录，1-记录（菜单里可配置） */
   logFlag: number
   deleted: number
-  createTime: string
-  updateTime: string
+  createDatetime: string
+  updateDatetime: string
   children?: PermissionItem[]
   /** 前端扩展属性 */
   _level?: number

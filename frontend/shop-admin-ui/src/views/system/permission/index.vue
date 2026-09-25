@@ -23,7 +23,6 @@
           <el-button :icon="Sort" @click="handleToggleExpand">
             {{ expanded ? '全部折叠' : '全部展开' }}
           </el-button>
-          <el-button :icon="Refresh" @click="handleRefresh">刷新</el-button>
         </template>
       </ActionBar>
     </template>
@@ -39,10 +38,7 @@
           border
           stripe
           :max-height="maxHeight"
-          @selection-change="handleSelectionChange"
         >
-          <el-table-column type="selection" width="50" align="center" />
-
           <el-table-column
             prop="permissionName"
             label="权限名称"
@@ -113,8 +109,12 @@
             </template>
           </el-table-column>
 
-          <el-table-column prop="createTime" label="创建时间" width="170" align="center">
-            <template #default="{ row }">{{ formatDate(row.createTime) }}</template>
+          <el-table-column prop="createDatetime" label="创建时间" width="170" align="center">
+            <template #default="{ row }">{{ formatDate(row.createDatetime) }}</template>
+          </el-table-column>
+
+          <el-table-column prop="updateDatetime" label="更新时间" width="170" align="center">
+            <template #default="{ row }">{{ formatDate(row.updateDatetime) }}</template>
           </el-table-column>
 
           <!-- 宽度按「新增下级/编辑/详情/删除」四个行内按钮单行排布取整，避免换行把行高撑到 40 以上 -->
@@ -160,7 +160,7 @@
  *
  * 交互形态（弹窗改页面）：新增/编辑/详情跳转独立页面；删除保持原位确认。
  */
-import { Delete, Edit, Plus, Refresh, Sort, View } from '@element-plus/icons-vue'
+import { Delete, Edit, Plus, Sort, View } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
@@ -234,12 +234,7 @@ const {
   fetchData,
   handleSearch,
   handleReset,
-  handleSelectionChange,
-  selectedRows,
-  selectedIds,
   actionContext,
-  handleToolbarAction: crudHandleToolbarAction,
-  handleBatchDelete,
 } = useCrud<PermissionItem>({
   listApi: listApiWithTree,
   detailApi: api.permission.detail,
@@ -315,32 +310,11 @@ watch(tableData, () => {
 
 // ==================== 操作 ====================
 
-/** 刷新列表 */
-async function handleRefresh() {
-  await fetchData()
-}
-
-/** 工具栏操作：表单类跳转独立页面，删除走确认 */
-async function handleToolbarAction(action: string) {
-  if (action === 'delete') {
-    await handleToolbarDelete()
-    return
-  }
+/** 工具栏操作：新增跳转独立页面 */
+function handleToolbarAction(action: string) {
   if (action === 'create') {
     router.push('/system/permission/create')
-    return
   }
-  const row = selectedRows.value[0] as PermissionItem | undefined
-  if (!row) return
-  if (action === 'update') {
-    router.push(`/system/permission/edit/${row.id}`)
-    return
-  }
-  if (action === 'detail') {
-    router.push(`/system/permission/detail/${row.id}`)
-    return
-  }
-  await crudHandleToolbarAction(action)
 }
 
 /** 编辑单行 -> 页面 */
@@ -356,36 +330,7 @@ function handleDetailRow(row: PermissionItem) {
   router.push(`/system/permission/detail/${row.id}`)
 }
 
-/**
- * 工具栏删除：与行内删除使用同一种确认提示，
- * 单选时提示具体权限名，与行内按钮文案保持一致；多选时与通用批量删除一致。
- */
-async function handleToolbarDelete() {
-  if (selectedIds.value.length === 0) return
-  if (selectedIds.value.length === 1) {
-    const row = selectedRows.value[0] as PermissionItem
-    try {
-      await ElMessageBox.confirm(`确定删除权限「${row.permissionName}」吗？`, '删除', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning',
-      })
-    } catch {
-      return
-    }
-    try {
-      await api.permission.delete(row.id)
-      ElMessage.success('删除成功')
-      await fetchData()
-    } catch {
-      /* 请求工具已处理错误提示 */
-    }
-    return
-  }
-  await handleBatchDelete()
-}
-
-/** 删除单行：使用与工具栏一致的确认提示文案 */
+/** 删除单行：使用行内确认提示文案 */
 async function handleDeleteRow(row: PermissionItem) {
   try {
     await ElMessageBox.confirm(`确定删除权限「${row.permissionName}」吗？`, '删除', {
@@ -408,7 +353,7 @@ async function handleDeleteRow(row: PermissionItem) {
 // ==================== 初始化 ====================
 
 onMounted(() => {
-  void handleRefresh()
+  void fetchData()
 })
 </script>
 

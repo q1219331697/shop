@@ -190,7 +190,7 @@ onMounted(async () => {
 function buildSubmitPayload(data: Record<string, unknown>): Record<string, unknown> {
   const payload: Record<string, unknown> = {}
   Object.keys(data).forEach((key) => {
-    if (['children', 'createTime', 'updateTime', 'deleted'].includes(key)) return
+    if (['children', 'createDatetime', 'updateDatetime', 'deleted'].includes(key)) return
     payload[key] = data[key]
   })
   // 目录节点无需权限编码：空串归一为 null，避免多目录空串触发后端唯一索引冲突

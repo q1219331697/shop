@@ -2,9 +2,9 @@
  * 日期工具 Vue 插件
  *
  * 将日期工具函数注册为 Vue 全局属性，模板中可直接使用：
- * @example {{ formatDate(row.createTime) }}
- * @example {{ formatDate(row.createTime, DATE_FORMAT.DATE) }}
- * @example {{ formatRelative(row.createTime) }}
+ * @example {{ formatDate(row.createDatetime) }}
+ * @example {{ formatDate(row.createDatetime, DATE_FORMAT.DATE) }}
+ * @example {{ formatRelative(row.createDatetime) }}
  */
 import type { App } from 'vue'
 

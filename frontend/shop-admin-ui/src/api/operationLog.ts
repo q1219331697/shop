@@ -37,7 +37,8 @@ export interface OperationLogItem {
   /** 失败原因 */
   message: string
   operationTime: string
-  createTime: string
+  createDatetime: string
+  updateDatetime: string
 }
 
 /** 操作日志分页查询参数 */

@@ -153,6 +153,7 @@ export const operationLogSchema: CrudSchema<OperationLogItem> = {
     },
     { prop: 'message', label: '失败原因' },
     { prop: 'operationTime', label: '操作时间', type: 'date' },
-    { prop: 'createTime', label: '创建时间', type: 'date' },
+    { prop: 'createDatetime', label: '创建时间', type: 'date' },
+    { prop: 'updateDatetime', label: '更新时间', type: 'date' },
   ] as DetailField[],
 }

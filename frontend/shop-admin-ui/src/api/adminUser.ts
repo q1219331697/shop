@@ -20,8 +20,8 @@ export interface AdminUserItem {
   locked?: boolean
   /** 删除标记：0-未删除，1-已删除（后端 number；此处不用 boolean，与 role/permission 保持一致） */
   deleted: number
-  createTime: string
-  updateTime: string
+  createDatetime: string
+  updateDatetime: string
 }
 
 /** 管理员分页查询参数 */
