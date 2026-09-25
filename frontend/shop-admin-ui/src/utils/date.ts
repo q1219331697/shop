@@ -4,7 +4,12 @@
  * 行业标准：后端接口统一返回 ISO 8601 格式（如 2026-05-22T00:11:04），
  * 前端按需格式化展示（如 2026-05-22 00:11:04）。
  *
- * 基于 dayjs（Element Plus 同款日期库），无需额外安装。
+ * 基于 dayjs。
+ *
+ * ⚠️ 依赖声明：dayjs 虽与 Element Plus 内部所用同款，但它是**本项目的直接依赖**，
+ *    已在 package.json 的 dependencies 中显式声明。切勿因「Element Plus 已带」而移除该声明——
+ *    传递依赖不在对方的兼容承诺内，element-plus 升级或替换日期库时，
+ *    此处的 dayjs / dayjs/plugin/relativeTime / dayjs/locale/zh-cn 会立即解析失败。
  */
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
