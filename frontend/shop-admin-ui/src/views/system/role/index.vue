@@ -1,13 +1,19 @@
 <template>
   <!-- :methods 覆盖内置 CRUD 行为：新增/详情跳转独立页面（弹窗改页面） -->
-  <CrudTable ref="crudTableRef" :schema="roleSchema" :api="api.role" :methods="crudMethods">
+  <CrudTable
+    ref="crudTableRef"
+    :schema="roleSchema"
+    :api="api.role"
+    :methods="crudMethods"
+    resource="role"
+  >
     <!-- 行内操作：编辑/禁用/启用/分配权限 -->
     <template #row-actions-extra="{ row }">
-      <el-button v-if="!row.deleted" link class="action-link" @click="goEdit(row)">
+      <el-button v-if="!row.deleted && can('update')" link class="action-link" @click="goEdit(row)">
         <el-icon><Edit /></el-icon>编辑
       </el-button>
       <el-button
-        v-if="!row.deleted && row.status === 1"
+        v-if="!row.deleted && row.status === 1 && can('disable')"
         link
         class="action-link"
         @click="handleDisable(row)"
@@ -15,14 +21,19 @@
         <el-icon><Lock /></el-icon>禁用
       </el-button>
       <el-button
-        v-if="!row.deleted && row.status === 0"
+        v-if="!row.deleted && row.status === 0 && can('enable')"
         link
         class="action-link"
         @click="handleEnable(row)"
       >
         <el-icon><Unlock /></el-icon>启用
       </el-button>
-      <el-button v-if="!row.deleted" link class="action-link" @click="goAssignPermission(row)">
+      <el-button
+        v-if="!row.deleted && can('assign')"
+        link
+        class="action-link"
+        @click="goAssignPermission(row)"
+      >
         <el-icon><Key /></el-icon>分配权限
       </el-button>
     </template>
@@ -42,11 +53,15 @@ import { useRouter } from 'vue-router'
 import { api } from '@/api'
 import type { RoleItem } from '@/api'
 import { CrudTable } from '@/components/CrudTable'
+import { useResourcePermission } from '@/composables/use-permission'
 
 import { roleSchema } from './schema'
 
 const router = useRouter()
 const crudTableRef = ref<InstanceType<typeof CrudTable>>()
+
+/** 行内按钮权限判定，口径同 ActionBar / DataArea 的自动拼接（本页 resource="role"） */
+const can = useResourcePermission('role')
 
 /** 刷新列表 */
 function refreshList() {

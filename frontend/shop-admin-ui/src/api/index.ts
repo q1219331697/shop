@@ -26,7 +26,7 @@ export type {
 export type { LoginParams, LoginResult } from './auth'
 export type { AdminUserItem, AdminUserPageParams } from './adminUser'
 export type { RoleItem, RolePageParams } from './role'
-export type { PermissionItem, PermissionPageParams, PermissionTreeResult } from './permission'
+export type { PermissionItem, PermissionQuery, PermissionTreeResult } from './permission'
 export type { LoginLogItem, LoginLogPageParams } from './loginLog'
 
 // ==================== api 聚合对象 ====================

@@ -33,12 +33,12 @@ export interface LoginLogPageParams extends PageParams {
 }
 
 /** 登录日志列表（分页） */
-export async function getLoginLogList(params: LoginLogPageParams): Promise<PageResult<LoginLogItem>> {
-  const ipage = await request.get<IPageResult<LoginLogItem>>(endpoints.loginLog.list, params)
+export async function listLoginLogs(params: LoginLogPageParams): Promise<PageResult<LoginLogItem>> {
+  const ipage = await request.post<IPageResult<LoginLogItem>>(endpoints.loginLog.list, params)
   return convertIPage(ipage)
 }
 
 /** 登录日志模块 API 聚合对象（供 CrudTable :api 直接使用，亦可直接调用） */
 export const loginLogApi = {
-  list: getLoginLogList,
+  list: listLoginLogs,
 }

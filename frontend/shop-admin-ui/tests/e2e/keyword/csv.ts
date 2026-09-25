@@ -1,7 +1,8 @@
 import { readFileSync } from 'fs'
-import { parse } from 'csv-parse/sync'
 import { dirname, resolve } from 'path'
 import { fileURLToPath } from 'url'
+
+import { parse } from 'csv-parse/sync'
 
 // 用例步骤：一行 = 一个操作步骤
 export interface Step {

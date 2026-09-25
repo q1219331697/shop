@@ -5,15 +5,16 @@
     :schema="adminUserSchema"
     :api="api.adminUser"
     :methods="crudMethods"
+    resource="admin"
   >
     <!-- 行内操作：编辑/禁用/启用/恢复/分配角色（分配角色改为跳转独立页面） -->
     <template #row-actions-extra="{ row }">
-      <el-button v-if="!row.deleted" link class="action-link" @click="goEdit(row)">
+      <el-button v-if="!row.deleted && can('update')" link class="action-link" @click="goEdit(row)">
         <el-icon><Edit /></el-icon>编辑
       </el-button>
       <!-- 自身保护：当前登录账号不能禁用自己，故不显示禁用入口 -->
       <el-button
-        v-if="!row.deleted && row.status === 1 && !isSelfRow(row)"
+        v-if="!row.deleted && row.status === 1 && !isSelfRow(row) && can('disable')"
         link
         class="action-link"
         @click="handleDisable(row)"
@@ -21,20 +22,35 @@
         <el-icon><Lock /></el-icon>禁用
       </el-button>
       <el-button
-        v-if="!row.deleted && row.status === 0"
+        v-if="!row.deleted && row.status === 0 && can('enable')"
         link
         class="action-link"
         @click="handleEnable(row)"
       >
         <el-icon><Unlock /></el-icon>启用
       </el-button>
-      <el-button v-if="row.deleted" link class="action-link" @click="handleRestore(row)">
+      <el-button
+        v-if="row.deleted && can('restore')"
+        link
+        class="action-link"
+        @click="handleRestore(row)"
+      >
         <el-icon><RefreshRight /></el-icon>恢复
       </el-button>
-      <el-button v-if="!row.deleted" link class="action-link" @click="goAssignRole(row)">
+      <el-button
+        v-if="!row.deleted && can('assign-role')"
+        link
+        class="action-link"
+        @click="goAssignRole(row)"
+      >
         <el-icon><Key /></el-icon>分配角色
       </el-button>
-      <el-button v-if="!row.deleted" link class="action-link" @click="handleResetPassword(row)">
+      <el-button
+        v-if="!row.deleted && can('reset-password')"
+        link
+        class="action-link"
+        @click="handleResetPassword(row)"
+      >
         <el-icon><RefreshLeft /></el-icon>重置密码
       </el-button>
     </template>
@@ -57,11 +73,15 @@ import { useRouter } from 'vue-router'
 import { api } from '@/api'
 import type { AdminUserItem } from '@/api'
 import { CrudTable } from '@/components/CrudTable'
+import { useResourcePermission } from '@/composables/use-permission'
 
 import { adminUserSchema, isSelfRow } from './schema'
 
 const router = useRouter()
 const crudTableRef = ref<InstanceType<typeof CrudTable>>()
+
+/** 行内按钮权限判定，口径同 ActionBar / DataArea 的自动拼接（本页 resource="admin"） */
+const can = useResourcePermission('admin')
 
 /** 系统默认密码（以后端配置为唯一来源；仅用于提示文案，接口异常时保留兜底值） */
 const defaultPassword = ref('admin123')

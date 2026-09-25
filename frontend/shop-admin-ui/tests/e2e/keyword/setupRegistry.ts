@@ -1,9 +1,7 @@
 import type { Page } from '@playwright/test'
 
 import { endpoints } from '../../../src/api/endpoints'
-
 import { SUCCESS } from '../../../src/api/resultCode'
-
 import { apiUrl, auth, unwrap } from '../common/apiClient'
 import {
   createPermissionTreeFixture,
@@ -244,8 +242,8 @@ export const setupRegistry: Record<
       throw new Error(`userAssignRoles 未解析到角色（用例 ${vars.用例ID}，roles=${args.roles ?? ''}）`)
     }
 
-    await page.request.post(apiUrl(endpoints.adminUser.assignRoles(userId)), {
-      data: { roleIds },
+    await page.request.post(apiUrl(endpoints.adminUser.assignRoles), {
+      data: { id: userId, roleIds },
       headers: auth(),
     })
 
@@ -253,7 +251,8 @@ export const setupRegistry: Record<
     await expect
       .poll(
         async () => {
-          const resp = await page.request.get(apiUrl(endpoints.adminUser.roleIds(userId)), {
+          const resp = await page.request.post(apiUrl(endpoints.adminUser.roleIds), {
+            data: { id: userId },
             headers: auth(),
           })
           const ids = await unwrap<number[]>(resp)
@@ -284,8 +283,8 @@ export const setupRegistry: Record<
       throw new Error(`roleAssignPermissions 未解析到权限（用例 ${vars.用例ID}，perms=${args.perms ?? ''}）`)
     }
 
-    await page.request.post(apiUrl(endpoints.role.assignPermissions(roleId)), {
-      data: { permissionIds },
+    await page.request.post(apiUrl(endpoints.role.assignPermissions), {
+      data: { id: roleId, permissionIds },
       headers: auth(),
     })
 
@@ -293,7 +292,8 @@ export const setupRegistry: Record<
     await expect
       .poll(
         async () => {
-          const resp = await page.request.get(apiUrl(endpoints.role.permissionIds(roleId)), {
+          const resp = await page.request.post(apiUrl(endpoints.role.permissionIds), {
+            data: { id: roleId },
             headers: auth(),
           })
           const ids = await unwrap<number[]>(resp)
@@ -338,7 +338,7 @@ export const setupRegistry: Record<
     if (!newPassword) {
       throw new Error(`changePasswordAs 缺少新密码 new（用例 ${vars.用例ID}）`)
     }
-    const resp = await page.request.put(apiUrl(endpoints.adminUser.changePassword), {
+    const resp = await page.request.post(apiUrl(endpoints.adminUser.changePassword), {
       data: { oldPassword: args.old ?? testCredentials.defaultAdminPassword, newPassword },
       headers: { Authorization: `Bearer ${token}` },
     })

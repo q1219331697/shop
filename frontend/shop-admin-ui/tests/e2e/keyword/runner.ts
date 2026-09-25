@@ -1,12 +1,14 @@
 import { Page, expect } from '@playwright/test'
-import type { APIResponse } from '@playwright/test'
-import { toLocator } from './locator'
-import { runSetup, type Vars } from './setupRegistry'
-import { auth, apiUrl, unwrap } from '../common/apiClient'
+import type { APIResponse, Locator } from '@playwright/test'
+
 import { endpoints } from '../../../src/api/endpoints'
 import { PARAM_ERROR, SUCCESS, UNAUTHORIZED } from '../../../src/api/resultCode'
+import { auth, apiUrl, unwrap } from '../common/apiClient'
 import { testCredentials } from '../fixtures/credentials'
+
 import type { Step } from './csv'
+import { toLocator } from './locator'
+import { runSetup, type Vars } from './setupRegistry'
 
 // 将 ${var} 替换为 vars 中的值（找不到则保留原样）
 function sub(v: string, vars: Vars): string {
@@ -39,8 +41,8 @@ interface AdminUserRow {
 
 /** 按用户名查询管理员（含已删除，绕过逻辑删除过滤），取精确同名记录 */
 async function findAdminUser(page: Page, username: string): Promise<AdminUserRow | undefined> {
-  const resp = await page.request.get(apiUrl(endpoints.adminUser.list), {
-    params: { username, pageNum: 1, pageSize: 20 },
+  const resp = await page.request.post(apiUrl(endpoints.adminUser.list), {
+    data: { username, pageNum: 1, pageSize: 20 },
     headers: auth(),
   })
   const result = await unwrap<{ records?: AdminUserRow[] }>(resp)
@@ -80,6 +82,13 @@ export async function dispatch(step: Step, page: Page, vars: Vars): Promise<void
 
   const loc = step.定位方式 !== '-' ? toLocator(page, step.定位方式, 定位值) : null
 
+  // goto / press / wait 等步骤本就无需定位目标，故惰性取值：
+  // 读取到空值意味着用例漏写定位方式，抛出带操作名的错误好过静默的 null 引用
+  const el = (): Locator => {
+    if (!loc) throw new Error(`步骤「${step.操作}」未指定定位方式，无法确定操作目标`)
+    return loc
+  }
+
   switch (step.操作) {
     case 'goto':
       await page.goto(定位值)
@@ -87,21 +96,21 @@ export async function dispatch(step: Step, page: Page, vars: Vars): Promise<void
     case 'fill':
       // 输入值为 "-" 表示留空
       // 同 click：并行负载下搜索栏等表单元素可能晚于默认 5s actionTimeout 才渲染完成，放宽至 15s
-      await loc!.fill(输入值 === '-' ? '' : 输入值, { timeout: 15000 })
+      await el().fill(输入值 === '-' ? '' : 输入值, { timeout: 15000 })
       return
     case 'type':
-      await loc!.type(输入值 === '-' ? '' : 输入值, { timeout: 15000 })
+      await el().type(输入值 === '-' ? '' : 输入值, { timeout: 15000 })
       return
     case 'click':
       // 部分按钮（如行选中后才启用的操作栏按钮）依赖 Vue 响应式启用，
       // 并行负载下可能晚于默认 5s actionTimeout 才变为可点，故放宽至 15s
-      await loc!.click({ timeout: 15000 })
+      await el().click({ timeout: 15000 })
       return
     case 'hover':
-      await loc!.hover()
+      await el().hover()
       return
     case 'select':
-      await loc!.selectOption(输入值)
+      await el().selectOption(输入值)
       return
     case 'press':
       await page.keyboard.press(输入值)
@@ -111,19 +120,19 @@ export async function dispatch(step: Step, page: Page, vars: Vars): Promise<void
       return
     case 'expectVisible':
       // 并行负载下对话框挂载/过渡可能晚于默认 5s，放宽至 15s
-      await expect(loc!).toBeVisible({ timeout: 15000 })
+      await expect(el()).toBeVisible({ timeout: 15000 })
       return
     case 'expectHidden':
       // 同上，放宽至 15s
-      await expect(loc!).toBeHidden({ timeout: 15000 })
+      await expect(el()).toBeHidden({ timeout: 15000 })
       return
     case 'expectText':
       // 用包含匹配，容忍文案前后空白/图标差异
-      await expect(loc!).toContainText(预期)
+      await expect(el()).toContainText(预期)
       return
     case 'expectValue':
       // 编辑页字段由接口异步回填：这里也用于「等待回填完成」的同步点，故放宽至 15s
-      await expect(loc!).toHaveValue(预期, { timeout: 15000 })
+      await expect(el()).toHaveValue(预期, { timeout: 15000 })
       return
     case 'expectURL':
       // 预期值作为正则匹配（如 /dashboard 可匹配完整 URL 中的路径）
@@ -132,11 +141,11 @@ export async function dispatch(step: Step, page: Page, vars: Vars): Promise<void
       return
     case 'expectCount':
       // 断言匹配元素的数量（如统计卡片数量、节点隐藏时数量为 0）
-      await expect(loc!).toHaveCount(Number(预期))
+      await expect(el()).toHaveCount(Number(预期))
       return
     case 'expectEnabled': {
       // 预期类型=disabled 断言禁用，否则断言启用；输入值为数字时取第 N 个匹配
-      let target = loc!
+      let target = el()
       if (/^\d+$/.test(输入值)) target = target.nth(Number(输入值))
       if (step.预期类型 === 'disabled') await expect(target).toBeDisabled()
       else await expect(target).toBeEnabled()
@@ -144,7 +153,7 @@ export async function dispatch(step: Step, page: Page, vars: Vars): Promise<void
     }
     case 'expectChecked': {
       // 预期=true 断言勾选，否则断言未勾选；输入值为数字时取第 N 个匹配
-      let target = loc!
+      let target = el()
       if (/^\d+$/.test(输入值)) target = target.nth(Number(输入值))
       if (预期 === 'true') await expect(target).toBeChecked()
       else await expect(target).not.toBeChecked()
@@ -241,7 +250,8 @@ export async function dispatch(step: Step, page: Page, vars: Vars): Promise<void
       let ids: number[] = []
       const deadline = Date.now() + 8000
       for (;;) {
-        const resp = await page.request.get(apiUrl(endpoints.role.permissionIds(roleId)), {
+        const resp = await page.request.post(apiUrl(endpoints.role.permissionIds), {
+          data: { id: roleId },
           headers: auth(),
         })
         ids = await unwrap<number[]>(resp)
@@ -309,13 +319,14 @@ async function apiReject(
     role: endpoints.role.create,
     permission: endpoints.permission.create,
   }
-  const epUpdate: Record<string, (id: string) => string> = {
+  /** 单资源 update：路径固定，id 随 body 提交 */
+  const epAction: Record<string, string> = {
     user: endpoints.adminUser.update,
     role: endpoints.role.update,
     permission: endpoints.permission.update,
   }
-  /** 固定地址的接口（无 id 概念，直接 PUT 覆盖字段） */
-  const epDirect: Record<string, string> = {
+  /** 自定义动作（无「按 id 更新资源」语义，字段全部走 body） */
+  const epSelfAction: Record<string, string> = {
     adminPassword: endpoints.adminUser.changePassword,
   }
   const body: Record<string, unknown> = { ...(base[entity] ?? {}) }
@@ -333,10 +344,13 @@ async function apiReject(
     }
   }
   let resp: APIResponse
-  if (epDirect[entity]) {
-    resp = await page.request.put(apiUrl(epDirect[entity]), { data: body, headers: auth() })
-  } else if (id !== undefined) {
-    resp = await page.request.put(apiUrl(epUpdate[entity](id)), { data: body, headers: auth() })
+  if (epSelfAction[entity]) {
+    resp = await page.request.post(apiUrl(epSelfAction[entity]), { data: body, headers: auth() })
+  } else if (id !== undefined && epAction[entity]) {
+    resp = await page.request.post(apiUrl(epAction[entity]), {
+      data: { ...body, id },
+      headers: auth(),
+    })
   } else {
     resp = await page.request.post(apiUrl(epCreate[entity]), { data: body, headers: auth() })
   }
@@ -360,7 +374,7 @@ async function apiReject(
  */
 async function apiSelf(page: Page, action: string, otherUsername: string): Promise<void> {
   const me = await unwrap<AdminUserRow>(
-    await page.request.get(apiUrl(endpoints.adminUser.current), { headers: auth() }),
+    await page.request.post(apiUrl(endpoints.adminUser.current), { headers: auth() }),
   )
 
   const hasOther = !!otherUsername && otherUsername !== '-'
@@ -373,19 +387,25 @@ async function apiSelf(page: Page, action: string, otherUsername: string): Promi
   let resp: APIResponse
   switch (action) {
     case 'delete':
-      resp = await page.request.delete(apiUrl(endpoints.adminUser.delete(me.id)), { headers: auth() })
+      resp = await page.request.post(apiUrl(endpoints.adminUser.delete), {
+        data: { id: me.id },
+        headers: auth(),
+      })
       break
     case 'disable':
-      resp = await page.request.put(apiUrl(endpoints.adminUser.disable(me.id)), { headers: auth() })
+      resp = await page.request.post(apiUrl(endpoints.adminUser.disable), {
+        data: { id: me.id },
+        headers: auth(),
+      })
       break
     case 'batchDelete':
-      resp = await page.request.delete(apiUrl(endpoints.adminUser.batchDelete), {
+      resp = await page.request.post(apiUrl(endpoints.adminUser.batchDelete), {
         data: { ids },
         headers: auth(),
       })
       break
     case 'batchDisable':
-      resp = await page.request.put(apiUrl(endpoints.adminUser.batchDisable), {
+      resp = await page.request.post(apiUrl(endpoints.adminUser.batchDisable), {
         data: { ids },
         headers: auth(),
       })
@@ -450,7 +470,7 @@ async function apiCurrentAdmin(
     mode === 'anonymous'
       ? {}
       : { headers: mode === 'var' ? { Authorization: `Bearer ${vars[tokenVar] ?? ''}` } : auth() }
-  const resp = await page.request.get(apiUrl(endpoints.adminUser.current), options)
+  const resp = await page.request.post(apiUrl(endpoints.adminUser.current), options)
   const body = (await resp.json()) as {
     code?: string
     message?: string

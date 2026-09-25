@@ -32,8 +32,8 @@ async function confirmCreated(page: Page, probe: () => Promise<boolean>): Promis
 
 /** 查询管理员用户 ID（创建后如需立即删除/关联时使用） */
 export async function findAdminUserId(page: Page, username: string): Promise<number | undefined> {
-  const resp = await page.request.get(apiUrl(endpoints.adminUser.list), {
-    params: { username, pageNum: 1, pageSize: 10 },
+  const resp = await page.request.post(apiUrl(endpoints.adminUser.list), {
+    data: { username, pageNum: 1, pageSize: 10 },
     headers: auth(),
   })
   const result = await unwrap<IPageResult<AdminUserItem>>(resp)
@@ -42,8 +42,8 @@ export async function findAdminUserId(page: Page, username: string): Promise<num
 
 /** 按角色名查询角色 ID（不存在返回 undefined） */
 export async function findRoleIdByName(page: Page, roleName: string): Promise<number | undefined> {
-  const resp = await page.request.get(apiUrl(endpoints.role.list), {
-    params: { roleName, pageNum: 1, pageSize: 10 },
+  const resp = await page.request.post(apiUrl(endpoints.role.list), {
+    data: { roleName, pageNum: 1, pageSize: 10 },
     headers: auth(),
   })
   const result = await unwrap<IPageResult<RoleItem>>(resp)
@@ -75,35 +75,19 @@ export async function createTestUser(
   if (deleted) {
     const id = await findAdminUserId(page, username)
     if (id) {
-      await page.request.delete(apiUrl(endpoints.adminUser.delete(id)), { headers: auth() })
+      await page.request.post(apiUrl(endpoints.adminUser.delete), { data: { id }, headers: auth() })
     }
   }
 
   await confirmCreated(page, async () => {
-    const resp = await page.request.get(apiUrl(endpoints.adminUser.list), {
-      params: { username, pageNum: 1, pageSize: 10 },
+    const resp = await page.request.post(apiUrl(endpoints.adminUser.list), {
+      data: { username, pageNum: 1, pageSize: 10 },
       headers: auth(),
     })
     const result = await unwrap<IPageResult<AdminUserItem>>(resp)
     return (result.records ?? []).some((r) => r.username === username)
   })
   return username
-}
-
-/**
- * 批量创建共享前缀的临时管理员用户（序号拼在前缀之后，一次清理即可命中全部）
- */
-export async function createBatchUsers(
-  page: Page,
-  prefix: string,
-  count: number,
-  realName: string,
-  status = 1,
-  deleted = false,
-): Promise<void> {
-  for (let i = 0; i < count; i++) {
-    await createTestUser(page, `${prefix}-${i}`, realName, status, deleted)
-  }
 }
 
 /**
@@ -127,27 +111,14 @@ export async function createTestRole(
   })
 
   await confirmCreated(page, async () => {
-    const resp = await page.request.get(apiUrl(endpoints.role.list), {
-      params: { roleName, pageNum: 1, pageSize: 10 },
+    const resp = await page.request.post(apiUrl(endpoints.role.list), {
+      data: { roleName, pageNum: 1, pageSize: 10 },
       headers: auth(),
     })
     const result = await unwrap<IPageResult<RoleItem>>(resp)
     return (result.records ?? []).some((r) => r.roleName === roleName)
   })
   return roleName
-}
-
-/** 批量创建共享前缀的临时角色（序号拼在前缀之后，一次清理即可命中全部） */
-export async function createBatchRoles(
-  page: Page,
-  prefix: string,
-  count: number,
-  description: string,
-  status = 1,
-): Promise<void> {
-  for (let i = 0; i < count; i++) {
-    await createTestRole(page, `${prefix}-${i}`, description, status)
-  }
 }
 
 /**
@@ -226,22 +197,3 @@ export async function createPermissionTreeFixture(
   return { dirName, menuName, actionName }
 }
 
-/** 给角色全量授权（授权链路用例用） */
-export async function assignPermissionsToRole(
-  page: Page,
-  roleId: number,
-  permissionIds: number[],
-): Promise<void> {
-  await page.request.post(apiUrl(endpoints.role.assignPermissions(roleId)), {
-    data: { permissionIds },
-    headers: auth(),
-  })
-}
-
-/** 查询角色已授权的权限 ID 列表 */
-export async function getRolePermissionIds(page: Page, roleId: number): Promise<number[]> {
-  const resp = await page.request.get(apiUrl(endpoints.role.permissionIds(roleId)), {
-    headers: auth(),
-  })
-  return await unwrap<number[]>(resp)
-}

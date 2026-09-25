@@ -17,51 +17,10 @@
 // ========== 公共 00 ==========
 /** 成功 */
 export const SUCCESS = '000000'
-/** 失败 */
-export const ERROR = '000001'
 /** 参数错误 */
 export const PARAM_ERROR = '000002'
-/** 操作失败 */
-export const OPERATION_FAILED = '000003'
 /** 未登录或登录已过期 */
 export const UNAUTHORIZED = '000401'
 /** 无权限访问 */
 export const FORBIDDEN = '000403'
 
-// ========== 用户 01 ==========
-/** 用户名已存在 */
-export const USERNAME_EXIST = '010001'
-/** 密码错误 */
-export const PASSWORD_ERROR = '010002'
-/** 用户已被禁用 */
-export const USER_DISABLED = '010003'
-/** 手机号已存在 */
-export const PHONE_EXIST = '010004'
-/** 用户不存在 */
-export const USER_NOT_EXIST = '010404'
-
-// ========== 商品 02 ==========
-/** 库存不足 */
-export const STOCK_INSUFFICIENT = '020001'
-/** 商品不存在 */
-export const PRODUCT_NOT_EXIST = '020404'
-
-// ========== 分类 03 ==========
-/** 分类名称已存在 */
-export const CATEGORY_NAME_EXIST = '030001'
-/** 分类下存在商品 */
-export const CATEGORY_HAS_PRODUCTS = '030002'
-/** 分类不存在 */
-export const CATEGORY_NOT_EXIST = '030404'
-
-// ========== 购物车 04 ==========
-/** 购物车项不存在 */
-export const CART_ITEM_NOT_EXIST = '040404'
-
-// ========== 订单 05 ==========
-/** 订单状态错误 */
-export const ORDER_STATUS_ERROR = '050001'
-/** 订单不存在 */
-export const ORDER_NOT_EXIST = '050404'
-/** 订单详情不存在 */
-export const ORDER_ITEM_NOT_EXIST = '051404'

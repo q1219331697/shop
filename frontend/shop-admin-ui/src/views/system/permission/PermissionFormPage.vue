@@ -158,7 +158,7 @@ const labelWidth = '96px'
 onMounted(async () => {
   // 加载权限树（用于上级权限选择）
   try {
-    permissionTree.value = await api.permission.tree()
+    permissionTree.value = await api.permission.list()
   } catch {
     permissionTree.value = []
   }

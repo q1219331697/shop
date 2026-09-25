@@ -29,6 +29,12 @@ interface SearchFieldBase {
   clearable?: boolean
   /** 是否隐藏该字段 */
   hidden?: (queryParams: Record<string, unknown>) => boolean
+  /**
+   * 维度级权限码：敏感搜索维度（如「按手机号搜索」）需单独授权时使用，
+   * 形如 `system:admin:search-phone`，与动作主键区分开。
+   * 搜索/重置按钮本身是纯视图变换，不设权限码。
+   */
+  permission?: string
 }
 
 /** 输入框 */
@@ -135,6 +141,16 @@ export interface ActionItem<T = RowData> {
   disabled?: boolean | ((ctx: ActionContext<T>) => boolean)
   /** 确认提示文案，有值则点击弹出确认框 */
   confirm?: string | ((ctx: ActionContext<T>) => string)
+  /**
+   * 权限码，完整字符串。不填时按 `system:${resource}:${action}` 自动拼接
+   * （resource 由 ActionBar 的 resource 属性提供）。
+   */
+  permission?: string
+  /**
+   * 显式声明不做权限判定。用于纯视图变换类按钮（全部展开/折叠、刷新等）——
+   * 它们不改变服务端状态，也不访问新资源，配权限码只会制造「假安全感」。
+   */
+  noPermission?: boolean
   /**
    * 自定义处理函数，配置后直接调用，不再 emit action 事件
    * - 工具栏按钮：接收 ActionContext

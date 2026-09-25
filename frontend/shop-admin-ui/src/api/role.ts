@@ -26,19 +26,19 @@ export interface RolePageParams extends PageParams {
 }
 
 /** 角色列表（分页） */
-export async function getRoleList(params: RolePageParams): Promise<PageResult<RoleItem>> {
-  const ipage = await request.get<IPageResult<RoleItem>>(endpoints.role.list, params)
+export async function listRoles(params: RolePageParams): Promise<PageResult<RoleItem>> {
+  const ipage = await request.post<IPageResult<RoleItem>>(endpoints.role.list, params)
   return convertIPage(ipage)
 }
 
 /** 查询所有角色（下拉选择用） */
-export function getAllRoles() {
-  return request.get<RoleItem[]>(endpoints.role.all)
+export function listAllRoles() {
+  return request.post<RoleItem[]>(endpoints.role.listAll)
 }
 
 /** 角色详情 */
 export function getRoleDetail(id: number) {
-  return request.get<RoleItem>(endpoints.role.detail(id))
+  return request.post<RoleItem>(endpoints.role.detail, { id })
 }
 
 /** 创建角色 */
@@ -48,48 +48,54 @@ export function createRole(data: Partial<RoleItem>) {
 
 /** 更新角色 */
 export function updateRole(id: number, data: Partial<RoleItem>) {
-  return request.put(endpoints.role.update(id), data)
+  return request.post(endpoints.role.update, { ...data, id })
 }
 
 /** 删除角色 */
 export function deleteRole(id: number) {
-  return request.delete(endpoints.role.delete(id))
+  return request.post(endpoints.role.delete, { id })
 }
 
 /** 禁用角色 */
 export function disableRole(id: number) {
-  return request.put(endpoints.role.disable(id))
+  return request.post(endpoints.role.disable, { id })
 }
 
 /** 启用角色 */
 export function enableRole(id: number) {
-  return request.put(endpoints.role.enable(id))
+  return request.post(endpoints.role.enable, { id })
 }
 
 /** 批量禁用角色 */
 export function batchDisableRole(ids: number[]) {
-  return request.put(endpoints.role.batchDisable, { ids })
+  return request.post(endpoints.role.batchDisable, { ids })
 }
 
 /** 批量启用角色 */
 export function batchEnableRole(ids: number[]) {
-  return request.put(endpoints.role.batchEnable, { ids })
+  return request.post(endpoints.role.batchEnable, { ids })
 }
 
 /** 为角色分配权限 */
 export function assignRolePermissions(roleId: number, permissionIds: number[]) {
-  return request.post(endpoints.role.assignPermissions(roleId), { permissionIds })
+  return request.post(endpoints.role.assignPermissions, { id: roleId, permissionIds })
 }
 
-/** 获取角色的权限ID列表 */
-export function getRolePermissionIds(roleId: number) {
-  return request.get<number[]>(endpoints.role.permissionIds(roleId))
+/** 查询角色的权限ID列表 */
+export function listRolePermissionIds(roleId: number) {
+  return request.post<number[]>(endpoints.role.permissionIds, { id: roleId })
 }
 
-/** 角色模块 API 聚合对象（供 CrudTable :api 直接使用，亦可直接调用） */
+/**
+ * 角色模块 API 聚合对象（供 CrudTable :api 直接使用，亦可直接调用）
+ * <p>
+ * 契约键统一用「资源/动作」命名（list / detail / create / permissionIds …），不带 get 等动词前缀，
+ * 与 permission / loginLog 模块保持一致。
+ * </p>
+ */
 export const roleApi = {
-  list: getRoleList,
-  all: getAllRoles,
+  list: listRoles,
+  all: listAllRoles,
   detail: getRoleDetail,
   create: createRole,
   update: updateRole,
@@ -99,5 +105,5 @@ export const roleApi = {
   batchDisable: batchDisableRole,
   batchEnable: batchEnableRole,
   assignPermissions: assignRolePermissions,
-  getPermissionIds: getRolePermissionIds,
+  permissionIds: listRolePermissionIds,
 }

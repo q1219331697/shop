@@ -57,7 +57,7 @@ onMounted(async () => {
     const [user, roles, ids] = await Promise.all([
       api.adminUser.detail(uid),
       api.role.all(),
-      api.adminUser.getRoleIds(uid),
+      api.adminUser.roleIds(uid),
     ])
     currentAdminUser.value = user
     roleList.value = roles

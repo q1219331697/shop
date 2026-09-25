@@ -65,6 +65,8 @@
 import { Plus, Edit, View, Delete } from '@element-plus/icons-vue'
 import { computed } from 'vue'
 
+import { hasPermission } from '@/composables/use-permission'
+
 import type { ActionItem, ActionContext } from './CrudTable/types'
 
 const props = withDefaults(
@@ -75,10 +77,16 @@ const props = withDefaults(
     extraActions?: ActionItem[]
     /** 操作上下文 */
     context?: ActionContext
+    /**
+     * 资源名，用于自动拼接按钮权限码 `system:{resource}:{action}`。
+     * 不传则该组按钮不做权限过滤（向后兼容未接线的页面）。
+     */
+    resource?: string
   }>(),
   {
     actions: undefined,
     extraActions: undefined,
+    resource: undefined,
     context: () => ({
       selectedRows: [],
       selectedIds: [],
@@ -104,7 +112,7 @@ const defaultToolbar: ActionItem[] = [
     disabled: (ctx) => ctx.selectedCount !== 1,
   },
   {
-    action: 'edit',
+    action: 'update',
     label: '编辑',
     icon: Edit,
     type: 'warning',
@@ -135,7 +143,7 @@ const resolvedToolbar = computed(() => {
         // 合并：样式字段从默认继承，行为字段（confirm/handler/disabled）以用户为准
         // 用户未传 confirm 时清除默认的 confirm（即不弹确认框）
         const { confirm, handler, disabled, visible, ...rest } = override
-        const merged: Record<string, unknown> = { ...def, ...rest }
+        const merged: ActionItem = { ...def, ...rest }
         if ('confirm' in override) {
           // 用户显式定义了 confirm（含函数），使用用户的值
           merged.confirm = confirm
@@ -155,10 +163,19 @@ const resolvedToolbar = computed(() => {
   }
   const items = [...base, ...(props.extraActions ?? [])]
   return items.filter((item) => {
+    // 1. 显式可见性判定
     if (typeof item.visible === 'function') {
-      return item.visible(props.context)
+      if (!item.visible(props.context)) return false
+    } else if (item.visible === false) {
+      return false
     }
-    return item.visible !== false
+    // 2. 权限判定：默认按 `system:{resource}:{action}` 自动拼接
+    //    动作主键与权限码末段同名，故 action 一经确定，权限码无需手写
+    if (item.noPermission) return true
+    const code =
+      item.permission ?? (props.resource ? `system:${props.resource}:${item.action}` : null)
+    // 未传 resource 或该动作无对应权限码时保持向后兼容，全部放行
+    return code ? hasPermission(code) : true
   })
 })
 

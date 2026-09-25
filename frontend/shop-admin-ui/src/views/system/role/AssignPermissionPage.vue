@@ -79,8 +79,8 @@ onMounted(async () => {
   try {
     const [role, tree, ids] = await Promise.all([
       api.role.detail(rid),
-      api.permission.tree(),
-      api.role.getPermissionIds(rid),
+      api.permission.list(),
+      api.role.permissionIds(rid),
     ])
     currentRole.value = role
     permissionTree.value = tree
@@ -117,4 +117,3 @@ function goBack() {
   goBackToList()
 }
 </script>
-

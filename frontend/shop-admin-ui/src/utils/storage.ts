@@ -55,22 +55,3 @@ export function hasTokenCookie(): boolean {
   return document.cookie.includes(TOKEN_KEY + '=')
 }
 
-export function setStorage<T>(key: string, value: T): void {
-  localStorage.setItem(key, JSON.stringify(value))
-}
-
-export function getStorage<T>(key: string): T | null {
-  const value = localStorage.getItem(key)
-  if (value) {
-    try {
-      return JSON.parse(value) as T
-    } catch {
-      return null
-    }
-  }
-  return null
-}
-
-export function removeStorage(key: string): void {
-  localStorage.removeItem(key)
-}

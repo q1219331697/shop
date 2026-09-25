@@ -215,6 +215,7 @@
 import { Edit, View, Delete } from '@element-plus/icons-vue'
 import { ref, computed } from 'vue'
 
+import { hasPermission } from '@/composables/use-permission'
 import { useTableMaxHeight } from '@/composables/use-table-height'
 import { formatDate } from '@/utils/date'
 
@@ -259,6 +260,11 @@ const props = withDefaults(
     rowActionsWidth?: number | string
     /** 行操作列固定 */
     rowActionsFixed?: 'left' | 'right' | boolean
+    /**
+     * 资源名，用于自动拼接行操作按钮权限码 `system:{resource}:{action}`，
+     * 口径与 ActionBar 保持一致，避免「工具栏藏了、行内还在」的漏拦。
+     */
+    resource?: string
   }>(),
   {
     rowKey: 'id',
@@ -290,14 +296,21 @@ const { maxHeight } = useTableMaxHeight(rootRef, paginationRef)
 
 /** 默认行操作按钮 */
 const defaultRowActions: ActionItem[] = [
-  { action: 'edit', label: '编辑', icon: Edit },
+  { action: 'update', label: '编辑', icon: Edit },
   { action: 'detail', label: '详情', icon: View },
   { action: 'delete', label: '删除', icon: Delete, type: 'danger', confirm: '确定删除吗？' },
 ]
 
-/** 解析后的行操作按钮 */
+/** 解析后的行操作按钮（叠加权限判定，口径同 ActionBar） */
 const resolvedRowActions = computed(() => {
-  return props.rowActions ?? defaultRowActions
+  const items = props.rowActions ?? defaultRowActions
+  return items.filter((item) => {
+    if (item.noPermission) return true
+    const code =
+      item.permission ?? (props.resource ? `system:${props.resource}:${item.action}` : null)
+    // 未传 resource 或该动作无对应权限码时保持向后兼容，全部放行
+    return code ? hasPermission(code) : true
+  })
 })
 
 /** 过滤可见列 */

@@ -41,6 +41,8 @@ export default tseslint.config(
         sessionStorage: 'readonly',
         window: 'readonly',
         document: 'readonly',
+        // DOM 原生类型：no-undef 基于作用域而非 TS 类型推导，需显式声明
+        HTMLElement: 'readonly',
         // 自动导入的接口聚合对象（unplugin-auto-import 配置）
         api: 'readonly',
       },

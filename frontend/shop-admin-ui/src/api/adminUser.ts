@@ -16,7 +16,8 @@ export interface AdminUserItem {
   password?: string
   realName: string
   status: number
-  deleted: boolean
+  /** 删除标记：0-未删除，1-已删除（后端 number；此处不用 boolean，与 role/permission 保持一致） */
+  deleted: number
   createTime: string
   updateTime: string
 }
@@ -31,14 +32,14 @@ export interface AdminUserPageParams extends PageParams {
 }
 
 /** 管理员用户列表（分页） */
-export async function getAdminUserList(params: AdminUserPageParams): Promise<PageResult<AdminUserItem>> {
-  const ipage = await request.get<IPageResult<AdminUserItem>>(endpoints.adminUser.list, params)
+export async function listAdminUsers(params: AdminUserPageParams): Promise<PageResult<AdminUserItem>> {
+  const ipage = await request.post<IPageResult<AdminUserItem>>(endpoints.adminUser.list, params)
   return convertIPage(ipage)
 }
 
 /** 管理员用户详情 */
 export function getAdminUserDetail(id: IdType) {
-  return request.get<AdminUserItem>(endpoints.adminUser.detail(id))
+  return request.post<AdminUserItem>(endpoints.adminUser.detail, { id })
 }
 
 /** 新增管理员用户（密码可不传，由后端使用系统默认密码） */
@@ -48,12 +49,12 @@ export function createAdminUser(data: Partial<AdminUserItem>) {
 
 /** 重置管理员密码为系统默认密码 */
 export function resetAdminPassword(id: IdType) {
-  return request.put(endpoints.adminUser.resetPassword(id))
+  return request.post(endpoints.adminUser.resetPassword, { id })
 }
 
 /** 获取系统默认密码（新增/重置密码提示展示用） */
 export function getAdminDefaultPassword() {
-  return request.get<string>(endpoints.adminUser.defaultPassword)
+  return request.post<string>(endpoints.adminUser.defaultPassword)
 }
 
 /** 修改密码参数 */
@@ -66,62 +67,62 @@ export interface ChangePasswordParams {
 
 /** 修改当前登录管理员密码（自助改密，失败原因由后端返回：如原密码错误） */
 export function changeAdminPassword(data: ChangePasswordParams) {
-  return request.put(endpoints.adminUser.changePassword, data)
+  return request.post(endpoints.adminUser.changePassword, data)
 }
 
 /** 编辑管理员用户 */
 export function updateAdminUser(id: IdType, data: Partial<AdminUserItem>) {
-  return request.put(endpoints.adminUser.update(id), data)
+  return request.post(endpoints.adminUser.update, { ...data, id })
 }
 
 /** 删除管理员用户 */
 export function deleteAdminUser(id: IdType) {
-  return request.delete(endpoints.adminUser.delete(id))
+  return request.post(endpoints.adminUser.delete, { id })
 }
 
 /** 批量删除管理员用户 */
 export function batchDeleteAdminUser(ids: IdType[]) {
-  return request.delete(endpoints.adminUser.batchDelete, { ids })
+  return request.post(endpoints.adminUser.batchDelete, { ids })
 }
 
 /** 禁用管理员用户 */
 export function disableAdminUser(id: IdType) {
-  return request.put(endpoints.adminUser.disable(id))
+  return request.post(endpoints.adminUser.disable, { id })
 }
 
 /** 启用管理员用户 */
 export function enableAdminUser(id: IdType) {
-  return request.put(endpoints.adminUser.enable(id))
+  return request.post(endpoints.adminUser.enable, { id })
 }
 
 /** 恢复管理员用户 */
 export function restoreAdminUser(id: IdType) {
-  return request.put(endpoints.adminUser.restore(id))
+  return request.post(endpoints.adminUser.restore, { id })
 }
 
 /** 批量禁用管理员用户 */
 export function batchDisableAdminUser(ids: IdType[]) {
-  return request.put(endpoints.adminUser.batchDisable, { ids })
+  return request.post(endpoints.adminUser.batchDisable, { ids })
 }
 
 /** 批量启用管理员用户 */
 export function batchEnableAdminUser(ids: IdType[]) {
-  return request.put(endpoints.adminUser.batchEnable, { ids })
+  return request.post(endpoints.adminUser.batchEnable, { ids })
 }
 
 /** 批量恢复管理员用户 */
 export function batchRestoreAdminUser(ids: IdType[]) {
-  return request.put(endpoints.adminUser.batchRestore, { ids })
+  return request.post(endpoints.adminUser.batchRestore, { ids })
 }
 
 /** 为管理员分配角色 */
 export function assignAdminRoles(userId: IdType, roleIds: number[]) {
-  return request.post(endpoints.adminUser.assignRoles(userId), { roleIds })
+  return request.post(endpoints.adminUser.assignRoles, { id: userId, roleIds })
 }
 
-/** 获取管理员的角色ID列表 */
-export function getAdminRoleIds(userId: IdType) {
-  return request.get<number[]>(endpoints.adminUser.roleIds(userId))
+/** 查询管理员的角色ID列表 */
+export function listAdminRoleIds(userId: IdType) {
+  return request.post<number[]>(endpoints.adminUser.roleIds, { id: userId })
 }
 
 /**
@@ -131,17 +132,17 @@ export function getAdminRoleIds(userId: IdType) {
  * （含按钮级 system:xxx:update 等），供路由级权限校验使用。
  */
 export function getMyPermissionCodes() {
-  return request.get<string[]>(endpoints.adminUser.permissions)
+  return request.post<string[]>(endpoints.adminUser.permissions)
 }
 
 /** 获取当前登录管理员信息（密码已由后端置空） */
 export function getCurrentAdminUser() {
-  return request.get<AdminUserItem>(endpoints.adminUser.current)
+  return request.post<AdminUserItem>(endpoints.adminUser.current)
 }
 
 /** 管理员用户模块 API 聚合对象（供 CrudTable :api 直接使用，亦可直接调用） */
 export const adminUserApi = {
-  list: getAdminUserList,
+  list: listAdminUsers,
   detail: getAdminUserDetail,
   create: createAdminUser,
   update: updateAdminUser,
@@ -157,7 +158,7 @@ export const adminUserApi = {
   batchEnable: batchEnableAdminUser,
   batchRestore: batchRestoreAdminUser,
   assignRoles: assignAdminRoles,
-  getRoleIds: getAdminRoleIds,
+  roleIds: listAdminRoleIds,
   permissions: getMyPermissionCodes,
   current: getCurrentAdminUser,
 }

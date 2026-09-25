@@ -18,8 +18,8 @@
       @submit="emit('submit', $event)"
     >
       <!-- 透传表单字段插槽 -->
-      <template v-for="(_, name) in $slots" :key="name" #[name]="slotData">
-        <slot :name="name" v-bind="slotData" />
+      <template v-for="(_, slotName) in $slots" :key="slotName" #[slotName]="slotData">
+        <slot :name="slotName" v-bind="slotData" />
       </template>
     </CrudForm>
     <template #footer>

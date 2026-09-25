@@ -44,7 +44,7 @@ export const loginLogSchema: CrudSchema<LoginLogItem> = {
     // ActionBar 会把未配置的默认按钮补齐（新增/编辑/详情/删除），只读页必须逐个显式隐藏
     toolbar: [
       { action: 'create', visible: false },
-      { action: 'edit', visible: false },
+      { action: 'update', visible: false },
       { action: 'detail', visible: false },
       { action: 'delete', visible: false },
     ],

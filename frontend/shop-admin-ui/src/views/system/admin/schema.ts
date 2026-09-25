@@ -56,7 +56,7 @@ const handleBatchEnable = (ctx: ActionContext<AdminUserItem>) =>
 
 /** 批量恢复 */
 const handleBatchRestore = (ctx: ActionContext<AdminUserItem>) =>
-  handleBatchAction(ctx, (r) => r.deleted, api.adminUser.batchRestore, '恢复成功')
+  handleBatchAction(ctx, (r) => !!r.deleted, api.adminUser.batchRestore, '恢复成功')
 
 /** 管理员 CRUD Schema */
 export const adminUserSchema: CrudSchema<AdminUserItem> = {
@@ -96,7 +96,7 @@ export const adminUserSchema: CrudSchema<AdminUserItem> = {
   actions: {
     toolbar: [
       // 编辑/详情未选中时禁用，单选后跳转独立页面（见 index.vue）
-      { action: 'edit', type: 'primary', colorClass: 'btn-outline' },
+      { action: 'update', type: 'primary', colorClass: 'btn-outline' },
       { action: 'detail', type: 'info' },
       {
         action: 'delete',

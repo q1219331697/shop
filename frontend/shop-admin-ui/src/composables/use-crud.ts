@@ -160,7 +160,7 @@ export function useCrud<T extends RowData = RowData>(options: UseCrudOptions<T>)
       case 'create':
         openFormDialog(false)
         break
-      case 'edit':
+      case 'update':
         if (selectedRows.value.length !== 1) return
         openFormDialog(true, selectedRows.value[0] as T)
         break
@@ -180,7 +180,7 @@ export function useCrud<T extends RowData = RowData>(options: UseCrudOptions<T>)
   /** 处理行操作 */
   async function handleRowAction(action: string, row: T) {
     switch (action) {
-      case 'edit':
+      case 'update':
         openFormDialog(true, row)
         break
       case 'detail':

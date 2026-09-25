@@ -16,6 +16,7 @@
       <ActionBar
         :actions="permissionToolbarActions"
         :context="actionContext"
+        resource="permission"
         @action="handleToolbarAction"
       >
         <template #toolbar-suffix>
@@ -108,7 +109,7 @@
           </el-table-column>
 
           <!-- 宽度按「新增下级/编辑/详情/删除」四个行内按钮单行排布取整，避免换行把行高撑到 40 以上 -->
-        <el-table-column label="操作" width="300" align="center" fixed="right">
+          <el-table-column label="操作" width="300" align="center" fixed="right">
             <template #default="{ row }">
               <!-- 目录(1)与菜单(2)均可挂下级（目录→菜单/目录，菜单→操作）；操作(3)为叶子节点，无下级 -->
               <el-button
@@ -155,13 +156,13 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
-import type { PermissionItem, PermissionTreeResult } from '@/api'
+import type { PermissionItem, PermissionQuery, PermissionTreeResult } from '@/api'
 import { PageContainer, SearchBar, ActionBar } from '@/components/CrudTable'
 import type { TagMap, TagType } from '@/components/CrudTable/types'
 import { useCrud } from '@/composables/use-crud'
 import { useTableMaxHeight } from '@/composables/use-table-height'
 import { formatDate } from '@/utils/date'
-import { getPermissionList } from '@/utils/permissionTree'
+import { countPermissionTree, normalizePermissionTree } from '@/utils/permissionTree'
 
 import {
   PERMISSION_TYPE_TAG_MAP,
@@ -200,10 +201,13 @@ function statusTag(value: unknown): [string, TagType] {
 // ==================== CRUD 核心 ====================
 
 /** 列表请求：后端按条件返回（无条件为完整树，有条件为命中节点平铺列表） */
-async function listApiWithTree(
-  params: Parameters<typeof getPermissionList>[0],
-): Promise<PermissionTreeResult> {
-  return getPermissionList(params)
+/**
+ * 树形表格适配器：把后端树数据包装成 useCrud 期望的 { list, total }
+ * 权限是「无分页」资源，故 total 取节点总数而非行数。
+ */
+async function listApiWithTree(params: PermissionQuery = {}): Promise<PermissionTreeResult> {
+  const tree = normalizePermissionTree(await api.permission.list(params))
+  return { list: tree, total: countPermissionTree(tree) }
 }
 
 const router = useRouter()
@@ -313,7 +317,7 @@ async function handleToolbarAction(action: string) {
   }
   const row = selectedRows.value[0] as PermissionItem | undefined
   if (!row) return
-  if (action === 'edit') {
+  if (action === 'update') {
     router.push(`/system/permission/edit/${row.id}`)
     return
   }

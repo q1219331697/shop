@@ -1,4 +1,4 @@
-import { Page, Locator } from '@playwright/test'
+import { AriaRole, Page, Locator } from '@playwright/test'
 
 // 将"定位方式 + 定位值"映射为 Playwright 定位器
 export function toLocator(page: Page, type: string, value: string): Locator {
@@ -14,7 +14,7 @@ export function toLocator(page: Page, type: string, value: string): Locator {
     case 'text':
       return page.getByText(value)
     case 'role':
-      return page.getByRole(value as any)
+      return page.getByRole(value as AriaRole)
     case 'id':
       return page.locator(`#${value}`)
     default:

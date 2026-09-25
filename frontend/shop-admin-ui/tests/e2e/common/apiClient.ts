@@ -18,7 +18,7 @@ const API_PREFIX = loadEnv('development', process.cwd()).VITE_API_PREFIX || '/ap
  * 刻意不封装「角色 / 用户 / 权限」等资源方法——调用处直接用 page.request 即可：
  *
  *   await page.request.post(apiUrl(endpoints.role.create), { data: {...}, headers: auth() })
- *   await page.request.get(apiUrl(endpoints.role.list), { params: {...}, headers: auth() })
+ *   await page.request.post(apiUrl(endpoints.role.list), { data: {...}, headers: auth() })
  *
  * 本文件存在的唯一理由：后端只认 `Authorization: Bearer`（见 AdminAuthFilter），
  * 而 page.request 只共享 Cookie、不会自动带该头，故每个请求都须显式传 headers: auth()。

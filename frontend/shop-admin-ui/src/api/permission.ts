@@ -37,8 +37,8 @@ export interface PermissionItem {
   _hasChildren?: boolean
 }
 
-/** 权限查询参数（后端按条件过滤；无条件时返回完整树） */
-export interface PermissionPageParams {
+/** 权限查询参数：全部为空时返回完整树；任一非空时返回「命中节点 + 祖先链」 */
+export interface PermissionQuery {
   permissionName?: string
   permissionCode?: string
   permissionType?: number
@@ -51,24 +51,25 @@ export interface PermissionTreeResult {
   total: number
 }
 
-/** 获取权限树形结构（完整树，用于树形表格浏览与上级权限选择） */
-export function getPermissionTree() {
-  return request.get<PermissionItem[]>(endpoints.permission.tree)
-}
-
-/** 搜索权限节点（后端过滤，返回命中节点平铺列表，不做层级补全） */
-export function searchPermissions(params: PermissionPageParams) {
-  return request.get<PermissionItem[]>(endpoints.permission.search, params)
+/**
+ * 查询权限树列表
+ * <p>
+ * 原 /tree 与 /search 已合并：二者语义本就重叠（前者即「全条件为空的后者 + 建树」），
+ * 拆开会把「要不要做层级补全」的判断推给前端。合并后层级始终完整。
+ * </p>
+ */
+export function listPermissions(params: PermissionQuery = {}) {
+  return request.post<PermissionItem[]>(endpoints.permission.list, params)
 }
 
 /** 获取当前用户菜单树（用于动态生成侧边栏菜单和路由） */
 export function getUserMenus() {
-  return request.get<PermissionItem[]>(endpoints.permission.menus)
+  return request.post<PermissionItem[]>(endpoints.permission.menus)
 }
 
 /** 获取权限详情 */
 export function getPermissionDetail(id: IdType) {
-  return request.get<PermissionItem>(endpoints.permission.detail(id))
+  return request.post<PermissionItem>(endpoints.permission.detail, { id })
 }
 
 /** 创建权限，返回新权限 ID */
@@ -78,19 +79,18 @@ export function createPermission(data: Partial<PermissionItem>) {
 
 /** 更新权限 */
 export function updatePermission(id: IdType, data: Partial<PermissionItem>) {
-  return request.put(endpoints.permission.update(id), data)
+  return request.post(endpoints.permission.update, { ...data, id })
 }
 
 /** 删除权限 */
 export function deletePermission(id: IdType) {
-  return request.delete(endpoints.permission.delete(id))
+  return request.post(endpoints.permission.delete, { id })
 }
 
 /** 权限模块 API 聚合对象（供 CrudTable :api 直接使用，亦可直接调用） */
 export const permissionApi = {
+  list: listPermissions,
   menus: getUserMenus,
-  tree: getPermissionTree,
-  search: searchPermissions,
   detail: getPermissionDetail,
   create: createPermission,
   update: updatePermission,

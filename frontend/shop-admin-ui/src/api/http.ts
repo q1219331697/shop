@@ -87,23 +87,22 @@ instance.interceptors.response.use(
 /**
  * 业务统一使用的传输入口（基于 axios），默认导出供业务模块使用：
  *   import request from '@/api/http'
- *   const data = await request.get<RoleItem>('/api/role/1')
+ *   const data = await request.post<RoleItem[]>(endpoints.role.list, params)
  *
- * 为什么走 instance.request + 第二泛型参数，而不是直接用 axios 的 get/post<T>？
+ * 为什么只保留 post？
+ *   全站已统一为「POST + JSON」：路径末段表达动作语义，全部入参（含 id / ids / 分页 / 查询条件）
+ *   走 body。GET / PUT / DELETE 已无使用场景，保留别名只会诱导写法回退。
+ *   唯一的例外是测试侧的 apiClient（用 Playwright 原生 API 直连，不经过本模块）。
+ *
+ * 为什么走 instance.request + 第二泛型参数，而不是直接用 axios 的 post<T>？
  *   响应拦截器已解包 data，业务层希望方法返回 T 而非 AxiosResponse<T>。
- *   但 axios 的 get/post/... 只把 T 当作「响应体类型」，返回类型写死为 AxiosResponse<T>，
+ *   但 axios 的 post/... 只把 T 当作「响应体类型」，返回类型写死为 AxiosResponse<T>，
  *   无法表达「拦截器已解包」。而 axios.request 提供了第二泛型参数 R（最终返回类型），
  *   于是用 instance.request<unknown, T> 把返回收敛为 T —— 既不需要自定义类型，也不需要 as 断言。
  */
 const request = {
-  get: <T>(url: string, params?: object) =>
-    instance.request<unknown, T>({ url, method: 'GET', params }),
   post: <T>(url: string, data?: unknown) =>
     instance.request<unknown, T>({ url, method: 'POST', data }),
-  put: <T>(url: string, data?: unknown) =>
-    instance.request<unknown, T>({ url, method: 'PUT', data }),
-  delete: <T>(url: string, data?: unknown) =>
-    instance.request<unknown, T>({ url, method: 'DELETE', data }),
 }
 
 export default request

@@ -22,6 +22,7 @@
         :actions="resolvedSchema.actions?.toolbar ?? undefined"
         :extra-actions="resolvedSchema.actions?.extraToolbar"
         :context="actionContext"
+        :resource="resource"
         @action="handleToolbarAction"
       >
         <!-- 透传工具栏插槽 -->
@@ -49,6 +50,7 @@
         :row-actions="resolvedSchema.actions?.rowActions"
         :row-actions-width="resolvedSchema.rowActionsWidth || 200"
         :row-actions-fixed="resolvedSchema.rowActionsFixed || 'right'"
+        :resource="resource"
         :pagination="{
           total: total,
           pageNum: queryParams.pageNum as number,
@@ -152,10 +154,15 @@ const props = defineProps<{
   /** CRUD 方法约定，实现固定名称的方法，CrudTable 在对应时机自动调用 */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   methods?: CrudMethods<any>
+  /**
+   * 资源名，用于自动拼接按钮权限码 `system:{resource}:{action}`，
+   * 同时下发给 ActionBar（工具栏）与 DataArea（行操作），使两者权限口径一致。
+   */
+  resource?: string
 }>()
 
 const emit = defineEmits<{
-  /** 自定义操作事件（非内置的 create/edit/detail/delete） */
+  /** 自定义操作事件（非内置的 create/update/detail/delete） */
   (e: 'action', action: string, data?: unknown): void
 }>()
 
@@ -293,7 +300,7 @@ function handleToolbarAction(action: string) {
     props.methods.onCreate()
     return
   }
-  if (action === 'edit' && props.methods?.onUpdate) {
+  if (action === 'update' && props.methods?.onUpdate) {
     const row = selectedRows.value[0] as RowData | undefined
     if (row) props.methods.onUpdate(row)
     return
@@ -303,7 +310,7 @@ function handleToolbarAction(action: string) {
     if (row) props.methods.onDetail(row)
     return
   }
-  const builtinActions = ['create', 'edit', 'detail', 'delete']
+  const builtinActions = ['create', 'update', 'detail', 'delete']
   if (builtinActions.includes(action)) {
     crudHandleToolbarAction(action)
   } else {
@@ -318,7 +325,7 @@ function handleRowAction(action: string, row: RowData) {
     props.methods.onDetail(row)
     return
   }
-  if (action === 'edit' && props.methods?.onUpdate) {
+  if (action === 'update' && props.methods?.onUpdate) {
     props.methods.onUpdate(row)
     return
   }
@@ -326,7 +333,7 @@ function handleRowAction(action: string, row: RowData) {
     props.methods.onDelete(row)
     return
   }
-  const builtinActions = ['edit', 'detail', 'delete']
+  const builtinActions = ['update', 'detail', 'delete']
   if (builtinActions.includes(action)) {
     crudHandleRowAction(action, row)
   } else {

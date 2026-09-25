@@ -2,8 +2,8 @@
   <el-dialog v-model="visible" :title="`${name}详情`" :width="width" destroy-on-close>
     <CrudDetailContent :fields="fields" :data="data" :loading="loading">
       <!-- 透传详情字段插槽 -->
-      <template v-for="(_, name) in $slots" :key="name" #[name]="slotData">
-        <slot :name="name" v-bind="slotData" />
+      <template v-for="(_, slotName) in $slots" :key="slotName" #[slotName]="slotData">
+        <slot :name="slotName" v-bind="slotData" />
       </template>
     </CrudDetailContent>
     <template #footer>
@@ -12,7 +12,7 @@
   </el-dialog>
 </template>
 
-<script setup lang="ts">
+<script setup lang="ts" generic="T extends RowData">
 /**
  * CrudDetailDialog - 详情对话框
  *
@@ -33,9 +33,9 @@ const props = withDefaults(
     /** 对话框宽度 */
     width?: string
     /** 详情字段配置 */
-    fields?: DetailField[]
-    /** 详情数据 */
-    data: RowData
+    fields?: DetailField<T>[]
+    /** 详情数据，未加载完成时为 null */
+    data: T | null
     /** 是否加载中 */
     loading?: boolean
   }>(),

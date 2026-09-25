@@ -27,26 +27,26 @@ export const endpoints = {
 
   // ==================== 管理员用户 ====================
   adminUser: {
-    list: '/adminUser',
-    create: '/adminUser',
-    detail: (id: number | string) => `/adminUser/${id}`,
-    update: (id: number | string) => `/adminUser/${id}`,
-    delete: (id: number | string) => `/adminUser/${id}`,
-    batchDelete: '/adminUser/batch',
-    disable: (id: number | string) => `/adminUser/${id}/disable`,
-    enable: (id: number | string) => `/adminUser/${id}/enable`,
-    restore: (id: number | string) => `/adminUser/${id}/restore`,
+    list: '/adminUser/list',
+    create: '/adminUser/create',
+    detail: '/adminUser/detail',
+    update: '/adminUser/update',
+    delete: '/adminUser/delete',
+    batchDelete: '/adminUser/batch-delete',
+    disable: '/adminUser/disable',
+    enable: '/adminUser/enable',
+    restore: '/adminUser/restore',
     /** 重置密码为系统默认密码 */
-    resetPassword: (id: number | string) => `/adminUser/${id}/reset-password`,
+    resetPassword: '/adminUser/reset-password',
     /** 系统默认密码（新增/重置密码提示展示用） */
     defaultPassword: '/adminUser/default-password',
     /** 修改当前登录管理员密码（自助改密） */
-    changePassword: '/adminUser/password',
+    changePassword: '/adminUser/change-password',
     batchDisable: '/adminUser/batch-disable',
     batchEnable: '/adminUser/batch-enable',
     batchRestore: '/adminUser/batch-restore',
-    assignRoles: (id: number | string) => `/adminUser/${id}/roles`,
-    roleIds: (id: number | string) => `/adminUser/${id}/roles`,
+    assignRoles: '/adminUser/assign-roles',
+    roleIds: '/adminUser/role-ids',
     /** 当前登录用户的权限编码列表（含按钮级 system:xxx:update 等） */
     permissions: '/adminUser/permissions',
     /** 当前登录管理员信息（刷新后前端据此识别「我是谁」） */
@@ -55,35 +55,35 @@ export const endpoints = {
 
   // ==================== 角色 ====================
   role: {
-    list: '/role',
-    create: '/role',
-    all: '/role/all',
-    detail: (id: number | string) => `/role/${id}`,
-    update: (id: number | string) => `/role/${id}`,
-    delete: (id: number | string) => `/role/${id}`,
-    disable: (id: number | string) => `/role/${id}/disable`,
-    enable: (id: number | string) => `/role/${id}/enable`,
+    list: '/role/list',
+    /** 全量列表，下拉选择用 */
+    listAll: '/role/list-all',
+    create: '/role/create',
+    detail: '/role/detail',
+    update: '/role/update',
+    delete: '/role/delete',
+    disable: '/role/disable',
+    enable: '/role/enable',
     batchDisable: '/role/batch-disable',
     batchEnable: '/role/batch-enable',
-    assignPermissions: (id: number | string) => `/role/${id}/permissions`,
-    permissionIds: (id: number | string) => `/role/${id}/permissions`,
+    assignPermissions: '/role/assign-permissions',
+    permissionIds: '/role/permission-ids',
   },
 
   // ==================== 权限 ====================
   permission: {
-    tree: '/permission/tree',
-    /** 按条件搜索权限节点（后端过滤，返回命中节点平铺列表） */
-    search: '/permission/search',
+    /** 树列表：无条件返回完整树，有条件返回「命中节点 + 祖先链」 */
+    list: '/permission/list',
     menus: '/permission/menus',
-    create: '/permission',
-    detail: (id: number | string) => `/permission/${id}`,
-    update: (id: number | string) => `/permission/${id}`,
-    delete: (id: number | string) => `/permission/${id}`,
+    create: '/permission/create',
+    detail: '/permission/detail',
+    update: '/permission/update',
+    delete: '/permission/delete',
   },
 
   // ==================== 登录日志 ====================
   loginLog: {
-    list: '/adminLoginLog',
+    list: '/adminLoginLog/list',
   },
 
 } as const

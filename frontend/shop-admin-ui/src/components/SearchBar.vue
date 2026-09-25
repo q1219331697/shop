@@ -144,6 +144,8 @@
 import { Search, Refresh } from '@element-plus/icons-vue'
 import { reactive, computed, onMounted, watch } from 'vue'
 
+import { hasPermission } from '@/composables/use-permission'
+
 import type { SearchField, SearchSelect, SearchDateRange, RowData } from './CrudTable/types'
 
 const props = withDefaults(
@@ -203,8 +205,13 @@ const asyncOptions = reactive<
 /** 过滤可见字段 */
 const visibleFields = computed(() => {
   return props.fields.filter((field) => {
-    if (typeof field.hidden === 'function') {
-      return !field.hidden(localParams)
+    if (typeof field.hidden === 'function' && field.hidden(localParams)) {
+      return false
+    }
+    // 维度级权限：敏感搜索维度（如「按手机号搜索」）需单独授权，无权限则不渲染该搜索框。
+    // 注意搜索/重置按钮本身是纯视图变换，不接权限（详见 ActionItem.noPermission 注释）。
+    if (field.permission && !hasPermission(field.permission)) {
+      return false
     }
     return true
   })

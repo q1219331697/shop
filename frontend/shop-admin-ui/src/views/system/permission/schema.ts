@@ -68,7 +68,7 @@ export const permissionSearchFields: SearchField[] = [
 export const permissionToolbarActions: ActionItem[] = [
   { action: 'create', label: '新增', icon: 'Plus', type: 'primary' },
   {
-    action: 'edit',
+    action: 'update',
     label: '编辑',
     icon: 'Edit',
     type: 'primary',

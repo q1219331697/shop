@@ -1,6 +1,6 @@
 <template>
   <!-- 登录日志为只读数据：schema 已隐藏全部工具栏按钮与行操作 -->
-  <CrudTable ref="crudTableRef" :schema="loginLogSchema" :api="api.loginLog" />
+  <CrudTable ref="crudTableRef" :schema="loginLogSchema" :api="api.loginLog" resource="loginlog" />
 </template>
 
 <script setup lang="ts">

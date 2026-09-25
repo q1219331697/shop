@@ -22,6 +22,7 @@ import { useRoute } from 'vue-router'
 
 import { api, type PermissionItem } from '@/api'
 import CrudDetailContent from '@/components/CrudDetailContent.vue'
+import type { RowData } from '@/components/CrudTable/types'
 import SubPage from '@/components/SubPage.vue'
 import { usePageNav } from '@/composables/use-page-nav'
 import { flattenPermissionTree } from '@/utils/permissionTree'
@@ -32,7 +33,7 @@ const route = useRoute()
 /** 统一返回：回到所属列表页（/system/permission） */
 const { goBackToList } = usePageNav()
 
-const detail = ref<Record<string, unknown>>({})
+const detail = ref<RowData | null>(null)
 const loading = ref(false)
 
 const permissionTree = ref<PermissionItem[]>([])
@@ -51,11 +52,11 @@ onMounted(async () => {
   const uid = Number(raw)
   loading.value = true
   try {
-    const [data, tree] = await Promise.all([api.permission.detail(uid), api.permission.tree()])
+    const [data, tree] = await Promise.all([api.permission.detail(uid), api.permission.list()])
     detail.value = data
     permissionTree.value = tree
   } catch {
-    detail.value = {}
+    detail.value = null
   } finally {
     loading.value = false
   }
