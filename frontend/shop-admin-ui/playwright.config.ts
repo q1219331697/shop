@@ -37,8 +37,12 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'off',
     video: 'off',
-    actionTimeout: 5000,
-    navigationTimeout: 30000,
+    // 两项统一给足 1 分钟：并发跑 E2E 时首屏挂载会明显变慢，紧超时容易误报失败。
+    // 作为「宽松兜底」——测试代码不写死超时，直接继承此处的值。
+    // 动作超时：fill / click / check / type 等「动作」未显式传 timeout 时生效
+    actionTimeout: 60000,
+    // 导航超时：page.goto / waitForURL 等「导航」未显式传 timeout 时生效
+    navigationTimeout: 60000,
     // 根据是否为无头模式动态设置 slowMo
     launchOptions: {
       slowMo: process.env.SLOW ? 1500 : 0,

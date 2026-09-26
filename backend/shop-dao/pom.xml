@@ -29,30 +29,20 @@
             <artifactId>shop-common</artifactId>
         </dependency>
 
-        <!-- ==================== API 文档 ==================== -->
-        <!-- Knife4j OpenAPI 注解（用于实体类文档） -->
-        <dependency>
-            <groupId>com.github.xiaoymin</groupId>
-            <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
-        </dependency>
-
         <!-- ==================== 数据层 ==================== -->
         <!-- MyBatis Plus Starter（排除默认 Logback 日志，使用 Log4j2） -->
         <dependency>
             <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-logging</artifactId>
-                </exclusion>
-            </exclusions>
+            <artifactId>mybatis-plus-spring-boot4-starter</artifactId>
         </dependency>
         <!-- MyBatis Plus JSqlParser（SQL 解析 / 分页插件） -->
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-jsqlparser</artifactId>
         </dependency>
+        <!-- MyBatis Plus：3.5.17 起 IService/ServiceImpl 等已从 mybatis-plus-extension（extension 包）
+             迁移至 mybatis-plus-spring（spring 包）；boot4 starter 经 mybatis-plus → mybatis-plus-spring
+             已传递引入 mybatis-plus-extension，无需、也不应再显式声明该依赖 -->
 
         <!-- MySQL 数据库驱动 -->
         <dependency>

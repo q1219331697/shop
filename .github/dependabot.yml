@@ -11,8 +11,7 @@ updates:
   - package-ecosystem: maven
     directory: /backend
     schedule:
-      interval: weekly
-      day: monday
+      interval: daily
       time: "09:00"
       timezone: Asia/Shanghai
     open-pull-requests-limit: 5
@@ -26,10 +25,9 @@ updates:
 
   # ---------- 前端 npm 依赖 ----------
   - package-ecosystem: npm
-    directory: /frontend/admin-ui
+    directory: /frontend/shop-admin-ui
     schedule:
-      interval: weekly
-      day: monday
+      interval: daily
       time: "09:00"
       timezone: Asia/Shanghai
     open-pull-requests-limit: 5
@@ -45,8 +43,7 @@ updates:
   - package-ecosystem: docker
     directory: /
     schedule:
-      interval: monthly
-      day: monday
+      interval: daily
       time: "09:00"
       timezone: Asia/Shanghai
     open-pull-requests-limit: 3
@@ -59,8 +56,7 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: monthly
-      day: monday
+      interval: daily
       time: "09:00"
       timezone: Asia/Shanghai
     open-pull-requests-limit: 3

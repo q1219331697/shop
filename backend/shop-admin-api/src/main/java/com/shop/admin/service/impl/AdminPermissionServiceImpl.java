@@ -19,7 +19,7 @@ import org.springframework.util.StringUtils;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.shop.admin.dto.PermissionListRequest;
 import com.shop.admin.entity.AdminPermissionEntity;
 import com.shop.admin.entity.AdminRoleEntity;
