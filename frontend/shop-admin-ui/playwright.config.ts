@@ -19,6 +19,21 @@ import { defineConfig, devices } from '@playwright/test'
  */
 
 export default defineConfig({
+  // ============================================================
+  // 【超时备忘】Playwright 官方默认 vs 本项目取值
+  // 依据官方文档：/docs/test-timeouts、/docs/api/class-testconfig、/docs/api/class-testoptions
+  //   选项                官方默认         本项目    作用范围
+  //   actionTimeout       0（无超时）      60000     fill / click / check / type 等「动作」
+  //   navigationTimeout   0（无超时）      60000     goto / waitForURL 等「导航」
+  //   expect.timeout      5000            60000     expect(...) 断言
+  //   timeout（单测）       30000           90000     由 specs 内 test.setTimeout 覆盖
+  //   webServer.timeout   60000           120000    启动 / 复用 dev server
+  //   workers             逻辑核数的一半    4         并发数（CI 用 --workers=2 传入）
+  //   retries             0               0         失败重试次数
+  // 注 1：官方称这些底层超时「通常无需调整」，flaky 多半要从别处找原因——本项目因此把
+  //       断言改为「接口契约 / 持久状态」，不依赖 3 秒即消失的瞬时提示（见 steps.csv / runner.ts）。
+  // 注 2：测试代码不写死超时，一律继承此处；仅少数内部轮询窗口自带期限（如 loginAs 的重试）。
+  // ============================================================
   testDir: './tests/e2e/specs',
   fullyParallel: true,
   // forbidOnly: !!process.env.CI,
@@ -47,6 +62,13 @@ export default defineConfig({
     launchOptions: {
       slowMo: process.env.SLOW ? 1500 : 0,
     },
+  },
+
+  // 断言超时：所有 expect(...) 未显式传 timeout 时生效。
+  // Playwright 默认仅 5000ms，并发负载下断言目标（含瞬时提示）出现稍晚即误报，故统一给足 1 分钟。
+  // 与 use.actionTimeout / use.navigationTimeout 同属「宽松兜底」，测试代码不再写死超时。
+  expect: {
+    timeout: 60000,
   },
 
   projects: [

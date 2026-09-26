@@ -80,6 +80,13 @@ export async function dispatch(step: Step, page: Page, vars: Vars): Promise<void
     return
   }
 
+  // 接口层登录失败契约断言：直接调 /public/login，断言失败码与文案
+  // （替代「瞬时提示」断言，见 apiLoginFail 说明）
+  if (step.操作 === 'apiLoginFail') {
+    await apiLoginFail(page, 定位值, 预期, step.预期类型)
+    return
+  }
+
   const loc = step.定位方式 !== '-' ? toLocator(page, step.定位方式, 定位值) : null
 
   // goto / press / wait 等步骤本就无需定位目标，故惰性取值：
@@ -94,17 +101,15 @@ export async function dispatch(step: Step, page: Page, vars: Vars): Promise<void
       await page.goto(定位值)
       return
     case 'fill':
-      // 输入值为 "-" 表示留空
-      // 同 click：并行负载下搜索栏等表单元素可能晚于默认 5s actionTimeout 才渲染完成，放宽至 15s
-      await el().fill(输入值 === '-' ? '' : 输入值, { timeout: 15000 })
+      // 输入值为 "-" 表示留空；超时继承全局 use.actionTimeout，不在此写死
+      await el().fill(输入值 === '-' ? '' : 输入值)
       return
     case 'type':
-      await el().type(输入值 === '-' ? '' : 输入值, { timeout: 15000 })
+      await el().type(输入值 === '-' ? '' : 输入值)
       return
     case 'click':
-      // 部分按钮（如行选中后才启用的操作栏按钮）依赖 Vue 响应式启用，
-      // 并行负载下可能晚于默认 5s actionTimeout 才变为可点，故放宽至 15s
-      await el().click({ timeout: 15000 })
+      // 部分按钮（如行选中后才启用的操作栏按钮）依赖 Vue 响应式启用；超时继承全局 use.actionTimeout
+      await el().click()
       return
     case 'hover':
       await el().hover()
@@ -118,26 +123,24 @@ export async function dispatch(step: Step, page: Page, vars: Vars): Promise<void
     case 'wait':
       await page.waitForLoadState()
       return
+    // 以下 expect* 断言超时统一继承全局 expect.timeout（见 playwright.config.ts），不再逐个写死
     case 'expectVisible':
-      // 并行负载下对话框挂载/过渡可能晚于默认 5s，放宽至 15s
-      await expect(el()).toBeVisible({ timeout: 15000 })
+      await expect(el()).toBeVisible()
       return
     case 'expectHidden':
-      // 同上，放宽至 15s
-      await expect(el()).toBeHidden({ timeout: 15000 })
+      await expect(el()).toBeHidden()
       return
     case 'expectText':
       // 用包含匹配，容忍文案前后空白/图标差异
       await expect(el()).toContainText(预期)
       return
     case 'expectValue':
-      // 编辑页字段由接口异步回填：这里也用于「等待回填完成」的同步点，故放宽至 15s
-      await expect(el()).toHaveValue(预期, { timeout: 15000 })
+      // 编辑页字段由接口异步回填：这里也作为「等待回填完成」的同步点
+      await expect(el()).toHaveValue(预期)
       return
     case 'expectURL':
       // 预期值作为正则匹配（如 /dashboard 可匹配完整 URL 中的路径）
-      // 并行负载下登录重定向 + 动态路由生成可能晚于默认 5s，放宽至 15s
-      await expect(page).toHaveURL(new RegExp(预期), { timeout: 15000 })
+      await expect(page).toHaveURL(new RegExp(预期))
       return
     case 'expectCount':
       // 断言匹配元素的数量（如统计卡片数量、节点隐藏时数量为 0）
@@ -359,6 +362,49 @@ async function apiReject(
   const b = (await resp.json()) as { code?: string; message?: string }
   await expect(b.code).toBe(PARAM_ERROR)
   if (expectMsg) {
+    await expect(b.message ?? '').toContain(expectMsg)
+  }
+}
+
+/**
+ * 登录失败契约断言：直接调用 /public/login，断言 HTTP 200 + body.code 等于期望错误码
+ * （可选再断言 body.message 包含期望文案）。
+ *
+ * 用途：替代「fill + click + 断言瞬时提示(.el-message)」的组合。
+ * - 瞬时提示由 Element Plus 默认 3s 自动消失，拿它当断言结果天然存在竞态；
+ * - 本函数每次调用恰好等价「一次登录失败尝试」（后端仅在该路径递增失败计数），
+ *   故不改变登录锁定用例的「第 N 次失败」语义，也不依赖任何 UI 时序。
+ *
+ * 用法（steps.csv）：操作=apiLoginFail，定位值=username=<账号或 ${var}>;password=<密码>，
+ * 预期=错误码（010002 密码错误 / 010005 账号已被锁定），预期类型=文案子串（- 表示不校验）。
+ *
+ * @param page Playwright 页面
+ * @param credentials 账号密码参数串（key=value;key=value）
+ * @param expectedCode 期望的错误码
+ * @param expectMsg 期望的文案子串；'-' 或空表示不校验
+ */
+async function apiLoginFail(
+  page: Page,
+  credentials: string,
+  expectedCode: string,
+  expectMsg: string,
+): Promise<void> {
+  const params = new Map<string, string>()
+  for (const pair of credentials.split(';')) {
+    const i = pair.indexOf('=')
+    if (i > 0) params.set(pair.slice(0, i), pair.slice(i + 1))
+  }
+  const username = params.get('username')
+  const resp = await page.request.post(apiUrl(endpoints.auth.login), {
+    data: { username, password: params.get('password') },
+  })
+  await expect(resp.status()).toBe(200)
+  const b = (await resp.json()) as { code?: string; message?: string }
+  const detail =
+    `登录失败断言不符：username=${username} 期望 code=${expectedCode} ` +
+    `实际 code=${b.code} message=${b.message ?? ''}`
+  await expect(b.code, detail).toBe(expectedCode)
+  if (expectMsg && expectMsg !== '-') {
     await expect(b.message ?? '').toContain(expectMsg)
   }
 }

@@ -28,6 +28,14 @@ import { testCredentials } from '../fixtures/credentials'
  *
  * 参数格式：输入值用 `key=value;key=value` 分隔（避免 JSON 逗号破坏 CSV，无需引号转义）。
  */
+/**
+ * 「验证账号可登录」类断言的有界重试窗口（毫秒）。
+ *
+ * 用于 loginAs：目标状态（解锁 / 重置密码 / 加挂角色）可能刚被异步变更，
+ * 这里轮询等待其生效，而不是依赖瞬时提示充当同步点。
+ */
+const LOGIN_VERIFY_TIMEOUT = 15000
+
 export type Vars = Record<string, string>
 
 function parseArgs(raw: string): Record<string, string> {
@@ -419,10 +427,20 @@ export const setupRegistry: Record<
       throw new Error(`loginAs 未找到用户（用例 ${vars.用例ID}）`)
     }
     const password = args.password ?? testCredentials.defaultAdminPassword
-    const resp = await page.request.post(apiUrl(endpoints.auth.login), {
-      data: { username, password },
-    })
-    const body = (await resp.json()) as { code?: string; message?: string; data?: string }
+    // 轮询重试：本断言常用于「刚发生变更（解锁 / 重置密码 / 加挂角色）」之后的收口，
+    // 变更本身是异步生效的，故给一个有界窗口，避免依赖瞬时提示充当同步点。
+    const attemptLogin = async (): Promise<{ code?: string; message?: string; data?: string }> => {
+      const resp = await page.request.post(apiUrl(endpoints.auth.login), {
+        data: { username, password },
+      })
+      return (await resp.json()) as { code?: string; message?: string; data?: string }
+    }
+    const deadline = Date.now() + LOGIN_VERIFY_TIMEOUT
+    let body = await attemptLogin()
+    while (body.code !== SUCCESS && Date.now() <= deadline) {
+      await page.waitForTimeout(300)
+      body = await attemptLogin()
+    }
     if (body.code !== SUCCESS) {
       throw new Error(
         `loginAs 登录失败：username=${username} code=${body.code} message=${body.message ?? ''}` +
