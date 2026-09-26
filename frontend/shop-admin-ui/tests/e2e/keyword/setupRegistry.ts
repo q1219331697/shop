@@ -1,7 +1,9 @@
 import type { Page } from '@playwright/test'
 
 import { endpoints } from '../../../src/api/endpoints'
+import type { PermissionItem } from '../../../src/api/permission'
 import { SUCCESS } from '../../../src/api/resultCode'
+import type { IPageResult } from '../../../src/api/types'
 import { apiUrl, auth, unwrap } from '../common/apiClient'
 import {
   createPermissionTreeFixture,
@@ -11,8 +13,6 @@ import {
   findAdminUserId,
   findRoleIdByName,
 } from '../common/dataFactory'
-import type { IPageResult } from '../../../src/api/types'
-import type { PermissionItem } from '../../../src/api/permission'
 import { expect, newPrefix } from '../common/e2eFixtures'
 import { testCredentials } from '../fixtures/credentials'
 
@@ -284,7 +284,6 @@ export const setupRegistry: Record<
       }
       return false
     }
-    let found = false
     const deadline = Date.now() + 10000
     for (;;) {
       const resp = await page.request.post(apiUrl(endpoints.permission.list), {
@@ -292,13 +291,13 @@ export const setupRegistry: Record<
         headers: auth(),
       })
       const result = await unwrap<IPageResult<PermissionItem>>(resp)
-      found = walk((result.records ?? []) as Array<{ permissionName?: string; children?: unknown[] }>)
-      if (found || Date.now() > deadline) break
+      if (walk((result.records ?? []) as Array<{ permissionName?: string; children?: unknown[] }>)) {
+        return
+      }
+      if (Date.now() > deadline) break
       await page.waitForTimeout(300)
     }
-    if (!found) {
-      throw new Error(`assertPermExists 未找到权限: ${name}（用例 ${vars.用例ID}）`)
-    }
+    throw new Error(`assertPermExists 未找到权限: ${name}（用例 ${vars.用例ID}）`)
   },
 
   // 预置「用户已分配 N 个角色」的前置（走接口，避免重复一遍 UI 分配链路）

@@ -29,29 +29,16 @@
             <artifactId>shop-dao</artifactId>
         </dependency>
 
-        <!-- Liquibase 数据库版本管理 -->
+        <!-- Liquibase 支持：starter 聚合了自动配置模块 spring-boot-liquibase，后者已以 compile 依赖引入 liquibase-core 引擎；版本由 spring-boot-dependencies BOM 统一管理 -->
         <dependency>
-            <groupId>org.liquibase</groupId>
-            <artifactId>liquibase-core</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-liquibase</artifactId>
         </dependency>
 
         <!-- ==================== Spring Boot 核心 ==================== -->
-        <!-- Spring Boot Web（排除默认 Logback 日志，使用 Log4j2） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-logging</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <!-- Log4j2 日志框架 -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-log4j2</artifactId>
         </dependency>
 
         <!-- 参数校验框架 -->
@@ -81,23 +68,16 @@
             <artifactId>kafka-clients</artifactId>
         </dependency>
 
-        <!-- ==================== API 文档 ==================== -->
-        <!-- Knife4j API 文档（基于 OpenAPI 3 / Jakarta） -->
-        <dependency>
-            <groupId>com.github.xiaoymin</groupId>
-            <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
-        </dependency>
-
         <!-- ==================== 运维监控 ==================== -->
         <!-- Spring Boot Actuator（生产级监控与管理端点） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
-        <!-- AOP（Actuator startup端点依赖，用于记录Bean初始化耗时） -->
+        <!-- AOP（@Aspect 操作日志切面依赖；Spring Boot 4 起 spring-boot-starter-aop 已更名为 spring-boot-starter-aspectj） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aop</artifactId>
+            <artifactId>spring-boot-starter-aspectj</artifactId>
         </dependency>
 
         <!-- ==================== 开发工具 ==================== -->

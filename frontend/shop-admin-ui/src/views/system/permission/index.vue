@@ -125,17 +125,21 @@
                 v-if="row.permissionType !== 3"
                 link
                 class="action-link"
-                @click="handleCreateChild(row)"
+                @click="handleCreateChild(row as PermissionItem)"
               >
                 <el-icon><Plus /></el-icon>新增下级
               </el-button>
-              <el-button link class="action-link" @click="handleEditRow(row)">
+              <el-button link class="action-link" @click="handleEditRow(row as PermissionItem)">
                 <el-icon><Edit /></el-icon>编辑
               </el-button>
-              <el-button link class="action-link" @click="handleDetailRow(row)">
+              <el-button link class="action-link" @click="handleDetailRow(row as PermissionItem)">
                 <el-icon><View /></el-icon>详情
               </el-button>
-              <el-button link class="action-link action-link--danger" @click="handleDeleteRow(row)">
+              <el-button
+                link
+                class="action-link action-link--danger"
+                @click="handleDeleteRow(row as PermissionItem)"
+              >
                 <el-icon><Delete /></el-icon>删除
               </el-button>
             </template>
@@ -227,23 +231,16 @@ async function listApiWithTree(params: PermissionQuery = {}): Promise<Permission
 
 const router = useRouter()
 
-const {
-  loading,
-  tableData,
-  queryParams,
-  fetchData,
-  handleSearch,
-  handleReset,
-  actionContext,
-} = useCrud<PermissionItem>({
-  listApi: listApiWithTree,
-  detailApi: api.permission.detail,
-  createApi: api.permission.create,
-  updateApi: api.permission.update,
-  deleteApi: api.permission.delete,
-  searchFields: permissionSearchFields,
-  rowKey: 'id',
-})
+const { loading, tableData, queryParams, fetchData, handleSearch, handleReset, actionContext } =
+  useCrud<PermissionItem>({
+    listApi: listApiWithTree,
+    detailApi: api.permission.detail,
+    createApi: api.permission.create,
+    updateApi: api.permission.update,
+    deleteApi: api.permission.delete,
+    searchFields: permissionSearchFields,
+    rowKey: 'id',
+  })
 
 /**
  * 查询参数双向绑定代理：
