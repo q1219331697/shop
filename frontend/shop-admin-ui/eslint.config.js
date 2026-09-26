@@ -118,7 +118,9 @@ export default tseslint.config(
           cases: {
             kebabCase: true,
           },
-          ignore: [/^[A-Z][a-zA-Z]+\.vue$/],
+          // operationLog 目录名沿用后端菜单库里存储的组件路径（views/system/operationLog/index.vue），
+          // 改名会导致动态路由 resolveComponent 匹配不到而 404，故整目录豁免 kebab-case 校验。
+          ignore: [/^[A-Z][a-zA-Z]+\.vue$/, /operationLog/],
         },
       ],
 

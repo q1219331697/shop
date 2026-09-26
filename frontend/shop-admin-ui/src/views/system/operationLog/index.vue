@@ -47,8 +47,7 @@ function formatJson(value: unknown): string {
   if (value == null || value === '') return '-'
   try {
     return JSON.stringify(JSON.parse(value as string), null, 2)
-  }
-  catch {
+  } catch {
     return String(value)
   }
 }
