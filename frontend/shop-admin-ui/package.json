@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
+    "preview": "vite build && vite preview --mode preview",
     "lint": "eslint . --fix",
     "format": "prettier --write \"src/**/*.{js,ts,vue,css,scss,json}\"",
     "test:e2e:headed": "cross-env SLOW=1 playwright test --headed",

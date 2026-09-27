@@ -6,9 +6,9 @@
 #      - 仅起 E2E 必需的 4 个服务；ES / logstash / kibana / rabbitmq / shop-app-api / shop-admin-ui 都不需要，省内存防 OOM
 #      - 通过 ADMIN_JAVA_OPTS / KAFKA_HEAP_OPTS (docker-compose.yml 中的可覆盖默认值) 压低 JVM 堆，适配 7G runner
 #   2. 等 admin-api 健康 (http://localhost:8081/actuator/health)
-#   3. 起 Vite dev (Playwright webServer 自动完成) + 跑 E2E
+#   3. 前端测试服务(4173) 由 playwright.config.ts 的 webServer 自动「构建 + 起 preview」后跑 E2E
 #   4. 上传 HTML / JUnit 报告
-# 说明: 不修改 playwright.config.ts (项目禁止 AI 改)；reporter / workers / retries 通过 CLI 传入
+# 说明: reporter / workers / retries 通过 CLI 传入
 # ============================================================
 
 name: E2E

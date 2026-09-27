@@ -5,12 +5,14 @@ import { endpoints } from '../../../src/api/endpoints'
 import { SUCCESS } from '../../../src/api/resultCode'
 
 /**
- * 测试侧自行配置的前缀：从 .env(.env.development) 读取 VITE_API_PREFIX，
- * 与前端生产同源（只写一次，不再写死）。page.request 用它拼完整地址；
- * 生产由 @/api/http 的 axios baseURL 提供。缺失时回退 '/api'（本地 Vite 代理）。
- * 不进共享模块，测试不污染生产。
+ * 测试侧自行配置的前缀：从 .env 读 VITE_API_PREFIX（与前端同源，只写一次）。
+ * page.request 没有 baseURL 机制，故用它拼完整地址；生产由 @/api/http 的 axios baseURL 提供。
+ * 配置缺失即报错（不设隐式默认值）。不进共享模块，测试不污染生产。
  */
-const API_PREFIX = loadEnv('development', process.cwd()).VITE_API_PREFIX || '/api'
+const API_PREFIX = loadEnv('development', process.cwd()).VITE_API_PREFIX
+if (!API_PREFIX) {
+  throw new Error('[e2e] 缺少 VITE_API_PREFIX：请在 .env 里配置（测试用它拼接口地址）')
+}
 
 /**
  * E2E 数据准备 / 清理的最小工具集。

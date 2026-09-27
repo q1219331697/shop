@@ -3,37 +3,21 @@ import { defineConfig, devices } from '@playwright/test'
 /**
  * Playwright E2E 测试配置文件
  *
- * ⚠️ 重要说明：AI 禁止自动修改本文件内容
- * - 任何 AI 模型在修改此文件时，必须保持所有配置不变
- * - 保持 baseURL: 'http://localhost:5173'（不要改为 Docker 地址）
- * - 保持 webServer 配置为本地 Vite 服务
- * - 不得删除任何现有配置项
- * - 不得添加新的测试项目或更改运行参数
- *
- * [AI 规则 · dev server] 优先使用已运行的 Vite dev server
- * - 若 5173 上已有 dev server，reuseExistingServer: true 会直接复用：不要额外启一个，也不要重启它；
- * - 页面改动交给 Vite 热更新生效，不要以“清缓存 / 让改动生效”为由重启；
- * - 仅当能确定是 dev server 自身的问题（例如确实返回了旧模块）时，才允许重启该服务。
- *
- * 本文件用于 E2E 测试自动化，严禁 AI 自动化编辑或修改
+ * ⚠️ AI 禁止自动修改本文件：不得删除现有配置项、不得添加测试项目或更改运行参数。
+ * 【端口】4173 = E2E 测试服务端口，来源：vite.config.ts 的 `preview` 块（即 Vite preview 的默认端口）。
  */
 
 export default defineConfig({
-  // ============================================================
-  // 【超时备忘】Playwright 官方默认 vs 本项目取值
-  // 依据官方文档：/docs/test-timeouts、/docs/api/class-testconfig、/docs/api/class-testoptions
+  // 【超时备忘】官方默认 vs 本项目取值
   //   选项                官方默认         本项目    作用范围
   //   actionTimeout       0（无超时）      30000     fill / click / check / type 等「动作」
   //   navigationTimeout   0（无超时）      30000     goto / waitForURL 等「导航」
   //   expect.timeout      5000            30000     expect(...) 断言
   //   timeout（单测）       30000           90000     由 specs 内 test.setTimeout 覆盖
-  //   webServer.timeout   60000           120000    启动 / 复用 dev server
+  //   webServer.timeout   60000           120000    构建 + 启动测试服务
   //   workers             逻辑核数的一半    4         并发数（CI 用 --workers=2 传入）
-  //   retries             0               0         失败重试次数
-  // 注 1：官方称这些底层超时「通常无需调整」，flaky 多半要从别处找原因——本项目因此把
-  //       断言改为「接口契约 / 持久状态」，不依赖 3 秒即消失的瞬时提示（见 steps.csv / runner.ts）。
-  // 注 2：测试代码不写死超时，一律继承此处；仅少数内部轮询窗口自带期限（如 loginAs 的重试）。
-  // ============================================================
+  //   retries             0               0         失败重试次数（CI 用 --retries=1 传入）
+  // 测试代码不写死超时，一律继承此处（仅 loginAs 等内部轮询自带期限）。
   testDir: './tests/e2e/specs',
   fullyParallel: true,
   // forbidOnly: !!process.env.CI,
@@ -44,29 +28,21 @@ export default defineConfig({
   workers: 4,
   reporter: [['list']],
   use: {
-    // ============================================================
-    // 重要：baseURL 指向本地 Vite 服务 (http://localhost:5173)
-    // 不使用 Docker 容器，避免 AI 误改为 Docker 地址
-    // ============================================================
-    baseURL: 'http://localhost:5173',
+    // baseURL：E2E 测试服务（构建产物，preview 默认端口 4173）；不要改为 Docker 地址
+    baseURL: 'http://localhost:4173',
     trace: 'on-first-retry',
     screenshot: 'off',
     video: 'off',
-    // 两项统一 30 秒：正常接口毫秒级就该返回，30s 已远超「慢」的合理范围；
-    // 再放大只会把「真失败」拖成「等很久才失败」，对稳定性没有帮助。
-    // 动作超时：fill / click / check / type 等「动作」未显式传 timeout 时生效
+    // 动作 / 导航超时统一 30s：接口正常毫秒级返回，再放大只会把「真失败」拖成「等很久才失败」
     actionTimeout: 30000,
-    // 导航超时：page.goto / waitForURL 等「导航」未显式传 timeout 时生效
     navigationTimeout: 30000,
-    // 根据是否为无头模式动态设置 slowMo
+    // SLOW=1 时放慢动作（本地调试用）
     launchOptions: {
       slowMo: process.env.SLOW ? 1500 : 0,
     },
   },
 
-  // 断言超时：所有 expect(...) 未显式传 timeout 时生效。
-  // Playwright 默认仅 5000ms，并发负载下断言目标出现稍晚即误报；统一 30 秒，
-  // 与 use.actionTimeout / use.navigationTimeout 保持一致，测试代码不再写死超时。
+  // 断言超时：官方默认 5000 在并发下易误报，与上面两项统一为 30s
   expect: {
     timeout: 30000,
   },
@@ -78,23 +54,19 @@ export default defineConfig({
     },
   ],
 
-  // ============================================================
-  // 重要：webServer 启动本地 Vite 开发服务器
-  // 本地运行：cd frontend/shop-admin-ui && npm run dev
-  // 不需要 Docker 环境配置，避免 AI 修改为 Docker
-  //
-  // [AI 规则 · dev server] reuseExistingServer: true = 若 5173 上已有 Vite dev server 就直接复用。
-  // 优先复用、不要重启；确认是 dev server 自身问题（如返回旧模块）时才允许重启，详见文件头。
-  // ============================================================
+  // webServer：兜底服务（4173 上无服务时才启动；timeout 120s 覆盖「构建 + 启动」）
+  // - `npm run preview` = `vite build && vite preview --mode preview`：构建 + 起服务一步到位，
+  //   故无论谁先起服务，E2E 测的都是构建产物而非 dev 源码
+  // - 端口来自 vite.config.ts 的 `preview` 块，后端目标来自 `.env.preview`（此处无需传参/env）
+  // - reuseExistingServer: true：4173 上已有服务就直接复用、不要重启；确认服务有问题（如返回旧产物）才重启
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
+    command: 'npm run preview',
+    // 默认不转发 stdout，不写这行则 CI 日志里看不到 build / preview 的输出
+    stdout: 'pipe',
+    url: 'http://localhost:4173',
     reuseExistingServer: true,
     timeout: 120000,
   },
 })
 
-// ============================================================
-// 文件底部声明：本文件的所有内容（包括注释和配置）均为人工维护
-// AI 系统不得自动修改、删除或重写任何内容
-// ============================================================
+// 本文件（含注释）均为人工维护：AI 不得自动修改、删除或重写任何内容。

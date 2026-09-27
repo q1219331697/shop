@@ -7,7 +7,8 @@
 ### 测试环境要求
 
 **服务状态**：
-- 前端开发服务器：已运行在 http://localhost:5173（除非明确启动）
+- **E2E 测试服务**：http://localhost:4173（preview 默认端口，服务「构建产物」；**没预先起时，Playwright 会自动构建并启动**，见下）
+- 前端开发服务器（dev / HMR）：http://localhost:5173（vite.config.ts 默认端口，开发时使用；与测试服务可同时运行）
 - 后端 API 服务：需要运行（中间件、shop-admin-api、shop-app-api）
 - Docker 服务：开发环境需要运行（docker compose）
 
@@ -21,6 +22,27 @@ docker compose up -d --build
 # 重新构建后端镜像（代码修改后需要执行）
 docker compose up -d --build shop-admin-api shop-app-api
 ```
+
+#### （可选）预先起 E2E 测试服务（4173 · 构建产物）
+
+> **不预先起也能跑**：4173 上没有服务时，Playwright 会按 `playwright.config.ts` 的 `webServer`
+> 自动执行 `npm run preview`（内含构建），跑完自动收掉。
+> 预先手动起一次的唯一好处：**反复跑测试时不必每次重复构建**（约 2~3 秒）。
+
+```bash
+cd frontend/shop-admin-ui
+npm run preview      # = vite build && vite preview --mode preview（端口 4173）
+```
+
+> - 端口在 `vite.config.ts` 的 `preview` 块；后端目标在 `.env.preview` 的 `VITE_API_BASE_URL`
+>   （变量名与其他环境文件一致，由 mode 决定读哪一份）。
+> - 想临时指向别的后端：`VITE_API_BASE_URL=http://x.x.x.x:8081 npm run preview`
+>   （Windows 写 `$env:VITE_API_BASE_URL='http://x.x.x.x:8081'; npm run preview`）。
+
+> - 无论有没有预先起服务，**E2E 测的都是构建产物**（不会退化成 dev 源码）。
+> - 手动起的服务**不会**被 Playwright 收掉（它只收自己起的），跑完测试记得自己停。
+> - 改了源码要重新 `npm run build`（产物不跟随 HMR，dev server 的热更新只影响 5173 的开发浏览）。
+> - 端口分工：**4173 = E2E 测试服务**（preview 默认端口，构建产物），**5173 = dev server**（开发用）。两者可同时运行。
 
 #### 运行 UI 测试
 ```bash
@@ -207,7 +229,8 @@ npx playwright test --slow-mo=1000
 ```bash
 # 在测试用例中添加调试代码
 test('should login successfully', async ({ page }) => {
-  await page.goto('http://localhost:5173/login');
+  // 相对路径经 baseURL 解析（测试服务 4173）
+  await page.goto('/login');
   await page.fill('input[name="username"]', 'admin');
   await page.fill('input[name="password"]', 'admin123');
   await page.click('button[type="submit"]');
