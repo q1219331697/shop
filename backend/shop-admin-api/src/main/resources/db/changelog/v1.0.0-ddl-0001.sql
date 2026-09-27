@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS t_admin_operation_log (
     success TINYINT NOT NULL DEFAULT 1 COMMENT '是否成功(0:失败 1:成功)',
     message VARCHAR(500) DEFAULT NULL COMMENT '失败原因',
     operation_time DATETIME NOT NULL COMMENT '操作时间',
+    deleted TINYINT NOT NULL DEFAULT 0 COMMENT '删除标记(0:未删除 1:已删除)',
     create_datetime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     update_datetime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     KEY idx_user_id (user_id),

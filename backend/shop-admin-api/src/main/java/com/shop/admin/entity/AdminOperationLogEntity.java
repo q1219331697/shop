@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -131,6 +132,13 @@ public class AdminOperationLogEntity implements Serializable {
      */
     @Schema(description = "操作时间")
     private LocalDateTime operationTime;
+
+    /**
+     * 删除标记：0-未删除，1-已删除（逻辑删除）
+     */
+    @Schema(description = "删除标记：0-未删除，1-已删除")
+    @TableLogic
+    private Integer deleted;
 
     /**
      * 创建时间，自动填充
