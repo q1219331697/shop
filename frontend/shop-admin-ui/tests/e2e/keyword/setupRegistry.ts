@@ -1,7 +1,9 @@
 import type { Page } from '@playwright/test'
 
 import { endpoints } from '../../../src/api/endpoints'
+import type { PermissionItem } from '../../../src/api/permission'
 import { SUCCESS } from '../../../src/api/resultCode'
+import type { IPageResult } from '../../../src/api/types'
 import { apiUrl, auth, unwrap } from '../common/apiClient'
 import {
   createPermissionTreeFixture,
@@ -11,8 +13,6 @@ import {
   findAdminUserId,
   findRoleIdByName,
 } from '../common/dataFactory'
-import type { IPageResult } from '../../../src/api/types'
-import type { PermissionItem } from '../../../src/api/permission'
 import { expect, newPrefix } from '../common/e2eFixtures'
 import { testCredentials } from '../fixtures/credentials'
 
@@ -28,6 +28,14 @@ import { testCredentials } from '../fixtures/credentials'
  *
  * 参数格式：输入值用 `key=value;key=value` 分隔（避免 JSON 逗号破坏 CSV，无需引号转义）。
  */
+/**
+ * 「验证账号可登录」类断言的有界重试窗口（毫秒）。
+ *
+ * 用于 loginAs：目标状态（解锁 / 重置密码 / 加挂角色）可能刚被异步变更，
+ * 这里轮询等待其生效，而不是依赖瞬时提示充当同步点。
+ */
+const LOGIN_VERIFY_TIMEOUT = 15000
+
 export type Vars = Record<string, string>
 
 function parseArgs(raw: string): Record<string, string> {
@@ -38,6 +46,47 @@ function parseArgs(raw: string): Record<string, string> {
     if (i > 0) out[pair.slice(0, i)] = pair.slice(i + 1)
   }
   return out
+}
+
+/**
+ * 在登录页填入账号密码并提交（不含跳转断言，由调用方负责 waitForURL）。
+ *
+ * 做法：先等用户名/密码输入框与提交按钮真正可见，再执行输入与点击，
+ * 把原先「goto 后立刻 fill」的抢跑改为等待真实就绪条件，消除并发下的偶发超时。
+ *
+ * 超时不在此处写死：goto / waitForURL 继承 playwright.config.ts 的 navigationTimeout、
+ * fill / click 继承其 actionTimeout（当前均为 60s）；waitFor 门槛用 Playwright 默认 30s，
+ * 与文件内其它等待一致。以后调整全局超时无需再改测试代码。
+ *
+ * 成败判定：抓 UI 自己发出的这次 /public/login 响应来判定（零副作用、不额外发请求）。
+ * 失败立即抛出带 code/message 的错误，避免「只表现为等跳转超时（默认 60s）」而无法定位。
+ *
+ * @param page Playwright 页面
+ * @param username 登录账号
+ * @param password 登录密码
+ */
+async function submitLoginForm(page: Page, username: string, password: string): Promise<void> {
+  await page.goto('/login')
+  const usernameInput = page.locator(".el-input__inner[placeholder='请输入用户名']")
+  const passwordInput = page.locator(".el-input__inner[placeholder='请输入密码']")
+  const submitButton = page.locator('.login-btn')
+  await usernameInput.waitFor({ state: 'visible' })
+  await passwordInput.waitFor({ state: 'visible' })
+  await submitButton.waitFor({ state: 'visible' })
+  await usernameInput.fill(username)
+  await passwordInput.fill(password)
+  // 先 armed 再点击，确保不漏掉这次请求
+  const loginResponse = page.waitForResponse(
+    (r) => r.url().includes(endpoints.auth.login) && r.request().method() === 'POST',
+  )
+  await submitButton.click()
+  const resp = await loginResponse
+  const body = (await resp.json()) as { code?: string; message?: string }
+  if (body.code !== SUCCESS) {
+    throw new Error(
+      `UI 登录失败：username=${username} code=${body.code} message=${body.message ?? ''}`,
+    )
+  }
 }
 
 export const setupRegistry: Record<
@@ -284,7 +333,6 @@ export const setupRegistry: Record<
       }
       return false
     }
-    let found = false
     const deadline = Date.now() + 10000
     for (;;) {
       const resp = await page.request.post(apiUrl(endpoints.permission.list), {
@@ -292,13 +340,13 @@ export const setupRegistry: Record<
         headers: auth(),
       })
       const result = await unwrap<IPageResult<PermissionItem>>(resp)
-      found = walk((result.records ?? []) as Array<{ permissionName?: string; children?: unknown[] }>)
-      if (found || Date.now() > deadline) break
+      if (walk((result.records ?? []) as Array<{ permissionName?: string; children?: unknown[] }>)) {
+        return
+      }
+      if (Date.now() > deadline) break
       await page.waitForTimeout(300)
     }
-    if (!found) {
-      throw new Error(`assertPermExists 未找到权限: ${name}（用例 ${vars.用例ID}）`)
-    }
+    throw new Error(`assertPermExists 未找到权限: ${name}（用例 ${vars.用例ID}）`)
   },
 
   // 预置「用户已分配 N 个角色」的前置（走接口，避免重复一遍 UI 分配链路）
@@ -393,10 +441,20 @@ export const setupRegistry: Record<
       throw new Error(`loginAs 未找到用户（用例 ${vars.用例ID}）`)
     }
     const password = args.password ?? testCredentials.defaultAdminPassword
-    const resp = await page.request.post(apiUrl(endpoints.auth.login), {
-      data: { username, password },
-    })
-    const body = (await resp.json()) as { code?: string; message?: string; data?: string }
+    // 轮询重试：本断言常用于「刚发生变更（解锁 / 重置密码 / 加挂角色）」之后的收口，
+    // 变更本身是异步生效的，故给一个有界窗口，避免依赖瞬时提示充当同步点。
+    const attemptLogin = async (): Promise<{ code?: string; message?: string; data?: string }> => {
+      const resp = await page.request.post(apiUrl(endpoints.auth.login), {
+        data: { username, password },
+      })
+      return (await resp.json()) as { code?: string; message?: string; data?: string }
+    }
+    const deadline = Date.now() + LOGIN_VERIFY_TIMEOUT
+    let body = await attemptLogin()
+    while (body.code !== SUCCESS && Date.now() <= deadline) {
+      await page.waitForTimeout(300)
+      body = await attemptLogin()
+    }
     if (body.code !== SUCCESS) {
       throw new Error(
         `loginAs 登录失败：username=${username} code=${body.code} message=${body.message ?? ''}` +
@@ -436,16 +494,9 @@ export const setupRegistry: Record<
         ? '/system/admin'
         : '/dashboard'
     const path = args.path ?? defaultPath
-    await page.goto('/login')
-    await page
-      .locator(".el-input__inner[placeholder='请输入用户名']")
-      .fill('admin')
-    await page
-      .locator(".el-input__inner[placeholder='请输入密码']")
-      .fill('admin123')
-    await page.locator('.login-btn').click()
+    await submitLoginForm(page, 'admin', 'admin123')
     // 必须等登录真正跳转完成（写 Cookie）后再整页刷新，否则刷新会打断登录请求
-    await page.waitForURL('**/dashboard', { timeout: 30000 })
+    await page.waitForURL('**/dashboard')
     await page.goto(path)
     // 目标页为懒加载 chunk：表格页等 .el-table 渲染；仪表盘无表格，跳过等待避免超时
     if (path !== '/dashboard') {
@@ -465,12 +516,9 @@ export const setupRegistry: Record<
     const password = args.password ?? testCredentials.defaultAdminPassword
     const path = args.path ?? '/dashboard'
 
-    await page.goto('/login')
-    await page.locator(".el-input__inner[placeholder='请输入用户名']").fill(username)
-    await page.locator(".el-input__inner[placeholder='请输入密码']").fill(password)
-    await page.locator('.login-btn').click()
+    await submitLoginForm(page, username, password)
     // 必须等登录真正跳转完成（写 Cookie）后再 goto，否则会打断登录请求
-    await page.waitForURL('**/dashboard', { timeout: 30000 })
+    await page.waitForURL('**/dashboard')
 
     if (path !== '/dashboard') {
       await page.goto(path)

@@ -1,3 +1,6 @@
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
 import js from '@eslint/js'
 import prettierConfig from 'eslint-config-prettier'
 import pluginImportX from 'eslint-plugin-import-x'
@@ -7,6 +10,9 @@ import pluginVue from 'eslint-plugin-vue'
 import tseslint from 'typescript-eslint'
 
 import requireDialogCloseOnClickModal from './eslint-rules/require-dialog-close-on-click-modal.js'
+
+const projectRoot = dirname(fileURLToPath(import.meta.url))
+const tsconfigPath = resolve(projectRoot, 'tsconfig.json')
 
 export default tseslint.config(
   // 全局忽略
@@ -59,6 +65,8 @@ export default tseslint.config(
       'import-x/resolver': {
         typescript: {
           alwaysTryTypes: true,
+          // v4 起必须显式指定 tsconfig，否则无法解析 paths 中的 @/* 别名
+          project: tsconfigPath,
         },
       },
     },
@@ -118,7 +126,9 @@ export default tseslint.config(
           cases: {
             kebabCase: true,
           },
-          ignore: [/^[A-Z][a-zA-Z]+\.vue$/],
+          // operationLog 目录名沿用后端菜单库里存储的组件路径（views/system/operationLog/index.vue），
+          // 改名会导致动态路由 resolveComponent 匹配不到而 404，故整目录豁免 kebab-case 校验。
+          ignore: [/^[A-Z][a-zA-Z]+\.vue$/, /operationLog/],
         },
       ],
 

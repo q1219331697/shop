@@ -22,7 +22,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shop.admin.entity.AdminUserEntity;
 import com.shop.admin.service.AdminPermissionService;
 import com.shop.admin.service.AdminUserService;
@@ -30,6 +29,7 @@ import com.shop.common.Result;
 import com.shop.common.ResultCodeEnum;
 
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * 管理员认证过滤器

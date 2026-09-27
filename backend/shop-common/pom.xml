@@ -23,10 +23,10 @@
 
     <dependencies>
         <!-- ==================== JSON 序列化 ==================== -->
-        <!-- Jackson 注解（@JsonIgnore 等，版本由 Spring Boot parent 管理） -->
+        <!-- Spring Boot JSON 支持（Jackson 3 / tools.jackson，版本由 Spring Boot parent 管理） -->
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-json</artifactId>
         </dependency>
 
         <!-- ==================== 数据层 ==================== -->
@@ -37,25 +37,28 @@
         </dependency>
 
         <!-- ==================== API 文档 ==================== -->
-        <!-- Knife4j OpenAPI 注解（provided 作用域，仅编译时使用） -->
+        <!-- Knife4j OpenAPI 注解 -->
         <dependency>
-            <groupId>com.github.xiaoymin</groupId>
-            <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
-            <scope>provided</scope>
+            <groupId>com.baizhukui</groupId>
+            <artifactId>knife4j-openapi3-boot4-spring-boot-starter</artifactId>
         </dependency>
 
         <!-- ==================== 安全与认证 ==================== -->
         <!-- JWT 实现（jjwt-impl 会自动传递依赖 jjwt-api） -->
+        <!--
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-impl</artifactId>
         </dependency>
+        -->
         <!-- JWT Jackson 序列化支持 -->
+        <!--
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
             <scope>runtime</scope>
         </dependency>
+        -->
 
         <!-- ==================== 工具库 ==================== -->
         <!-- Hutool 工具库 -->

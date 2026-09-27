@@ -3,16 +3,12 @@ package com.shop.admin.aspect;
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -26,15 +22,11 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.shop.admin.entity.AdminOperationLogEntity;
 import com.shop.admin.entity.AdminPermissionEntity;
 import com.shop.admin.entity.AdminUserEntity;
 import com.shop.admin.mapper.AdminPermissionMapper;
 import com.shop.admin.security.AdminLoginLockService;
-import com.shop.admin.service.AdminOperationLogService;
 import com.shop.common.Result;
 import com.shop.common.ResultCodeEnum;
 
@@ -53,6 +45,10 @@ import lombok.extern.slf4j.Slf4j;
  * 防刷屏与防递归：
  * 操作日志自身接口 {@code /operationLog/**} 硬排除，避免「查日志产生日志」的递归增长；
  * E2E 测试接口 {@code /internal/test/**} 硬排除，其清理接口复用了业务权限码，记入日志会污染统计。
+ * </p>
+ * <p>
+ * 异步落库：请求线程只做低成本采集（URI / 操作人 / 权限 / 耗时 / 成功标志），
+ * 请求参数与响应结果的 JSON 序列化、以及数据库写入交由 {@link OperationLogWriter} 在专用线程池完成。
  * </p>
  * <p>
  * 写入失败只记录 error 日志，绝不向业务抛出。
@@ -85,19 +81,6 @@ public class OperationLogAspect {
     private static final int TYPE_QUERY = 6;
     private static final int TYPE_OTHER = 7;
 
-    /** 错误消息最大保存长度 */
-    private static final int MAX_MESSAGE_LENGTH = 500;
-
-    /** 请求参数保存的最大长度，超出部分截断 */
-    private static final int PARAM_MAX_LENGTH = 2000;
-
-    /** 敏感字段脱敏掩码 */
-    private static final String MASK = "******";
-
-    /** 需要脱敏的字段名（比较时统一小写） */
-    private static final List<String> SENSITIVE_FIELDS =
-            Arrays.asList("password", "oldpassword", "newpassword", "confirmpassword", "token");
-
     /** 从 @PreAuthorize 表达式中提取权限编码 */
     private static final Pattern AUTHORITY_PATTERN =
             Pattern.compile("hasAuthority\\s*\\(\\s*['\"]([^'\"]+)['\"]\\s*\\)");
@@ -105,10 +88,11 @@ public class OperationLogAspect {
     /** 空节点元数据（ConcurrentHashMap 不允许 null 值，用哨兵表示「未命中」） */
     private static final NodeMeta NONE_META = new NodeMeta(false, null);
 
-    private final AdminOperationLogService operationLogService;
     private final AdminPermissionMapper permissionMapper;
+
     private final AdminLoginLockService loginLockService;
-    private final ObjectMapper objectMapper;
+
+    private final OperationLogWriter logWriter;
 
     /** 权限编码 → 节点元数据缓存（权限变更时清空） */
     private final Map<String, NodeMeta> codeMetaCache = new ConcurrentHashMap<>();
@@ -116,14 +100,12 @@ public class OperationLogAspect {
     /** 菜单节点元数据缓存（path 含动态段，权限变更时清空） */
     private volatile List<PathMeta> menuMetaCache;
 
-    public OperationLogAspect(AdminOperationLogService operationLogService,
-                              AdminPermissionMapper permissionMapper,
+    public OperationLogAspect(AdminPermissionMapper permissionMapper,
                               AdminLoginLockService loginLockService,
-                              ObjectMapper objectMapper) {
-        this.operationLogService = operationLogService;
+                              OperationLogWriter logWriter) {
         this.permissionMapper = permissionMapper;
         this.loginLockService = loginLockService;
-        this.objectMapper = objectMapper;
+        this.logWriter = logWriter;
     }
 
     /**
@@ -165,7 +147,7 @@ public class OperationLogAspect {
                 ok = false;
                 message = resultBody.getMessage();
             }
-            writeLog(joinPoint, request, method, start, result, ok, message);
+            submitLog(joinPoint, request, method, start, result, ok, message);
         }
     }
 
@@ -178,7 +160,7 @@ public class OperationLogAspect {
     }
 
     /**
-     * 写入操作日志（内部吞掉所有异常）
+     * 采集请求数据并提交异步写入（采集失败只记录 error 日志，绝不向业务抛出）
      *
      * @param joinPoint 连接点
      * @param request HTTP请求
@@ -188,8 +170,8 @@ public class OperationLogAspect {
      * @param ok 是否成功（未抛异常且响应码为成功）
      * @param message 失败原因（异常消息或响应体错误消息）
      */
-    private void writeLog(ProceedingJoinPoint joinPoint, HttpServletRequest request,
-                          Method method, long start, Object result, boolean ok, String message) {
+    private void submitLog(ProceedingJoinPoint joinPoint, HttpServletRequest request,
+                           Method method, long start, Object result, boolean ok, String message) {
         String uri = request.getRequestURI();
         try {
             AdminOperationLogEntity entity = new AdminOperationLogEntity();
@@ -203,12 +185,10 @@ public class OperationLogAspect {
             entity.setRequestMethod(request.getMethod());
             entity.setRequestUri(uri);
             entity.setClassMethod(method.getDeclaringClass().getSimpleName() + "#" + method.getName());
-            entity.setRequestParams(buildParams(joinPoint.getArgs()));
-            entity.setResponseData(buildResponse(result));
             entity.setIp(getClientIp(request));
             entity.setDuration((int) (System.currentTimeMillis() - start));
             entity.setSuccess(ok ? 1 : 0);
-            entity.setMessage(truncate(message, MAX_MESSAGE_LENGTH));
+            entity.setMessage(message);
             entity.setOperationTime(LocalDateTime.now());
 
             // 登录失败降噪：60 秒内同一账号 + 同一 IP 只记录一条，避免暴力破解把日志表刷爆
@@ -216,7 +196,8 @@ public class OperationLogAspect {
                     && loginLockService.shouldSkipFailLog(entity.getUsername(), entity.getIp())) {
                 return;
             }
-            operationLogService.record(entity);
+            // 请求参数/响应结果序列化与落库交由专用线程池，请求线程到此即返回
+            logWriter.write(entity, joinPoint.getArgs(), result);
         } catch (Exception e) {
             log.error("记录操作日志失败, uri: {}", uri, e);
         }
@@ -500,85 +481,6 @@ public class OperationLogAspect {
     }
 
     /**
-     * 序列化请求参数（过滤 Servlet 对象、敏感字段脱敏、超长截断）
-     *
-     * @param args 方法入参
-     * @return 参数 JSON，无参数或序列化失败返回 null
-     */
-    private String buildParams(Object[] args) {
-        if (args == null || args.length == 0) {
-            return null;
-        }
-        List<Object> candidates = new ArrayList<>();
-        for (Object arg : args) {
-            if (arg == null || arg instanceof ServletRequest || arg instanceof ServletResponse) {
-                continue;
-            }
-            candidates.add(arg);
-        }
-        if (candidates.isEmpty()) {
-            return null;
-        }
-        try {
-            JsonNode root = objectMapper.valueToTree(candidates.size() == 1 ? candidates.get(0) : candidates);
-            maskSensitive(root);
-            String json = objectMapper.writeValueAsString(root);
-            return truncate(json, PARAM_MAX_LENGTH);
-        } catch (Exception e) {
-            log.warn("操作日志请求参数序列化失败", e);
-            return null;
-        }
-    }
-
-    /**
-     * 序列化响应结果（敏感字段脱敏、超长截断）
-     *
-     * @param result 方法返回值
-     * @return 响应 JSON，无结果或序列化失败返回 null
-     */
-    private String buildResponse(Object result) {
-        if (result == null) {
-            return null;
-        }
-        try {
-            JsonNode root = objectMapper.valueToTree(result);
-            maskSensitive(root);
-            String json = objectMapper.writeValueAsString(root);
-            return truncate(json, PARAM_MAX_LENGTH);
-        } catch (Exception e) {
-            log.warn("操作日志响应结果序列化失败", e);
-            return null;
-        }
-    }
-
-    /**
-     * 递归脱敏敏感字段
-     *
-     * @param node JSON节点
-     */
-    private void maskSensitive(JsonNode node) {
-        if (node == null) {
-            return;
-        }
-        if (node.isObject()) {
-            ObjectNode objectNode = (ObjectNode) node;
-            Iterator<Map.Entry<String, JsonNode>> iterator = objectNode.properties().iterator();
-            while (iterator.hasNext()) {
-                Map.Entry<String, JsonNode> entry = iterator.next();
-                if (SENSITIVE_FIELDS.contains(entry.getKey().toLowerCase())) {
-                    objectNode.put(entry.getKey(), MASK);
-                } else {
-                    maskSensitive(entry.getValue());
-                }
-            }
-        } else if (node.isArray()) {
-            for (JsonNode child : node) {
-                maskSensitive(child);
-            }
-        }
-    }
-
-    /**
      * 获取客户端真实IP（前后端分离场景优先取代理转发头）
      *
      * @param request HTTP请求
@@ -594,20 +496,6 @@ public class OperationLogAspect {
             return forwarded.split(",")[0].trim();
         }
         return request.getRemoteAddr();
-    }
-
-    /**
-     * 截断字符串
-     *
-     * @param value 原字符串
-     * @param maxLength 最大长度
-     * @return 截断后的字符串，入参为 null 时返回 null
-     */
-    private String truncate(String value, int maxLength) {
-        if (value == null || maxLength <= 0) {
-            return null;
-        }
-        return value.length() > maxLength ? value.substring(0, maxLength) : value;
     }
 
     /**

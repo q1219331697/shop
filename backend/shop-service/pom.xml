@@ -29,25 +29,6 @@
             <artifactId>shop-dao</artifactId>
         </dependency>
 
-        <!-- ==================== Spring Boot 核心 ==================== -->
-        <!-- Spring Boot Starter（排除默认 Logback 日志，使用 Log4j2） -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-logging</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <!-- Log4j2 日志框架 -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-log4j2</artifactId>
-        </dependency>
-
         <!-- ==================== 开发工具 ==================== -->
         <!-- Lombok 注解处理器 -->
         <dependency>

@@ -213,6 +213,7 @@
  * - 完全替换数据展示 #data-content（如树形表格）
  */
 import { Edit, View, Delete } from '@element-plus/icons-vue'
+import type { TableColumnCtx } from 'element-plus'
 import { ref, computed } from 'vue'
 
 import { hasPermission } from '@/composables/use-permission'
@@ -282,7 +283,7 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   (e: 'selection-change', rows: RowData[]): void
-  (e: 'row-click', row: RowData, column: RowData): void
+  (e: 'row-click', row: RowData, column: TableColumnCtx<RowData> | null): void
   (e: 'page-change' | 'size-change', value: number): void
   (e: 'action', action: string, row: RowData): void
 }>()
@@ -374,7 +375,7 @@ function handleSelectionChange(rows: RowData[]) {
 }
 
 /** 行点击 */
-function handleRowClick(row: RowData, column: RowData) {
+function handleRowClick(row: RowData, column: TableColumnCtx<RowData> | null) {
   emit('row-click', row, column)
   // 默认行为：点击行切换选中（排除操作列和选择列）
   if (props.selectable && column) {
