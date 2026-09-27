@@ -30,7 +30,6 @@ import { ElMessage } from 'element-plus'
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { changeAdminPassword } from '@/api/adminUser'
 import CrudForm from '@/components/CrudForm.vue'
 import type { FormField } from '@/components/CrudTable'
 import SubPage from '@/components/SubPage.vue'
@@ -83,7 +82,7 @@ async function handleSubmit(data: Record<string, unknown>) {
 
   submitting.value = true
   try {
-    await changeAdminPassword({
+    await api.adminUser.changePassword({
       oldPassword: String(data.oldPassword ?? ''),
       newPassword: String(data.newPassword ?? ''),
     })

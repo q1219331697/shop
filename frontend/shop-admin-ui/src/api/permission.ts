@@ -53,48 +53,30 @@ export interface PermissionTreeResult {
   total: number
 }
 
-/**
- * 查询权限树列表
- * <p>
- * 原 /tree 与 /search 已合并：二者语义本就重叠（前者即「全条件为空的后者 + 建树」），
- * 拆开会把「要不要做层级补全」的判断推给前端。合并后层级始终完整。
- * </p>
- */
-export function listPermissions(params: PermissionQuery = {}) {
-  return request.post<PermissionItem[]>(endpoints.permission.list, params)
-}
-
-/** 获取当前用户菜单树（用于动态生成侧边栏菜单和路由） */
-export function getUserMenus() {
-  return request.post<PermissionItem[]>(endpoints.permission.menus)
-}
-
-/** 获取权限详情 */
-export function getPermissionDetail(id: IdType) {
-  return request.post<PermissionItem>(endpoints.permission.detail, { id })
-}
-
-/** 创建权限，返回新权限 ID */
-export function createPermission(data: Partial<PermissionItem>) {
-  return request.post<number>(endpoints.permission.create, data)
-}
-
-/** 更新权限 */
-export function updatePermission(id: IdType, data: Partial<PermissionItem>) {
-  return request.post(endpoints.permission.update, { ...data, id })
-}
-
-/** 删除权限 */
-export function deletePermission(id: IdType) {
-  return request.post(endpoints.permission.delete, { id })
-}
-
-/** 权限模块 API 聚合对象（供 CrudTable :api 直接使用，亦可直接调用） */
+/** 权限模块 API（CrudTable :api 直接使用） */
 export const permissionApi = {
-  list: listPermissions,
-  menus: getUserMenus,
-  detail: getPermissionDetail,
-  create: createPermission,
-  update: updatePermission,
-  delete: deletePermission,
+  // ==================== CrudTable 契约键 ====================
+  /**
+   * 查询权限树列表
+   * <p>
+   * 原 /tree 与 /search 已合并：二者语义本就重叠（前者即「全条件为空的后者 + 建树」），
+   * 拆开会把「要不要做层级补全」的判断推给前端。合并后层级始终完整。
+   * </p>
+   */
+  list: (params: PermissionQuery = {}) =>
+    request.post<PermissionItem[]>(endpoints.permission.list, params),
+  /** 获取权限详情 */
+  detail: (id: IdType) => request.post<PermissionItem>(endpoints.permission.detail, { id }),
+  /** 创建权限，返回新权限 ID */
+  create: (data: Partial<PermissionItem>) =>
+    request.post<number>(endpoints.permission.create, data),
+  /** 更新权限 */
+  update: (id: IdType, data: Partial<PermissionItem>) =>
+    request.post(endpoints.permission.update, { ...data, id }),
+  /** 删除权限 */
+  delete: (id: IdType) => request.post(endpoints.permission.delete, { id }),
+
+  // ==================== 业务扩展键（CrudTable 不消费，侧边栏菜单使用） ====================
+  /** 获取当前用户菜单树（用于动态生成侧边栏菜单和路由） */
+  menus: () => request.post<PermissionItem[]>(endpoints.permission.menus),
 }

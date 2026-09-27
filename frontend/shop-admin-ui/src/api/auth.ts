@@ -1,5 +1,5 @@
 /**
- * 认证模块：登录 / 登出
+ * 认证模块：登录 / 登出 + Token 生命周期（刷新 / 定时自动刷新）
  */
 import { getToken, setToken, removeToken } from '@/utils/storage'
 
@@ -16,19 +16,22 @@ export interface LoginParams {
 /** 登录响应（后端 data 直接返回 token 字符串） */
 export type LoginResult = string
 
-/** 管理员登录，成功返回 Token 字符串，并写入 Token 存储（浏览器写 Cookie / 测试写请求头） */
-export async function login(data: LoginParams) {
-  const token = await request.post<string>(endpoints.auth.login, data)
-  setToken(token)
-  return token
-}
-
-/** 管理员登出 */
-export function logout() {
-  return request.post(endpoints.auth.logout)
+/** 认证模块 API（非 CRUD 资源，仅供直接调用） */
+export const authApi = {
+  /** 管理员登录，成功返回 Token 字符串，并写入 Token 存储（浏览器写 Cookie / 测试写请求头） */
+  login: async (data: LoginParams) => {
+    const token = await request.post<string>(endpoints.auth.login, data)
+    setToken(token)
+    return token
+  },
+  /** 管理员登出 */
+  logout: () => request.post(endpoints.auth.logout),
 }
 
 // ==================== Token 刷新 ====================
+// 说明：以下 Token 生命周期不属于「后端接口键」，故不纳入 authApi（authApi 只含 login / logout）。
+// refreshToken 为模块内部私有实现；startAutoRefreshToken / stopAutoRefreshToken 仍对外具名导出，
+// 由 stores/modules/user.ts 与 router/guards.ts 直接导入。
 
 /** 是否正在刷新 Token（防止并发重复刷新） */
 let isRefreshing = false
@@ -91,10 +94,4 @@ export function stopAutoRefreshToken(): void {
     clearInterval(autoRefreshTimer)
     autoRefreshTimer = null
   }
-}
-
-/** 认证模块 API 聚合对象（非 CRUD 资源，仅供直接调用） */
-export const authApi = {
-  login,
-  logout,
 }

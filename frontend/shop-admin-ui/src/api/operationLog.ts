@@ -54,22 +54,17 @@ export interface OperationLogPageParams extends PageParams {
   endTime?: string
 }
 
-/** 操作日志列表（分页） */
-export async function listOperationLogs(
-  params: OperationLogPageParams,
-): Promise<PageResult<OperationLogItem>> {
-  const ipage = await request.post<IPageResult<OperationLogItem>>(endpoints.operationLog.list, params)
-  return convertIPage(ipage)
-}
-
-/** 操作日志详情 */
-export async function getOperationLogDetail(id: number): Promise<OperationLogItem> {
-  const data = await request.post<OperationLogItem>(endpoints.operationLog.detail, { id })
-  return data
-}
-
-/** 操作日志模块 API 聚合对象（供 CrudTable :api 直接使用，亦可直接调用） */
+/** 操作日志模块 API（CrudTable :api 直接使用） */
 export const operationLogApi = {
-  list: listOperationLogs,
-  detail: getOperationLogDetail,
+  // ==================== CrudTable 契约键 ====================
+  /** 操作日志列表（分页） */
+  list: async (params: OperationLogPageParams): Promise<PageResult<OperationLogItem>> => {
+    const ipage = await request.post<IPageResult<OperationLogItem>>(
+      endpoints.operationLog.list,
+      params,
+    )
+    return convertIPage(ipage)
+  },
+  /** 操作日志详情 */
+  detail: (id: number) => request.post<OperationLogItem>(endpoints.operationLog.detail, { id }),
 }
