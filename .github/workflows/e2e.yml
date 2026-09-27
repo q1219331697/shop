@@ -112,12 +112,21 @@ jobs:
           retention-days: 7
 
       # 把 HTML 报告发布到 GitHub Pages，在线点开即可查看（含截图/trace）
+      #
+      # 产物名带上 run_attempt，让「同一次 run 的重跑」各用各的名字：
+      # 否则本 run 内会出现多个同名 github-pages 产物，deploy-pages 会报
+      # 「Multiple artifacts named "github-pages" were unexpectedly found」而失败。
+      # deploy-pages 用同一名字取产物，于是**任何一次构建（含重跑）都能覆盖发布**；
+      # 旧产物按 upload-pages-artifact 默认保留期（1 天）自动过期。
       - name: Upload Pages artifact
         if: always()
         uses: actions/upload-pages-artifact@v3
         with:
+          name: github-pages-${{ github.run_attempt }}
           path: frontend/shop-admin-ui/playwright-report/
 
       - name: Deploy to GitHub Pages
         if: always()
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}
