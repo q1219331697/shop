@@ -98,7 +98,7 @@ export async function dispatch(step: Step, page: Page, vars: Vars): Promise<void
 
   switch (step.操作) {
     case 'goto':
-      await page.goto(定位值)
+      await gotoStable(page, 定位值)
       return
     case 'fill':
       // 输入值为 "-" 表示留空；超时继承全局 use.actionTimeout，不在此写死
@@ -277,6 +277,31 @@ export async function dispatch(step: Step, page: Page, vars: Vars): Promise<void
     }
     default:
       throw new Error(`未知操作: ${step.操作}（用例 ${step.用例ID} 步骤 ${step.序号}）`)
+  }
+}
+
+/**
+ * 整页导航，容忍应用自身导航引发的 net::ERR_ABORTED
+ *
+ * 场景：点击「提交」后应用会自己 goBackToList()（router.back()）返回列表页，
+ * 此时测试的文档导航与应用自身的客户端导航并发，Chromium 会打断先发的文档请求并抛
+ * ERR_ABORTED——这是导航竞态、不是「慢」，放大超时无用。
+ *
+ * 只对该错误做有界重试（3 次）；其它错误（DNS、连接被拒等）立即抛出，不掩盖真问题。
+ *
+ * @param page Playwright 页面
+ * @param url 目标地址（相对 baseURL）
+ */
+async function gotoStable(page: Page, url: string): Promise<void> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      await page.goto(url)
+      return
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      if (attempt >= 3 || !message.includes('ERR_ABORTED')) throw error
+      await page.waitForTimeout(300)
+    }
   }
 }
 
