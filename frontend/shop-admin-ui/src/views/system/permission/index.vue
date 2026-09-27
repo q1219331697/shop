@@ -318,9 +318,17 @@ function handleToolbarAction(action: string) {
 function handleEditRow(row: PermissionItem) {
   router.push(`/system/permission/edit/${row.id}`)
 }
-/** 新增下级权限 -> 页面并预填上级 */
+/**
+ * 新增下级权限 -> 页面并预填上级
+ *
+ * 上级类型一并带入：新增页据它**同步**给出下一层级默认类型（目录→菜单、菜单→操作）。
+ * 若留到「权限树加载完成」后再推导，就必须在异步加载后回写 formData，
+ * 而 CrudForm 以 formData 为回填源 —— 那次回写会把用户已填内容一并重置（慢网络/并发下必现）。
+ *
+ * 注：直接手输 URL（只带 parentId、不带 parentType）时默认类型回退为表单默认值（目录）。
+ */
 function handleCreateChild(row: PermissionItem) {
-  router.push(`/system/permission/create?parentId=${row.id}`)
+  router.push(`/system/permission/create?parentId=${row.id}&parentType=${row.permissionType}`)
 }
 /** 详情 -> 页面 */
 function handleDetailRow(row: PermissionItem) {

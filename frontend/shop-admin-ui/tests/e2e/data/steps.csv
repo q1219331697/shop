@@ -1091,13 +1091,14 @@ TC-PERM-43,6,fill,placeholder,请输入权限名称,${menuName},-,-,按名称搜
 TC-PERM-43,7,click,css,button:has-text('搜索'),-,-,-,点击搜索
 TC-PERM-43,8,click,css,.el-table__row:has-text('${menuName}') button:has-text('新增下级'),-,-,-,点击菜单行新增下级
 TC-PERM-43,9,expectVisible,css,.form-page,-,-,-,新增页可见
-TC-PERM-43,10,fill,css,input[placeholder='请输入权限名称'],${treePrefix}-leaf,-,-,填子节点名称
-TC-PERM-43,11,fill,css,input[placeholder='如 system:user:list'],${treePrefix}-leaf:code,-,-,填子节点权限编码
-TC-PERM-43,12,click,css,.el-radio:has-text('操作'),-,-,-,选择操作类型(防自动默认偶发抖动)
-TC-PERM-43,13,click,css,.form-footer button.el-button--primary,-,-,-,提交保存(操作类型无需路径)
-TC-PERM-43,14,expectVisible,css,.el-table,-,-,-,提交成功回到列表
-TC-PERM-43,15,expectVisible,css,.el-table__row:has-text('${treePrefix}-leaf'),-,-,-,子节点已落库并出现在树中
-TC-PERM-43,16,expectText,css,.el-table__row:has-text('${treePrefix}-leaf'),-,操作,text,新建子节点类型为操作
+TC-PERM-43,10,expectText,css,.el-form-item:has(.el-form-item__label:text-is('上级权限')),-,${menuName},text,等上级权限回显（权限树已加载、初始化完成）
+TC-PERM-43,11,fill,css,input[placeholder='请输入权限名称'],${treePrefix}-leaf,-,-,填子节点名称
+TC-PERM-43,12,fill,css,input[placeholder='如 system:user:list'],${treePrefix}-leaf:code,-,-,填子节点权限编码
+TC-PERM-43,13,click,css,.el-radio:has-text('操作'),-,-,-,选择操作类型(防自动默认偶发抖动)
+TC-PERM-43,14,click,css,.form-footer button.el-button--primary,-,-,-,提交保存(操作类型无需路径)
+TC-PERM-43,15,expectVisible,css,.el-table,-,-,-,提交成功回到列表
+TC-PERM-43,16,expectVisible,css,.el-table__row:has-text('${treePrefix}-leaf'),-,-,-,子节点已落库并出现在树中
+TC-PERM-43,17,expectText,css,.el-table__row:has-text('${treePrefix}-leaf'),-,操作,text,新建子节点类型为操作
 TC-PERM-44,1,setupApi,uiLogin,-,-,-,-,登录并进入权限管理页
 TC-PERM-44,2,setupApi,permTree,-,-,-,-,造目录-菜单-操作权限子树
 TC-PERM-44,3,goto,-,/system/permission,-,-,-,进入权限管理页（造数后载入，含新数据）
@@ -1105,11 +1106,12 @@ TC-PERM-44,4,fill,placeholder,请输入权限名称,${dirName},-,-,按名称搜�
 TC-PERM-44,5,click,css,button:has-text('搜索'),-,-,-,点击搜索
 TC-PERM-44,6,click,css,.el-table__row:has-text('${dirName}') button:has-text('新增下级'),-,-,-,点击目录行新增下级
 TC-PERM-44,7,expectVisible,css,.form-page,-,-,-,新增页可见
-TC-PERM-44,8,fill,css,input[placeholder='请输入权限名称'],${treePrefix}-dup,-,-,填子节点名称
-TC-PERM-44,9,fill,css,input[placeholder='如 system:user:list'],${treePrefix}-dir,-,-,填已存在的权限编码(与目录重复)
-TC-PERM-44,10,click,css,.form-footer button.el-button--primary,-,-,-,提交新建
-TC-PERM-44,11,apiReject,permission,-,permissionCode=${treePrefix}-dir,权限编码已存在,-,后端拒绝重复权限编码(绕过前端直接调接口)
-TC-PERM-44,12,expectVisible,css,.form-page,-,-,-,提交失败仍停在新增页
+TC-PERM-44,8,expectText,css,.el-form-item:has(.el-form-item__label:text-is('上级权限')),-,${dirName},text,等上级权限回显（权限树已加载、初始化完成）
+TC-PERM-44,9,fill,css,input[placeholder='请输入权限名称'],${treePrefix}-dup,-,-,填子节点名称
+TC-PERM-44,10,fill,css,input[placeholder='如 system:user:list'],${treePrefix}-dir,-,-,填已存在的权限编码(与目录重复)
+TC-PERM-44,11,click,css,.form-footer button.el-button--primary,-,-,-,提交新建
+TC-PERM-44,12,apiReject,permission,-,permissionCode=${treePrefix}-dir,权限编码已存在,-,后端拒绝重复权限编码(绕过前端直接调接口)
+TC-PERM-44,13,expectVisible,css,.form-page,-,-,-,提交失败仍停在新增页
 TC-ROLE-01,1,setupApi,uiLogin,path=/system/role,-,-,-,登录并进入角色管理页
 TC-ROLE-01,2,expectVisible,css,.el-table,-,-,-,等待表格加载
 TC-ROLE-01,3,expectVisible,css,.page-container,-,-,-,页面容器存在

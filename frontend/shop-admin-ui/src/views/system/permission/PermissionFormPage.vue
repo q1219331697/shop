@@ -1,6 +1,9 @@
 <template>
-  <SubPage body-class="form-page" footer-class="form-footer">
+  <SubPage body-class="form-page" footer-class="form-footer" :loading="!formReady">
+    <!-- 初始化完成前不渲染表单：回填/预填必须先于任何用户输入，
+         否则 CrudForm 以 formData 为回填源，异步回填会把已填内容一并重置 -->
     <CrudForm
+      v-if="formReady"
       ref="formRef"
       :fields="permissionFormFields"
       :form-data="formData"
@@ -33,8 +36,17 @@
     </CrudForm>
 
     <template #footer>
+      <!-- 取消始终可点：初始化未完成也应允许离开页面；保存须等初始化就绪，
+           避免「遮罩下的保存」提交半初始化数据 -->
       <el-button @click="goBack">取 消</el-button>
-      <el-button type="primary" :loading="submitting" @click="formRef?.submit()">保 存</el-button>
+      <el-button
+        type="primary"
+        :disabled="!formReady"
+        :loading="submitting"
+        @click="formRef?.submit()"
+      >
+        保 存
+      </el-button>
     </template>
   </SubPage>
 </template>
@@ -75,7 +87,31 @@ const parentIdFromQuery = computed(() => {
   return raw ? Number(raw) : undefined
 })
 
+/**
+ * 上级节点类型：与 parentId 一同由列表页「新增下级」入口带入。
+ * <p>
+ * 用于**同步**推导下一层级默认权限类型（目录→菜单、菜单→操作）。若改为在
+ * 「权限树加载完成」后再从树上推导，就必然要在异步加载后回写 formData，
+ * 而 CrudForm 以 formData 为回填源，那次回写会把用户已填内容一并清空。
+ * </p>
+ */
+const parentTypeFromQuery = computed(() => {
+  const raw = route.query.parentType
+  return raw ? Number(raw) : undefined
+})
+
 const submitting = ref(false)
+
+/**
+ * 表单是否已就绪（可渲染 / 可交互）。
+ * <p>
+ * CrudForm 把 formData 当「回填源」：其内部副本在 formData 变化时会整体重置（清空后重建）。
+ * 本页详情回填必须在 await 之后完成，若此时表单已可交互，用户刚填的内容会被这次回填清空。
+ * 故表单须等初始化结束再渲染 —— 回填只发生在「用户还看不到表单」的阶段。
+ * 语义是「初始化流程结束」（成功或失败都置位），否则接口异常时页面会永久空白。
+ * </p>
+ */
+const formReady = ref(false)
 const formData = reactive<Record<string, unknown>>({
   ...permissionDefaultFormData,
 })
@@ -156,33 +192,36 @@ const parentOptions = computed<ParentOption[]>(() => {
 const labelWidth = '96px'
 
 onMounted(async () => {
-  // 加载权限树（用于上级权限选择）
-  try {
-    permissionTree.value = await api.permission.list()
-  } catch {
-    permissionTree.value = []
-  }
-  // 预填数据
+  // 预填数据。
+  // 注意：CrudForm 以 formData 为「回填源」（其 deep watch 会先清空本地副本再重建），
+  // 因此「用户可能已开始输入之后再写 formData」的任何写入都会把已填内容清空。
+  // 新增分支的一切预填必须在此处**同步**完成，不做任何 await 之后的回写。
   if (isEdit.value && id.value) {
+    // 编辑：记录必须从服务端取，回填本质上是异步的 ——
+    // 由用例侧「等待详情回填」同步点兜住（见 steps.csv 编辑类用例的 expectValue 步骤）
     try {
       Object.assign(formData, await api.permission.detail(id.value))
     } catch {
       /* 请求工具已处理 */
     }
-  } else {
-    Object.assign(formData, permissionDefaultFormData)
-    if (parentIdFromQuery.value !== undefined) {
-      formData.parentId = parentIdFromQuery.value
-      // 新增下级时按上级类型给出下一层级的默认类型：目录下默认菜单，菜单下默认操作
-      const parent = flattenPermissionTree(permissionTree.value).find(
-        (node) => node.id === parentIdFromQuery.value,
-      )
-      if (parent?.permissionType === 1) {
-        formData.permissionType = 2
-      } else if (parent?.permissionType === 2) {
-        formData.permissionType = 3
-      }
+  } else if (parentIdFromQuery.value !== undefined) {
+    // 新增下级：上级与默认类型随 query 同步带入（其余默认值在 formData 声明时已就位，无需再写）
+    formData.parentId = parentIdFromQuery.value
+    if (parentTypeFromQuery.value === 1) {
+      formData.permissionType = 2
+    } else if (parentTypeFromQuery.value === 2) {
+      formData.permissionType = 3
     }
+  }
+
+  // 表单数据已就绪（编辑=详情回填完成；新增=默认值同步就位）：此后不再回写 formData
+  formReady.value = true
+
+  // 权限树仅用于「上级权限」下拉选项：异步补齐即可，不再回写 formData
+  try {
+    permissionTree.value = await api.permission.list()
+  } catch {
+    permissionTree.value = []
   }
 })
 

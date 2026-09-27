@@ -1,5 +1,5 @@
 <template>
-  <SubPage body-class="form-page" footer-class="form-footer">
+  <SubPage body-class="form-page" footer-class="form-footer" :loading="!formReady">
     <!-- 新增不需要填写密码：由后端填充系统默认密码，这里只做提示（编辑页无密码相关操作） -->
     <el-alert
       v-if="!isEdit"
@@ -10,7 +10,10 @@
       :title="`新管理员将使用系统默认密码：${defaultPassword}`"
     />
 
+    <!-- 初始化完成前不渲染表单：详情回填必须先于任何用户输入，
+         否则 CrudForm 以 formData 为回填源，回填会把已填内容一并重置 -->
     <CrudForm
+      v-if="formReady"
       ref="formRef"
       :fields="adminUserSchema.formFields ?? []"
       :form-data="formData"
@@ -26,8 +29,17 @@
     </CrudForm>
 
     <template #footer>
+      <!-- 取消始终可点：初始化未完成也应允许离开页面；保存须等初始化就绪，
+           避免「遮罩下的保存」提交半初始化数据 -->
       <el-button @click="goBack">取 消</el-button>
-      <el-button type="primary" :loading="submitting" @click="formRef?.submit()">保 存</el-button>
+      <el-button
+        type="primary"
+        :disabled="!formReady"
+        :loading="submitting"
+        @click="formRef?.submit()"
+      >
+        保 存
+      </el-button>
     </template>
   </SubPage>
 </template>
@@ -62,6 +74,16 @@ const id = computed(() => {
 const isEdit = computed(() => !!id.value)
 
 const submitting = ref(false)
+
+/**
+ * 表单是否已就绪（可渲染 / 可交互）。
+ * <p>
+ * CrudForm 把 formData 当「回填源」：其内部副本在 formData 变化时会整体重置（清空后重建）。
+ * 编辑态详情回填必须在 await 之后完成，若此时表单已可交互，用户刚填的内容会被这次回填清空。
+ * 故表单须等初始化结束再渲染；语义是「初始化流程结束」（成功或失败都置位）。
+ * </p>
+ */
+const formReady = ref(false)
 const formData = reactive<Record<string, unknown>>({
   ...(adminUserSchema.defaultFormData || {}),
 })
@@ -77,8 +99,12 @@ onMounted(async () => {
     } catch {
       /* 请求工具已处理 */
     }
+    // 编辑：详情回填完成后再放行表单
+    formReady.value = true
     return
   }
+  // 新增：默认值随 formData 声明就位，无需等待接口即可交互（默认密码仅提示文案）
+  formReady.value = true
   try {
     defaultPassword.value = await api.adminUser.defaultPassword()
   } catch {
