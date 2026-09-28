@@ -62,14 +62,14 @@ jobs:
         run: mvn clean package -DskipTests -Dcheckstyle.skip=true -B
 
       - name: Upload shop-admin JAR
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: shop-admin-${{ needs.prepare.outputs.version }}
           path: backend/shop-admin/target/shop-admin-*.jar
           retention-days: 30
 
       - name: Upload shop-api JAR
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: shop-api-${{ needs.prepare.outputs.version }}
           path: backend/shop-api/target/shop-api-*.jar
@@ -98,7 +98,7 @@ jobs:
           npm run build
 
       - name: Upload frontend dist
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: admin-ui-${{ needs.prepare.outputs.version }}
           path: frontend/shop-admin-ui/dist/

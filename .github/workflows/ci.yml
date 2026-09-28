@@ -51,7 +51,7 @@ jobs:
 
       - name: Upload Test Reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: backend-test-reports
           path: backend/**/target/surefire-reports/
@@ -87,7 +87,7 @@ jobs:
         run: npx vue-tsc --noEmit
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: admin-ui-dist
           path: frontend/shop-admin-ui/dist/
