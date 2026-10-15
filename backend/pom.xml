@@ -75,7 +75,7 @@
         <!-- JWT 令牌版本 -->
         <jwt.version>0.12.7</jwt.version>
         <!-- Knife4j API 文档版本 -->
-        <knife4j.version>5.7.5</knife4j.version>
+        <knife4j.version>5.7.7</knife4j.version>
         <!-- MyBatis Plus 版本 -->
         <mybatis-plus.version>3.5.17</mybatis-plus.version>
     </properties>
