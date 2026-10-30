@@ -77,7 +77,7 @@
         <!-- Knife4j API 文档版本 -->
         <knife4j.version>5.7.5</knife4j.version>
         <!-- MyBatis Plus 版本 -->
-        <mybatis-plus.version>3.5.17</mybatis-plus.version>
+        <mybatis-plus.version>3.5.18</mybatis-plus.version>
     </properties>
 
     <!-- ==================== 依赖版本管理（子模块按需引入，不直接引入依赖） ==================== -->
